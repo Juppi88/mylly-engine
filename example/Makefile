@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean
 CC = clang-6.0
-CFLAGS = -Wall -O2 -I../engine
-LDFLAGS = -static -L../engine/build/bin -lmylly
+CFLAGS = -Wall -g -I../engine
+LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL
 
 OBJS = main/main.o
 DEPS =
@@ -12,6 +12,7 @@ builddirs:
 	mkdir -p build/bin
 
 clean:
+	$(MAKE) -C ../engine clean
 	rm -f build/objs/*.o build/bin/*
 
 mylly.bin: $(OBJS)
@@ -21,5 +22,7 @@ mylly.bin: $(OBJS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)
 
 all:
+	$(MAKE) -C ../engine builddirs
+	$(MAKE) -C ../engine
 	make builddirs
 	make mylly.bin

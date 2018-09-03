@@ -1,12 +1,11 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean
 CC = clang-6.0
-CFLAGS = -Wall -O2 -I.
-LDFLAGS = -static
+CFLAGS = -Wall -g -I.
 
-OBJS = core/memory.o core/string.o\
+OBJS = core/mylly.o core/memory.o core/string.o\
        io/config.o io/console.o io/file.o io/log.o\
-       platform/thread.o platform/timer.o
+       platform/thread.o platform/timer.o platform/window.o
 DEPS =
 
 builddirs:
