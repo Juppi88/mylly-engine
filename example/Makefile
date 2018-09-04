@@ -2,7 +2,7 @@
 .PHONY: all clean
 CC = clang-6.0
 CFLAGS = -Wall -g -I../engine
-LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL
+LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU
 
 OBJS = main/main.o
 DEPS =

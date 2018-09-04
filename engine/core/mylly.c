@@ -2,6 +2,7 @@
 #include "io/log.h"
 #include "platform/thread.h"
 #include "platform/window.h"
+#include "renderer/renderer.h"
 
 bool mylly_initialize(int argc, char **argv)
 {
@@ -12,7 +13,15 @@ bool mylly_initialize(int argc, char **argv)
 		return false;
 	}
 
+	// Initialize the renderer subsystem.
+	rend_initialize();
+
 	return true;
+}
+
+static void mylly_shutdown(void)
+{
+	rend_shutdown();
 }
 
 void mylly_main_loop(on_loop_t callback)
@@ -26,6 +35,12 @@ void mylly_main_loop(on_loop_t callback)
 		}
 
 		window_pump_events();
+
+		rend_draw_view();
+
 		thread_sleep(10);
 	}
+
+	// Do cleanup when exiting the main loop.
+	mylly_shutdown();
 }

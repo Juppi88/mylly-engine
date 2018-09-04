@@ -9,14 +9,7 @@
 #else
 
 #include "io/log.h"
-#include <X11/X.h>
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <dlfcn.h>
-#include <unistd.h>
-#include <dirent.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 
@@ -98,6 +91,21 @@ void window_pump_events(void)
 	event.count = 0;
 
 	XSendEvent(display, window, 0, ExposureMask, (XEvent *)&event);
+}
+
+Display *window_get_display(void)
+{
+	return display;
+}
+
+Window window_get_handle(void)
+{
+	return window;
+}
+
+XVisualInfo *window_get_visual_info(void)
+{
+	return visual;
 }
 
 #endif

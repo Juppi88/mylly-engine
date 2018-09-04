@@ -5,7 +5,8 @@ CFLAGS = -Wall -g -I.
 
 OBJS = core/mylly.o core/memory.o core/string.o\
        io/config.o io/console.o io/file.o io/log.o\
-       platform/thread.o platform/timer.o platform/window.o
+       platform/thread.o platform/timer.o platform/window.o\
+       renderer/opengl/extensions.o renderer/opengl/renderer.o
 DEPS =
 
 builddirs:
@@ -13,6 +14,8 @@ builddirs:
 	mkdir -p build/objs/core
 	mkdir -p build/objs/io
 	mkdir -p build/objs/platform
+	mkdir -p build/objs/renderer
+	mkdir -p build/objs/renderer/opengl
 	mkdir -p build/bin
 
 clean:
