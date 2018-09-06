@@ -59,20 +59,16 @@ void rend_draw_view(const model_t *model)
 
 	array_foreach(mesh_t*, model->meshes, mesh) {
 
-		glVertexPointer(3, GL_FLOAT, sizeof(vertex_t), mesh->vertices);
+		// Set pointers to vertex data
+		glVertexPointer(3, GL_FLOAT, sizeof(vertex_t), &mesh->vertices[0].pos);
+		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex_t), &mesh->vertices[0].colour);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(vertex_t), &mesh->vertices[0].uv);
+		glNormalPointer(GL_FLOAT, sizeof(vertex_t), &mesh->vertices[0].normal);
+
+		// Draw vertex indices
 		glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_SHORT, mesh->indices);
 	}
 	array_end();
-
-	/*LIST_FOREACH(vertexbuffer_t, vb, buffers)
-	{
-		for (int i = 0; i < vb->count; i++) {
-
-			vertex_t *v = &vb->buffer[i];
-			glColor3f(v->r / 255.0f, v->g / 255.0f, v->b / 255.0f);
-			glVertex3f(v->pos.x, v->pos.y, v->pos.z);
-		}
-	}*/
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
