@@ -36,7 +36,13 @@ void mylly_main_loop(on_loop_t callback)
 
 		window_pump_events();
 
-		rend_draw_view();
+		// Test rendering
+		model_t *model = model_create();
+		model_setup_primitive(model, PRIMITIVE_QUAD);
+
+		rend_draw_view(model);
+
+		model_destroy(model);
 
 		thread_sleep(10);
 	}

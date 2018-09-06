@@ -17,6 +17,18 @@ void *mem_alloc(size_t size)
 	return ptr;
 }
 
+void *mem_alloc_fast(size_t size)
+{
+	void *ptr = malloc(size);
+
+	if (ptr == NULL) {
+		log_error("Memory", "Unable to allocate memory!");
+		exit(0);
+	}
+
+	return ptr;
+}
+
 void mem_free(void *ptr)
 {
 	free(ptr);

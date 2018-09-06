@@ -4,9 +4,17 @@
 
 #include "core/defines.h"
 
-#define NEW(type, var) struct type *var = mem_alloc(sizeof(struct type))
+#define NEW(type, name) struct type *name = mem_alloc(sizeof(struct type))
+
+#define NEW_ARRAY(type, name, count) type *name = mem_alloc_fast(sizeof(type) * count)
+
+#define DELETE(var) {\
+	mem_free(var);\
+	(var) = NULL;\
+}
 
 void *mem_alloc(size_t size);
+void *mem_alloc_fast(size_t size);
 void mem_free(void *ptr);
 
 #endif

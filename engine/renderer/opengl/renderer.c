@@ -1,5 +1,6 @@
 #include "renderer/renderer.h"
 #include "extensions.h"
+#include "renderer/vertex.h"
 #include "io/log.h"
 #include "platform/window.h"
 
@@ -50,9 +51,30 @@ void rend_shutdown(void)
 #endif
 }
 
-void rend_draw_view(void)
+void rend_draw_view(const model_t *model)
 {
 	rend_begin_draw();
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	array_foreach(mesh_t*, model->meshes, mesh) {
+
+		glVertexPointer(3, GL_FLOAT, sizeof(vertex_t), mesh->vertices);
+		glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_SHORT, mesh->indices);
+	}
+	array_end();
+
+	/*LIST_FOREACH(vertexbuffer_t, vb, buffers)
+	{
+		for (int i = 0; i < vb->count; i++) {
+
+			vertex_t *v = &vb->buffer[i];
+			glColor3f(v->r / 255.0f, v->g / 255.0f, v->b / 255.0f);
+			glVertex3f(v->pos.x, v->pos.y, v->pos.z);
+		}
+	}*/
+
+	glDisableClientState(GL_VERTEX_ARRAY);
 
 	rend_end_draw();
 }
