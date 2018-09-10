@@ -27,6 +27,12 @@
 		(list) = (entry)->__next;\
 	}
 
+#define LIST_POP_FIRST(list)\
+	list;\
+	if ((list) != NULL) {\
+		list = (list)->__next;\
+	}
+
 // Iterate through a list. Unsafe if list is modified during iteration.
 #define LIST_FOREACH(type, var, list)\
 	for (struct type *var = (list); var != NULL; var = var->__next)
@@ -37,6 +43,9 @@
 
 #define LIST_FOREACH_SAFE_BEGIN(var)\
 	__tmp = var->__next
+
+#define LIST_FOREACH_SAFE_NEXT()\
+	__tmp
 
 #define LIST_IS_FIRST(list, var)\
 	((list) == var)

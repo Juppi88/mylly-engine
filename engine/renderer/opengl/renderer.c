@@ -75,6 +75,33 @@ void rend_draw_view(const model_t *model)
 	rend_end_draw();
 }
 
+vbindex_t rend_generate_buffer(void)
+{
+	GLuint vbo;
+
+	glGenBuffersARB(1, &vbo);
+	return vbo;
+}
+
+void rend_destroy_buffer(vbindex_t vbo)
+{
+	if (vbo != 0) {
+		glDeleteBuffersARB(1, &vbo);
+	}
+}
+
+void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_index_data)
+{
+	if (is_index_data) {
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, size, data, GL_STATIC_DRAW_ARB);
+	}
+	else {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, data, GL_STATIC_DRAW_ARB);
+	}
+}
+
 static void rend_begin_draw(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
