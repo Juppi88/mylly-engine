@@ -4,6 +4,7 @@
 
 #include "core/defines.h"
 #include "renderer/vertex.h"
+#include "renderer/vertexbuffer.h"
 
 // --------------------------------------------------------------------------------
 
@@ -16,6 +17,9 @@ typedef struct mesh_t {
 
 	vindex_t *indices; // Array of vertex indices
 	size_t num_indices;
+
+	vertexbuffer_t *vertex_buffer; // GPU buffer objects
+	vertexbuffer_t *index_buffer;
 
 } mesh_t;
 

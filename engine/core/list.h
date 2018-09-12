@@ -47,6 +47,12 @@
 #define LIST_FOREACH_SAFE_NEXT()\
 	__tmp
 
+#define LIST_NEXT(item)\
+	((item)->__next)
+
+#define LIST_FIRST(list)\
+	(list)
+
 #define LIST_IS_FIRST(list, var)\
 	((list) == var)
 

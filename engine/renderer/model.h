@@ -3,7 +3,7 @@
 #define __MODEL_H
 
 #include "renderer/mesh.h"
-#include "core/arraylist.h"
+#include "core/array.h"
 
 typedef enum {
 	PRIMITIVE_QUAD,
@@ -12,7 +12,7 @@ typedef enum {
 
 typedef struct model_t {
 
-	arraylist_t meshes; // mesh_t
+	arr_t(mesh_t*) meshes;
 
 } model_t;
 

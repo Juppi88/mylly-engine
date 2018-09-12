@@ -4,12 +4,13 @@
 
 #include "core/defines.h"
 #include "renderer/model.h"
+#include "renderer/renderview.h"
 #include "renderer/vertexbuffer.h"
 
 bool rend_initialize(void);
 void rend_shutdown(void);
 
-void rend_draw_view(const model_t *model);
+void rend_draw_views(LIST(rview_t) views);
 
 // Generate a new vertex buffer object. Will be freed automatically after a while unless
 // explicitly refreshed.

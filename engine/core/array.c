@@ -1,9 +1,10 @@
-#include "arraylist.h"
+#include "array.h"
 #include "memory.h"
+#include <string.h>
 
 void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size)
 {
-	if (*capacity >= (*data_size) * ((*count) + 1)) {
+	if (*capacity >= data_size * ((*count) + 1)) {
 
 		// Enough space for one more element, no need to resize.
 		return;
@@ -22,5 +23,5 @@ void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size)
 	DELETE(*arr);
 
 	*arr = new_arr;
-	*capacity = new_capacity
+	*capacity = new_capacity;
 }

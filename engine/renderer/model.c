@@ -40,7 +40,7 @@ mesh_t *model_add_mesh(model_t *model, const vertex_t *vertices, size_t num_vert
 	mesh_set_indices(mesh, indices, num_indices);
 
 	// Add the mesh to the model.
-	array_push(mesh_t*, model->meshes, mesh);
+	arr_push(model->meshes, mesh);
 
 	return mesh;
 }
@@ -49,13 +49,14 @@ void model_remove_meshes(model_t *model)
 {
 	assert(model != NULL);
 
-	array_foreach(mesh_t*, model->meshes, mesh) {
+	mesh_t *mesh;
+
+	arr_foreach(model->meshes, mesh) {
 
 		mesh_destroy(mesh);
 	}
-	array_end();
 	
-	array_clear(model->meshes);
+	arr_clear(model->meshes);
 }
 
 void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type)
@@ -75,7 +76,7 @@ void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type)
 			mesh_set_vertices(mesh, quad_vertices, LENGTH(quad_vertices));
 			mesh_set_indices(mesh, quad_indices, LENGTH(quad_indices));
 
-			array_push(mesh_t*, model->meshes, mesh);
+			arr_push(model->meshes, mesh);
 			break;
 
 		default:

@@ -3,11 +3,11 @@
 CC = clang-6.0
 CFLAGS = -Wall -g -I.
 
-OBJS = core/mylly.o core/memory.o core/string.o\
+OBJS = core/array.o core/mylly.o core/memory.o core/string.o\
        io/config.o io/console.o io/file.o io/log.o\
        math/vector.o\
        platform/thread.o platform/timer.o platform/window.o\
-       renderer/mesh.o renderer/model.o renderer/vbcache.o\
+       renderer/mesh.o renderer/model.o renderer/rendersystem.o renderer/vbcache.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o
 DEPS =
 

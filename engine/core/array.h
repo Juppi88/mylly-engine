@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __ARRAYLIST_H
-#define __ARRAYLIST_H
+#ifndef __ARRAY_H
+#define __ARRAY_H
 
 #include "core/defines.h"
 #include "core/memory.h"

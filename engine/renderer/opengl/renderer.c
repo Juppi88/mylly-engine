@@ -33,6 +33,12 @@ bool rend_initialize(void)
 	glXMakeCurrent(window_get_display(), window_get_handle(), context);
 #endif
 
+	if (!glext_initialize()) {
+
+		log_error("Renderer", "Could not load all essential OpenGL extensions");
+		return false;	
+	}
+
 	glEnable(GL_DEPTH_TEST);
 
 	return true;
@@ -51,24 +57,30 @@ void rend_shutdown(void)
 #endif
 }
 
-void rend_draw_view(const model_t *model)
+void rend_draw_views(LIST(rview_t) views)
 {
 	rend_begin_draw();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	array_foreach(mesh_t*, model->meshes, mesh) {
+	LIST_FOREACH(rview_t, view, views) {
 
-		// Set pointers to vertex data
-		glVertexPointer(3, GL_FLOAT, sizeof(vertex_t), &mesh->vertices[0].pos);
-		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex_t), &mesh->vertices[0].colour);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(vertex_t), &mesh->vertices[0].uv);
-		glNormalPointer(GL_FLOAT, sizeof(vertex_t), &mesh->vertices[0].normal);
+		LIST_FOREACH(rmesh_t, mesh, view->meshes) {
 
-		// Draw vertex indices
-		glDrawElements(GL_TRIANGLES, mesh->num_indices, GL_UNSIGNED_SHORT, mesh->indices);
+			/// Bind the meshes vertex buffer and set vertex data pointers.
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
+
+			// Set vertex data offsets in the buffer.
+			glVertexPointer(3, GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
+			glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
+			glTexCoordPointer(2, GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
+			glNormalPointer(GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+
+			// Draw the triangles of the mesh.
+			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
+			glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
+		}
 	}
-	array_end();
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
