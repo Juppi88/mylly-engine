@@ -69,11 +69,6 @@ static bool shader_create_program(shader_t *shader, const char *src)
 		return false;
 	}
 
-#if _DEBUG
-	// Always print shader compiler messages in debug mode.
-	log_message("Renderer", "Compiled vertex shader '%s':\n%s", shader->name, log);
-#endif
-
 	// Compile the fragment shader.
 	shader->fragment = rend_create_shader(SHADER_FRAGMENT, src, &log);
 
@@ -82,11 +77,6 @@ static bool shader_create_program(shader_t *shader, const char *src)
 		log_note("Renderer", "Failed to compile fragment shader '%s':\n%s", shader->name, log);
 		return false;
 	}
-
-#if _DEBUG
-	// Always print shader compiler messages in debug mode.
-	log_message("Renderer", "Compiled fragment shader '%s':\n%s", shader->name, log);
-#endif
 
 	// Link the shader objects into a shader program.
 	shader_object_t shaders[2] = { shader->vertex, shader->fragment };

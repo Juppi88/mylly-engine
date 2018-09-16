@@ -4,8 +4,12 @@
 #include "renderview.h"
 #include "io/log.h"
 
+// --------------------------------------------------------------------------------
+
 static int frames_rendered; // Number of frames rendered so far
 static LIST(rview_t) views; // List of views to be rendered this frame
+
+static shader_t *default_shader; // Shader used by default
 
 // --------------------------------------------------------------------------------
 
@@ -20,11 +24,17 @@ void rsys_initialize(void)
 	rend_initialize();
 	vbcache_initialize();
 
+	// Create a default shader to be used when nothing else is available.
+	default_shader = shader_create("default", rend_get_default_shader_source());
+
 	log_message("RenderSystem", "Rendering system initialized.");
 }
 
 void rsys_shutdown(void)
 {
+	shader_destroy(default_shader);
+	default_shader = NULL;
+
 	vbcache_shutdown();
 	rend_shutdown();
 }
@@ -110,6 +120,7 @@ static void rsys_process_mesh_frustrum_culling(rview_t *view)
 			rmesh->parent = obj;
 			rmesh->vertices = mesh->vertex_buffer;
 			rmesh->indices = mesh->index_buffer;
+			rmesh->shader = default_shader; // Use default shader until others are available.
 
 			// Add the mesh to the view.
 			LIST_ADD(view->meshes, rmesh);

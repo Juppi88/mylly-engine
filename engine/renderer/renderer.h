@@ -49,6 +49,6 @@ void rend_destroy_shader_program(shader_program_t program);
 int rend_get_program_uniform_location(shader_program_t program, const char *name);
 
 // Returns the source code for a default shader which renders everything in purple.
-const char *rend_get_default_shader_code(void);
+const char *rend_get_default_shader_source(void);
 
 #endif

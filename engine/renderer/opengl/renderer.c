@@ -3,6 +3,7 @@
 #include "renderer/vertex.h"
 #include "io/log.h"
 #include "platform/window.h"
+#include "core/string.h"
 
 #ifdef _WIN32
 #error "Missing implementation"
@@ -10,19 +11,18 @@
 static GLXContext context;
 #endif
 
+static GLuint active_shader;
+
 // --------------------------------------------------------------------------------
 
 // The source code for a default GLSL shader which renders everything in purple.
 // Used when no valid shaders are available.
-static const char *default_shader =
-"#version 150\n"
-"\n"
-//"uniform mat4 MatrixMVP;\n"
+static const char *default_shader_source =
+"uniform mat4 MatrixMVP;\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
 "void main()\n"
 "{\n"
-//"	gl_Position = gl_Vertex * MatrixMVP;\n"
 "	gl_Position = gl_Vertex;\n"
 "}\n"
 "#elif defined(FRAGMENT_SHADER)\n"
@@ -31,6 +31,7 @@ static const char *default_shader =
 "	gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
 "}\n"
 "#endif\n";
+//"	gl_Position = gl_Vertex * MatrixMVP;\n"
 
 // --------------------------------------------------------------------------------
 
@@ -89,6 +90,15 @@ void rend_draw_views(LIST(rview_t) views)
 
 		LIST_FOREACH(rmesh_t, mesh, view->meshes) {
 
+			// Select the active shader.
+			GLuint shader = mesh->shader->program;
+
+			if (shader != active_shader) {
+				
+				glUseProgram(shader);
+				active_shader = shader;
+			}
+
 			/// Bind the meshes vertex buffer and set vertex data pointers.
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
 
@@ -139,19 +149,21 @@ void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_ind
 shader_object_t rend_create_shader(SHADER_TYPE type, const char *source, const char **compiler_log)
 {
 	GLenum shader_type;
-	const char *defines;
 
-	// Set the type of the shader (this is prepended to the shader source as a define).
+	// Set the type of the shader and prepend the shader version to the source.
+	const char *defines_format = "#version %s\n#define %s\n";
+	char defines[100];
+
 	switch (type) {
 
 	case SHADER_FRAGMENT:
+		snprintf(defines, sizeof(defines), defines_format, "130", "FRAGMENT_SHADER");
 		shader_type = GL_FRAGMENT_SHADER;
-		defines = "#define FRAGMENT_SHADER";
 		break;
 
 	default:
+		snprintf(defines, sizeof(defines), defines_format, "130", "VERTEX_SHADER");
 		shader_type = GL_VERTEX_SHADER;
-		defines = "#define VERTEX_SHADER";
 		break;
 	}
 
@@ -218,7 +230,7 @@ void rend_destroy_shader(shader_object_t shader)
 void rend_destroy_shader_program(shader_program_t program)
 {
 	if (program != 0) {
-		glDeleteShader(program);
+		glDeleteProgram(program);
 	}
 }
 
@@ -231,9 +243,9 @@ int rend_get_program_uniform_location(shader_program_t program, const char *name
 	return -1;
 }
 
-const char *rend_get_default_shader_code(void)
+const char *rend_get_default_shader_source(void)
 {
-	return default_shader;
+	return default_shader_source;
 }
 
 static void rend_begin_draw(void)
