@@ -3,7 +3,7 @@
 #include "renderer/vertex.h"
 #include "io/log.h"
 #include "platform/window.h"
-#include "core/string.h"
+#include <stdio.h>
 
 #ifdef _WIN32
 #error "Missing implementation"
@@ -94,7 +94,7 @@ void rend_draw_views(LIST(rview_t) views)
 			GLuint shader = mesh->shader->program;
 
 			if (shader != active_shader) {
-				
+
 				glUseProgram(shader);
 				active_shader = shader;
 			}
