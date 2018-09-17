@@ -67,7 +67,7 @@ void obj_set_dirty(object_t *obj)
 
 	// Do the same to each child object.
 	object_t *child;
-	
+
 	arr_foreach(obj->children, child) {
 		obj_set_dirty(child);
 	}
@@ -104,6 +104,10 @@ void obj_update_model_matrix(object_t *obj)
 	wy = rw * y2;
 	wz = rw * z2;
 
+	printf("pos: %f %f %f\n", obj->position.x, obj->position.y, obj->position.z);
+	printf("rot: %f %f %f %f\n", obj->rotation.x, obj->rotation.y, obj->rotation.z, obj->rotation.w);
+	printf("sca: %f %f %f\n", obj->scale.x, obj->scale.y, obj->scale.z);
+
 	obj->model_matrix[0][0] = obj->scale.x * (1.0f - (yy + zz));
 	obj->model_matrix[1][0] = obj->scale.x * (xy + wz);
 	obj->model_matrix[2][0] = obj->scale.x * (xz - wy);
@@ -120,6 +124,8 @@ void obj_update_model_matrix(object_t *obj)
 	obj->model_matrix[3][1] = 0.0f;
 	obj->model_matrix[3][2] = 0.0f;
 	obj->model_matrix[3][3] = 1.0f;
+
+	mat_print(&obj->model_matrix);
 
 	obj->is_model_matrix_dirty = false;
 }

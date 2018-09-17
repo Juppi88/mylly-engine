@@ -6,6 +6,7 @@
 #include "renderer/model.h"
 #include "renderer/shader.h"
 #include "renderer/vertexbuffer.h"
+#include "math/matrix.h"
 
 // --------------------------------------------------------------------------------
 // robject_t is a structure which contains data about an object which is visible
@@ -15,7 +16,7 @@ typedef struct robject_t {
 
 	LIST_ENTRY(robject_t);
 	model_t *model; // The actual render model containing the base meshes
-	//mat4 mat;	// Model to world matrix
+	mat_t matrix;	// Model to world matrix
 
 } robject_t;
 

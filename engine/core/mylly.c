@@ -5,6 +5,7 @@
 #include "renderer/rendersystem.h"
 
 static model_t *test_model;
+static object_t *test_obj;
 
 bool mylly_initialize(int argc, char **argv)
 {
@@ -22,11 +23,16 @@ bool mylly_initialize(int argc, char **argv)
 	test_model = model_create();
 	model_setup_primitive(test_model, PRIMITIVE_QUAD);
 
+	// Create a test object and attach the model to it.
+	test_obj = obj_create(NULL);
+	test_obj->model = test_model;
+
 	return true;
 }
 
 static void mylly_shutdown(void)
 {
+	obj_destroy(test_obj);
 	model_destroy(test_model);
 	
 	rsys_shutdown();
@@ -34,6 +40,8 @@ static void mylly_shutdown(void)
 
 void mylly_main_loop(on_loop_t callback)
 {
+	static int frames = 0;
+
 	// Enter the main loop.
 	for (;;) {
 
@@ -47,7 +55,18 @@ void mylly_main_loop(on_loop_t callback)
 		// Test rendering
 		rsys_begin_frame();
 
-		rsys_render_scene(test_model);
+		float angle = 0.001f * ++frames;
+
+		vec3_t pos = vec3(0.5f, 0.25f, 0);
+		obj_set_local_position(test_obj, &pos);
+
+		vec3_t scale = vec3(0.5f, 0.5f, 0.5f);
+		obj_set_local_scale(test_obj, &scale);
+
+		quat_t rotation = quat_from_euler(0, 0, 0.785f);
+		obj_set_local_rotation(test_obj, &rotation);
+
+		rsys_render_scene(test_obj);
 
 		rsys_end_frame();
 

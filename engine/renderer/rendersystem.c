@@ -58,7 +58,7 @@ void rsys_end_frame(void)
 	++frames_rendered;
 }
 
-void rsys_render_scene(model_t *model)
+void rsys_render_scene(object_t *object)
 {
 	// Collect info about the objects in the scene before rendering anything and process culling etc.
 	// TODO: Also use a proper temp allocator because this is alloc heavy!
@@ -70,7 +70,9 @@ void rsys_render_scene(model_t *model)
 	// Test code: We don't have a scene structure yet, so we're just rendering the test object.
 	{
 		NEW(robject_t, obj);
-		obj->model = model;
+
+		obj->model = object->model;
+		mat_cpy(&obj->matrix, obj_get_model_matrix(object));
 
 		LIST_ADD(view->objects, obj);
 	}

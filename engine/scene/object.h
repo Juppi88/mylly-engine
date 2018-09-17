@@ -20,6 +20,8 @@ typedef struct object_t {
 
 	mat_t model_matrix; // Model matrix of this object
 	bool is_model_matrix_dirty; // True when the model matrix hasn't been updated
+
+	model_t *model; // Render model
 	
 } object_t;
 

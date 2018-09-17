@@ -23,7 +23,7 @@ static const char *default_shader_source =
 "#if defined(VERTEX_SHADER)\n"
 "void main()\n"
 "{\n"
-"	gl_Position = gl_Vertex;\n"
+"	gl_Position = gl_Vertex * MatrixMVP;\n"
 "}\n"
 "#elif defined(FRAGMENT_SHADER)\n"
 "void main()\n"
@@ -31,7 +31,6 @@ static const char *default_shader_source =
 "	gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
 "}\n"
 "#endif\n";
-//"	gl_Position = gl_Vertex * MatrixMVP;\n"
 
 // --------------------------------------------------------------------------------
 
@@ -107,6 +106,25 @@ void rend_draw_views(LIST(rview_t) views)
 			glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
 			glTexCoordPointer(2, GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
 			glNormalPointer(GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+
+			// Set per-draw shader globals.
+			if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MATRIX)) {
+
+				glUniformMatrix4fv(
+					shader_get_global_position(mesh->shader, GLOBAL_MODEL_MATRIX),
+					1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
+				);
+			}
+
+			if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MVP)) {
+
+				glUniformMatrix4fv(
+					shader_get_global_position(mesh->shader, GLOBAL_MODEL_MVP),
+					1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
+				);
+
+				mat_print(&mesh->parent->matrix);
+			}
 
 			// Draw the triangles of the mesh.
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
@@ -239,7 +257,7 @@ int rend_get_program_uniform_location(shader_program_t program, const char *name
 	if (program != 0) {
 		return glGetUniformLocation(program, name);
 	}
-	
+
 	return -1;
 }
 

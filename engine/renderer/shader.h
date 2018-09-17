@@ -10,8 +10,8 @@ typedef uint32_t shader_object_t;
 typedef uint32_t shader_program_t;
 
 typedef enum {
-	CONST_MODEL_MATRIX,
-	CONST_MODEL_MVP,
+	GLOBAL_MODEL_MATRIX,
+	GLOBAL_MODEL_MVP,
 	NUM_SHADER_GLOBALS
 } SHADER_GLOBAL;
 
@@ -38,6 +38,7 @@ typedef struct shader_t {
 shader_t * shader_create(const char *name, const char *source);
 void shader_destroy(shader_t *shader);
 
+// --------------------------------------------------------------------------------
 
 #define shader_uses_global(shader, global)\
 	((shader)->globals[(global)] >= 0)

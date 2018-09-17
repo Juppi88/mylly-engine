@@ -91,7 +91,9 @@ static bool shader_create_program(shader_t *shader, const char *src)
 
 	// Get and cache shader uniform locations.
 	for (uint32_t i = 0; i < NUM_SHADER_GLOBALS; ++i) {
-		shader->globals[i] = rend_get_program_uniform_location(shader->program, shader_global_names[i]);
+
+		int global = rend_get_program_uniform_location(shader->program, shader_global_names[i]);
+		shader->globals[i] = global;
 	}
 
 	return true;
