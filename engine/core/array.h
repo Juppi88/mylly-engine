@@ -34,6 +34,26 @@
 #define arr_foreach(arr, var)\
 	for (size_t __i = 0; __i < (arr).count && ((var) = (arr).array[__i], 1); ++__i)
 
+
+#define arr_find(arr, val, idx) {\
+	for ((idx) = 0; (idx) < (arr).count; ++(idx)) {\
+		if ((arr).array[(idx)] == (val)) break;\
+	}\
+	if ((idx) == (arr).count) (idx) = -1;\
+}
+
+#define arr_remove(arr, val) {\
+	int __idx;\
+    arr_find(arr, val, __idx);\
+	if (__idx != -1) {\
+		arr_splice((void **)&(arr).array, &(arr).count, &(arr).capacity,\
+			sizeof((arr).array[0]), __idx, 1);\
+	}\
+}
+
+// --------------------------------------------------------------------------------
+
 void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size);
+void arr_splice(void **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items);
 
 #endif

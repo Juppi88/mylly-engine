@@ -25,3 +25,11 @@ void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size)
 	*arr = new_arr;
 	*capacity = new_capacity;
 }
+
+void arr_splice(void **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items)
+{
+	memmove(*arr + start * data_size, *arr + (start + items) * data_size,
+			(*count - start - items) * data_size);
+
+	*count = *count - items;
+}

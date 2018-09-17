@@ -5,10 +5,11 @@ CFLAGS = -Wall -g -D_DEBUG -I.
 
 OBJS = core/array.o core/mylly.o core/memory.o core/string.o\
        io/config.o io/console.o io/file.o io/log.o\
-       math/matrix.o math/vector.o\
+       math/matrix.o math/quaternion.o math/vector.o\
        platform/thread.o platform/timer.o platform/window.o\
        renderer/mesh.o renderer/model.o renderer/rendersystem.o renderer/shader.o renderer/vbcache.o\
-       renderer/opengl/extensions.o renderer/opengl/renderer.o
+       renderer/opengl/extensions.o renderer/opengl/renderer.o\
+       scene/object.o
 DEPS =
 
 builddirs:
@@ -19,6 +20,7 @@ builddirs:
 	mkdir -p build/objs/platform
 	mkdir -p build/objs/renderer
 	mkdir -p build/objs/renderer/opengl
+	mkdir -p build/objs/scene
 	mkdir -p build/bin
 
 clean:

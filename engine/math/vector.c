@@ -1,6 +1,19 @@
 #include "vector.h"
 #include "math.h"
 
+// --------------------------------------------------------------------------------
+
+vec2_t vec2_zero = vec2_zero();
+vec2_t vec2_one = vec2_one();
+
+vec3_t vec3_zero = vec3_zero();
+vec3_t vec3_one = vec3_one();
+
+vec4_t vec4_zero = vec4_zero();
+vec4_t vec4_one = vec4_one();
+
+// --------------------------------------------------------------------------------
+
 float vec3_normalize(vec3_t *v)
 {
 	float len2 = (v->x * v->x) + (v->y * v->y) + (v->z * v->z);

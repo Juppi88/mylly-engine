@@ -13,6 +13,9 @@ typedef struct vec2_t {
 #define vec2_zero() { 0, 0 }
 #define vec2_one() { 1, 1 }
 
+extern vec2_t vec2_zero;
+extern vec2_t vec2_one;
+
 // --------------------------------------------------------------------------------
 // vec3_t
 
@@ -23,6 +26,9 @@ typedef struct vec3_t {
 #define vec3(x, y, z) { x, y, z }
 #define vec3_zero() { 0, 0, 0 }
 #define vec3_one() { 1, 1, 1 }
+
+extern vec3_t vec3_zero;
+extern vec3_t vec3_one;
 
 float vec3_normalize(vec3_t *v);
 vec3_t vec3_normalized(const vec3_t *v);
@@ -38,10 +44,12 @@ typedef struct vec4_t {
 #define vec4_zero() { 0, 0, 0, 0 }
 #define vec4_one() { 1, 1, 1, 1 }
 
+extern vec4_t vec4_zero;
+extern vec4_t vec4_one;
+
 float vec4_normalize(vec4_t *v);
 vec4_t vec4_normalized(const vec4_t *v);
 
 // --------------------------------------------------------------------------------
-
 
 #endif
