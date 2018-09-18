@@ -122,8 +122,6 @@ void rend_draw_views(LIST(rview_t) views)
 					shader_get_global_position(mesh->shader, GLOBAL_MODEL_MVP),
 					1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
 				);
-
-				mat_print(&mesh->parent->matrix);
 			}
 
 			// Draw the triangles of the mesh.

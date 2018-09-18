@@ -55,7 +55,7 @@ void mylly_main_loop(on_loop_t callback)
 		// Test rendering
 		rsys_begin_frame();
 
-		float angle = 0.001f * ++frames;
+		float angle = 0.01f * ++frames;
 
 		vec3_t pos = vec3(0.5f, 0.25f, 0);
 		obj_set_local_position(test_obj, &pos);
@@ -63,7 +63,7 @@ void mylly_main_loop(on_loop_t callback)
 		vec3_t scale = vec3(0.5f, 0.5f, 0.5f);
 		obj_set_local_scale(test_obj, &scale);
 
-		quat_t rotation = quat_from_euler(0, 0, 0.785f);
+		quat_t rotation = quat_from_euler(0, 0, angle);
 		obj_set_local_rotation(test_obj, &rotation);
 
 		rsys_render_scene(test_obj);

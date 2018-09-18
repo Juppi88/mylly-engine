@@ -58,7 +58,6 @@ void vbcache_free_inactive_buffers(void)
 	// TODO: Use a real list here instead of a stack.
 	// Stack makes removing from the middle of the stack messy.
 	LIST_FOREACH_SAFE(vertexbuffer_t, buffer, active_buffers) {
-
 		LIST_FOREACH_SAFE_BEGIN(buffer);
 
 		// Check whether this vertex buffer has outlived its time.

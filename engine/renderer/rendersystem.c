@@ -153,4 +153,6 @@ static void rsys_free_frame_data(void)
 		// Remove the view itself.
 		mem_free(view);
 	}
+
+	views = NULL;
 }
