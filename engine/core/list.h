@@ -11,6 +11,9 @@
 		if ((list) != NULL) {\
 			(entry)->__next = (list);\
 		}\
+		else  {\
+			(entry)->__next = NULL;\
+		}\
 		(list) = (entry);\
 	}
 
@@ -28,9 +31,9 @@
 	}
 
 #define LIST_POP_FIRST(list)\
-	list;\
+	(list);\
 	if ((list) != NULL) {\
-		list = (list)->__next;\
+		(list) = (list)->__next;\
 	}
 
 // Iterate through a list. Unsafe if list is modified during iteration.
