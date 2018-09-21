@@ -72,7 +72,7 @@ void rsys_render_scene(object_t *object)
 		NEW(robject_t, obj);
 
 		obj->model = object->model;
-		mat_cpy(&obj->matrix, obj_get_model_matrix(object));
+		mat_cpy(&obj->matrix, obj_get_transform(object));
 
 		LIST_ADD(view->objects, obj);
 	}

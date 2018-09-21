@@ -24,11 +24,11 @@ void mat_multiply(const mat_t *mat1, const mat_t *mat2, mat_t *out);
 
 // --------------------------------------------------------------------------------
 
-static INLINE void mat_cpy(mat_t *mat, const mat_t *other)
+static INLINE void mat_cpy(mat_t *dst, const mat_t *src)
 {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			(*mat)[i][j] = (*other)[i][j];
+			(*dst)[i][j] = (*src)[i][j];
 		}
 	}
 }
