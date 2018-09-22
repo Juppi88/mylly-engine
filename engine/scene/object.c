@@ -77,7 +77,7 @@ void obj_set_dirty(object_t *obj)
 
 void obj_update_transform(object_t *obj)
 {
-	if (obj == NULL || !obj->is_local_transform_dirty) {
+	if (obj == NULL || !obj->is_transform_dirty) {
 		return;
 	}
 
@@ -93,7 +93,7 @@ void obj_update_transform(object_t *obj)
 	else {
 
 		// If the object has no parent, its transform is just the local transform.
-		mat_cpy(&obj->transform, &obj->local_transform);
+		mat_cpy(&obj->transform, obj_get_local_transform(obj));
 	}
 
 	obj->is_transform_dirty = false;

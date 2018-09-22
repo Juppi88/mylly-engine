@@ -275,16 +275,16 @@ static void rend_begin_draw(void)
 
 	// Setup the camera.
 	// TODO: Get this from frame data and move it to drawframe!
-	glViewport(0, 0, 640, 480);
+//	glViewport(0, 0, 640, 480);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	float aspect = 480.0f / 640.0f;
+	/*float aspect = 480.0f / 640.0f;
 	float width = 3.0f;
 
 	glOrtho(-width * aspect, width * aspect, -width, width, 1, -1);
-
+*/
 	//glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
 

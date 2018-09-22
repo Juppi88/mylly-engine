@@ -58,7 +58,25 @@ void rsys_end_frame(void)
 	++frames_rendered;
 }
 
-void rsys_render_scene(object_t *object)
+static void rsys_process_object_culling(rview_t *view, object_t *object)
+{
+	// Add the object to the view as a render object.
+	NEW(robject_t, obj);
+
+	obj->model = object->model;
+	mat_cpy(&obj->matrix, obj_get_transform(object));
+
+	LIST_ADD(view->objects, obj);
+
+	// Add all of the child objects, too.
+	object_t *child;
+
+	arr_foreach(object->children, child) {
+		rsys_process_object_culling(view, child);
+	}
+}
+
+void rsys_render_scene(object_t *root)
 {
 	// Collect info about the objects in the scene before rendering anything and process culling etc.
 	// TODO: Also use a proper temp allocator because this is alloc heavy!
@@ -67,15 +85,8 @@ void rsys_render_scene(object_t *object)
 	NEW(rview_t, view);
 
 	// TODO: Find which scene objects are visible in the current camera.
-	// Test code: We don't have a scene structure yet, so we're just rendering the test object.
-	{
-		NEW(robject_t, obj);
-
-		obj->model = object->model;
-		mat_cpy(&obj->matrix, obj_get_transform(object));
-
-		LIST_ADD(view->objects, obj);
-	}
+	// Test code: We don't have a scene structure yet, so we're just rendering the test objects.
+	rsys_process_object_culling(view, root);
 
 	// Cull all meshes which aren't in the view.
 	rsys_process_mesh_frustrum_culling(view);
