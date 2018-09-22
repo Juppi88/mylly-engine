@@ -3,6 +3,7 @@
 #define __VECTOR_H
 
 #include "core/defines.h"
+#include <stdio.h>
 
 // --------------------------------------------------------------------------------
 // vec2_t
@@ -46,6 +47,11 @@ static INLINE vec3_t vector3(float x, float y, float z)
 
 float vec3_normalize(vec3_t *v);
 vec3_t vec3_normalized(const vec3_t *v);
+
+static INLINE void vec3_print(const vec3_t *vec)
+{
+	printf("%.2f  %.2f  %.2f\n", vec->x, vec->y, vec->z);
+}
 
 // --------------------------------------------------------------------------------
 // vec4_t

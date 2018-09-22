@@ -35,11 +35,10 @@ static INLINE void mat_cpy(mat_t *dst, const mat_t *src)
 
 static INLINE void mat_print(const mat_t *mat)
 {
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			printf("mat[%d,%d] = %.2f\n", i, j, (*mat)[i][j]);
-		}
-	}
+	printf("[ %+.2f  %+.2f  %+.2f  %+.2f  \n", (*mat)[0][0], (*mat)[0][1], (*mat)[0][2], (*mat)[0][3]);
+	printf("  %+.2f  %+.2f  %+.2f  %+.2f  \n", (*mat)[1][0], (*mat)[1][1], (*mat)[1][2], (*mat)[1][3]);
+	printf("  %+.2f  %+.2f  %+.2f  %+.2f  \n", (*mat)[2][0], (*mat)[2][1], (*mat)[2][2], (*mat)[2][3]);
+	printf("  %+.2f  %+.2f  %+.2f  %+.2f ]\n", (*mat)[3][0], (*mat)[3][1], (*mat)[3][2], (*mat)[3][3]);
 }
 
 #endif

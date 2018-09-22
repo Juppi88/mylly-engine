@@ -13,11 +13,6 @@
 #define INLINE inline
 #endif
 
-#define MIN(x, y) (x < y ? x : y)
-#define MAX(x, y) (x > y ? x : y)
-
-#define CLAMP(x, min, max) (x < min ? min : (x > max ? max : x))
-
 #define UNUSED_RETURN(x) if (x);
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))

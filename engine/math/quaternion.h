@@ -23,4 +23,11 @@ quat_t quat_from_euler3(const vec3_t *euler);
 
 // --------------------------------------------------------------------------------
 
+static INLINE void quat_print(const quat_t quat)
+{
+	printf("%.2f  %.2f  %.2f  %.2f\n", quat.x, quat.y, quat.z, quat.w);
+}
+
+// --------------------------------------------------------------------------------
+
 #endif

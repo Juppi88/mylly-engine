@@ -28,6 +28,25 @@ bool mylly_initialize(int argc, char **argv)
 	test = obj_create(NULL);
 	test->model = test_model;
 
+	obj_set_local_position(test, vector3(0.0f, 0.0f, 0.0f));
+	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
+	obj_set_local_scale(test, vector3(1.0f, 2.0f, 3.0f));
+	obj_set_local_rotation(test, quat_from_euler(0, 0, DEG_TO_RAD(45)));
+
+	// TEST CODE
+	printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
+
+	mat_print(obj_get_transform(test));
+
+	printf("Pos: "); vec3_print(&test->position);
+	printf("Scale: "); vec3_print(&test->scale);
+	printf("Right: "); vec3_print(&test->right);
+	printf("Up: "); vec3_print(&test->up);
+	printf("Forward: "); vec3_print(&test->forward);
+	printf("Rot local : "); quat_print(obj_get_local_rotation(test));
+	printf("Rot global: "); quat_print(obj_get_rotation(test));
+	// END OF TEST CODE
+
 	// Create another object and attach it to the first one.
 	test2 = obj_create(test);
 	test2->model = test_model;
@@ -66,10 +85,7 @@ void mylly_main_loop(on_loop_t callback)
 		rsys_begin_frame();
 
 		float angle = 0.01f * ++frames;
-
-		obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
-		obj_set_local_scale(test, vector3(0.5f, 0.5f, 0.5f));
-		obj_set_local_rotation(test, quat_from_euler(0, 0, angle));
+		//obj_set_local_rotation(test, quat_from_euler(0, 0, angle));
 
 		rsys_render_scene(test);
 
