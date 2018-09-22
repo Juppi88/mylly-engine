@@ -10,8 +10,8 @@
 #endif
 
 #define PI 3.1415926535f
-#define RAD2DEG (180.0f / PI)
-#define DEG2RAD (PI / 180.0f)
+#define RAD_TO_DEG(x) ((x) * 180.0f / PI)
+#define DEG_TO_RAD(x) ((x) * PI / 180.0f)
 
 // --------------------------------------------------------------------------------
 

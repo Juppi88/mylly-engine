@@ -59,21 +59,21 @@ static INLINE const mat_t *obj_get_local_transform(object_t *obj)
 	return &obj->local_transform;
 }
 
-static INLINE void obj_set_local_position(object_t *obj, const vec3_t *position)
+static INLINE void obj_set_local_position(object_t *obj, const vec3_t position)
 {
-	obj->position = *position;
+	obj->position = position;
 	obj_set_dirty(obj);
 }
 
-static INLINE void obj_set_local_rotation(object_t *obj, const quat_t *rotation)
+static INLINE void obj_set_local_rotation(object_t *obj, const quat_t rotation)
 {
-	obj->rotation = *rotation;
+	obj->rotation = rotation;
 	obj_set_dirty(obj);
 }
 
-static INLINE void obj_set_local_scale(object_t *obj, const vec3_t *scale)
+static INLINE void obj_set_local_scale(object_t *obj, const vec3_t scale)
 {
-	obj->scale = *scale;
+	obj->scale = scale;
 	obj_set_dirty(obj);
 }
 

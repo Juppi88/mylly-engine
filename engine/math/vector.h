@@ -2,6 +2,8 @@
 #ifndef __VECTOR_H
 #define __VECTOR_H
 
+#include "core/defines.h"
+
 // --------------------------------------------------------------------------------
 // vec2_t
 
@@ -12,6 +14,12 @@ typedef struct vec2_t {
 #define vec2(x, y) { x, y }
 #define vec2_zero() { 0, 0 }
 #define vec2_one() { 1, 1 }
+
+static INLINE vec2_t vector2(float x, float y)
+{
+	vec2_t v = vec2(x, y);
+	return v;
+}
 
 extern vec2_t vec2_zero;
 extern vec2_t vec2_one;
@@ -30,6 +38,12 @@ typedef struct vec3_t {
 extern vec3_t vec3_zero;
 extern vec3_t vec3_one;
 
+static INLINE vec3_t vector3(float x, float y, float z)
+{
+	vec3_t v = vec3(x, y, z);
+	return v;
+}
+
 float vec3_normalize(vec3_t *v);
 vec3_t vec3_normalized(const vec3_t *v);
 
@@ -46,6 +60,12 @@ typedef struct vec4_t {
 
 extern vec4_t vec4_zero;
 extern vec4_t vec4_one;
+
+static INLINE vec4_t vector4(float x, float y, float z, float w)
+{
+	vec4_t v = vec4(x, y, z, w);
+	return v;
+}
 
 float vec4_normalize(vec4_t *v);
 vec4_t vec4_normalized(const vec4_t *v);

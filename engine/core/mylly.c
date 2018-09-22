@@ -3,6 +3,7 @@
 #include "platform/thread.h"
 #include "platform/window.h"
 #include "renderer/rendersystem.h"
+#include "math/math.h"
 
 static model_t *test_model;
 static object_t *test, *test2;
@@ -31,14 +32,9 @@ bool mylly_initialize(int argc, char **argv)
 	test2 = obj_create(test);
 	test2->model = test_model;
 
-	vec3_t pos = vec3(0.93f, 0.58f, 0);
-	obj_set_local_position(test2, &pos);
-
-	vec3_t scale = vec3(0.75f, 0.5f, 0.5f);
-	obj_set_local_scale(test2, &scale);
-
-	quat_t rotation = quat_from_euler(0, 0, 0.8f);
-	obj_set_local_rotation(test2, &rotation);
+	obj_set_local_position(test2, vector3(0.93f, 0.58f, 0));
+	obj_set_local_scale(test2, vector3(0.75f, 0.5f, 0.5f));
+	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	return true;
 }
@@ -71,14 +67,9 @@ void mylly_main_loop(on_loop_t callback)
 
 		float angle = 0.01f * ++frames;
 
-		vec3_t pos = vec3(0.25f, 0.25f, 0);
-		obj_set_local_position(test, &pos);
-
-		vec3_t scale = vec3(0.5f, 0.5f, 0.5f);
-		obj_set_local_scale(test, &scale);
-
-		quat_t rotation = quat_from_euler(0, 0, angle);
-		obj_set_local_rotation(test, &rotation);
+		obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
+		obj_set_local_scale(test, vector3(0.5f, 0.5f, 0.5f));
+		obj_set_local_rotation(test, quat_from_euler(0, 0, angle));
 
 		rsys_render_scene(test);
 
