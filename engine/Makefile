@@ -9,7 +9,7 @@ OBJS = core/array.o core/mylly.o core/memory.o core/string.o\
        platform/thread.o platform/timer.o platform/window.o\
        renderer/mesh.o renderer/model.o renderer/rendersystem.o renderer/shader.o renderer/vbcache.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
-       scene/object.o
+       scene/camera.o scene/object.o
 DEPS =
 
 builddirs:

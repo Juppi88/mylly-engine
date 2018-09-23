@@ -7,6 +7,8 @@
 #include "math/quaternion.h"
 #include "renderer/model.h"
 
+typedef struct camera_t camera_t;
+
 // --------------------------------------------------------------------------------
 
 typedef struct object_t {
@@ -34,6 +36,7 @@ typedef struct object_t {
 	bool is_rotation_dirty; // True when the world rotation has not been updated
 
 	model_t *model; // Render model
+	camera_t *camera; // Camera attached to the object
 	
 } object_t;
 

@@ -1,5 +1,6 @@
 #include "object.h"
 #include "math/math.h"
+#include "camera.h"
 
 object_t *obj_create(object_t *parent)
 {
@@ -71,6 +72,11 @@ void obj_set_dirty(object_t *obj)
 	obj->is_transform_dirty = true;
 	obj->is_local_transform_dirty = true;
 	obj->is_rotation_dirty = true;
+
+	// Flag components dirty.
+	if (obj->camera != NULL) {
+		obj->camera->is_view_matrix_dirty = true;
+	}
 
 	// Do the same to each child object.
 	object_t *child;
