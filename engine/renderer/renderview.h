@@ -15,8 +15,10 @@
 typedef struct robject_t {
 
 	LIST_ENTRY(robject_t);
+
 	model_t *model; // The actual render model containing the base meshes
-	mat_t matrix;	// Model to world matrix
+	mat_t matrix; // Model to world matrix
+	mat_t mvp; // Model-view-projection matrix
 
 } robject_t;
 
@@ -26,10 +28,12 @@ typedef struct robject_t {
 typedef struct rmesh_t {
 
 	LIST_ENTRY(rmesh_t);
+
 	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrix
 	vertexbuffer_t *vertices; // Vertex buffer containing the vertices of this mesh
 	vertexbuffer_t *indices; // Vertex buffer containing the indices of this mesh
 	shader_t *shader; // The shader used for rendering this mesh
+
 } rmesh_t;
 
 // --------------------------------------------------------------------------------
@@ -41,6 +45,9 @@ typedef struct rmesh_t {
 typedef struct rview_t {
 
 	LIST_ENTRY(rview_t);
+
+	mat_t projection; // View-projection matrix
+
 	LIST(robject_t) objects; // List of visible objects in the view
 	LIST(rmesh_t) meshes; // List of all the meshes to be rendered in the view
 

@@ -54,6 +54,7 @@ object_t *obj_create(scene_t *scene, object_t *parent);
 void obj_destroy(object_t *obj);
 
 void obj_set_parent(object_t *obj, object_t *parent);
+camera_t *obj_add_camera(object_t *object);
 
 static INLINE vec3_t obj_get_local_position(object_t *obj);
 static INLINE vec3_t obj_get_local_scale(object_t *obj);

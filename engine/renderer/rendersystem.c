@@ -2,6 +2,9 @@
 #include "renderer.h"
 #include "vbcache.h"
 #include "renderview.h"
+#include "scene/scene.h"
+#include "scene/object.h"
+#include "scene/camera.h"
 #include "io/log.h"
 
 // --------------------------------------------------------------------------------
@@ -13,7 +16,8 @@ static shader_t *default_shader; // Shader used by default
 
 // --------------------------------------------------------------------------------
 
-static void rsys_process_mesh_frustrum_culling(rview_t *view);
+static void rsys_cull_object(object_t *object);
+static void rsys_cull_meshes(rview_t *view);
 static void rsys_free_frame_data(void);
 
 // --------------------------------------------------------------------------------
@@ -58,46 +62,83 @@ void rsys_end_frame(void)
 	++frames_rendered;
 }
 
-static void rsys_process_object_culling(rview_t *view, object_t *object)
+void rsys_render_scene(scene_t *scene)
 {
-	// Add the object to the view as a render object.
-	NEW(robject_t, obj);
+	if (scene == NULL) {
+		return;
+	}
 
-	obj->model = object->model;
-	mat_cpy(&obj->matrix, obj_get_transform(object));
+	// Collect info about the objects in the scene before rendering anything and process culling etc.
+	// TODO: Also use a proper temp allocator because this is alloc heavy!
 
-	LIST_ADD(view->objects, obj);
+	// Create a separate render view for every camera in the scene.
+	object_t *camera;
 
+	arr_foreach(scene->cameras, camera) {
+
+		if (camera == NULL) {
+			continue;
+		}
+
+		NEW(rview_t, view);
+
+		// Calculate view-projection matrix for the camera.
+		// TODO: Add projection (now we have just the view one).
+		mat_cpy(&view->projection, camera_get_view_matrix(camera->camera));
+
+		// Add the view to the list of views to be rendered.
+		LIST_ADD(views, view);
+	}
+
+	// TODO: Find which scene objects are visible in the current camera (for now add all objects).
+	object_t *object;
+
+	arr_foreach(scene->objects, object) {
+		rsys_cull_object(object);
+	}
+
+	// Cull all meshes which aren't in the view.
+	LIST_FOREACH(rview_t, view, views) {
+		rsys_cull_meshes(views);
+	}
+}
+
+static void rsys_cull_object(object_t *object)
+{
+	if (object == NULL) {
+		return;
+	}
+
+	// Skip non-visible objects.
+	if (object->model != NULL) {
+
+		// Add the scene object to each of the views as a render object.
+		LIST_FOREACH(rview_t, view, views) {
+
+			NEW(robject_t, obj);
+
+			// Copy model data.
+			obj->model = object->model;
+
+			// Copy matrices.
+			mat_cpy(&obj->matrix, obj_get_transform(object));
+			mat_multiply(&view->projection, &obj->matrix, &obj->mvp);
+
+			LIST_ADD(view->objects, obj);
+		}
+	}
+	
 	// Add all of the child objects, too.
 	object_t *child;
 
 	arr_foreach(object->children, child) {
-		rsys_process_object_culling(view, child);
+		rsys_cull_object(child);
 	}
 }
 
-void rsys_render_scene(object_t *root)
+static void rsys_cull_meshes(rview_t *view)
 {
-	// Collect info about the objects in the scene before rendering anything and process culling etc.
-	// TODO: Also use a proper temp allocator because this is alloc heavy!
-
-	// TODO: Add a single view for each camera!
-	NEW(rview_t, view);
-
-	// TODO: Find which scene objects are visible in the current camera.
-	// Test code: We don't have a scene structure yet, so we're just rendering the test objects.
-	rsys_process_object_culling(view, root);
-
-	// Cull all meshes which aren't in the view.
-	rsys_process_mesh_frustrum_culling(view);
-
-	// Add the view to the list of views to be rendered.
-	LIST_ADD(views, view);
-}
-
-static void rsys_process_mesh_frustrum_culling(rview_t *view)
-{
-	// TODO: ACTUAL CULLING HERE
+	// TODO: HANDLE ACTUAL CULLING HERE
 	LIST_FOREACH(robject_t, obj, view->objects) {
 
 		mesh_t *mesh;

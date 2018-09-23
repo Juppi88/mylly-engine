@@ -45,6 +45,9 @@ static INLINE vec3_t vector3(float x, float y, float z)
 	return v;
 }
 
+float vec3_dot(const vec3_t *a, const vec3_t *b);
+vec3_t vec3_cross(const vec3_t *a, const vec3_t *b);
+
 float vec3_normalize(vec3_t *v);
 vec3_t vec3_normalized(const vec3_t *v);
 

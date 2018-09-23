@@ -18,12 +18,13 @@ static GLuint active_shader;
 // The source code for a default GLSL shader which renders everything in purple.
 // Used when no valid shaders are available.
 static const char *default_shader_source =
+"uniform mat4 MatrixModel;\n"
 "uniform mat4 MatrixMVP;\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
 "void main()\n"
 "{\n"
-"	gl_Position = gl_Vertex * MatrixMVP;\n"
+"	gl_Position = MatrixMVP * gl_Vertex;\n"
 "}\n"
 "#elif defined(FRAGMENT_SHADER)\n"
 "void main()\n"
@@ -120,7 +121,7 @@ void rend_draw_views(LIST(rview_t) views)
 
 				glUniformMatrix4fv(
 					shader_get_global_position(mesh->shader, GLOBAL_MODEL_MVP),
-					1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
+					1, GL_FALSE, mat_as_ptr(mesh->parent->mvp)
 				);
 			}
 

@@ -104,6 +104,23 @@ void obj_set_parent(object_t *obj, object_t *parent)
 	obj_set_dirty(obj);
 }
 
+camera_t *obj_add_camera(object_t *obj)
+{
+	// One camera per object.
+	if (obj == NULL || obj->camera != NULL) {
+		return NULL;
+	}
+
+	obj->camera = camera_create(obj);
+
+	// Register the new camera to the object's parent scene.
+	if (obj->scene != NULL) {
+		scene_register_camera(obj->scene, obj);
+	}
+
+	return obj->camera;
+}
+
 void obj_set_dirty(object_t *obj)
 {
 	if (obj == NULL) {
@@ -138,8 +155,8 @@ void obj_update_transform(object_t *obj)
 
 		// Calculate object transform by multiplying the parent's transform and the local transform.
 		mat_multiply(
-			obj_get_transform(obj->parent),
 			obj_get_local_transform(obj),
+			obj_get_transform(obj->parent),
 			&obj->transform
 		);
 	}
@@ -150,11 +167,29 @@ void obj_update_transform(object_t *obj)
 	}
 
 	// Cache world space position, scale and direction vectors.
-	obj->position = vector3(obj->transform[0][3], obj->transform[1][3], obj->transform[2][3]);
+	obj->position = vector3(
+			obj->transform.col[3][0],
+			obj->transform.col[3][1],
+			obj->transform.col[3][2]
+		);
 
-	obj->right = vector3(obj->transform[0][0], obj->transform[1][0], obj->transform[2][0]);
-	obj->up = vector3(obj->transform[0][1], obj->transform[1][1], obj->transform[2][1]);
-	obj->forward = vector3(obj->transform[0][2], obj->transform[1][2], obj->transform[2][2]);
+	obj->right = vector3(
+			obj->transform.col[0][0],
+			obj->transform.col[0][1],
+			obj->transform.col[0][2]
+		);
+
+	obj->up = vector3(
+			obj->transform.col[1][0],
+			obj->transform.col[1][1],
+			obj->transform.col[1][2]
+		);
+
+	obj->forward = vector3(
+			obj->transform.col[2][0],
+			obj->transform.col[2][1],
+			obj->transform.col[2][2]
+		);
 
 	obj->scale = vector3(
 		vec3_normalize(&obj->right),
@@ -196,22 +231,26 @@ void obj_update_local_transform(object_t *obj)
 	wy = rw * y2;
 	wz = rw * z2;
 
-	obj->local_transform[0][0] = obj->local_scale.x * (1.0f - (yy + zz));
-	obj->local_transform[1][0] = obj->local_scale.x * (xy + wz);
-	obj->local_transform[2][0] = obj->local_scale.x * (xz - wy);
-	obj->local_transform[0][3] = obj->local_position.x;
-	obj->local_transform[0][1] = obj->local_scale.y * (xy - wz);
-	obj->local_transform[1][1] = obj->local_scale.y * (1.0f - (xx + zz));
-	obj->local_transform[2][1] = obj->local_scale.y * (yz + wx);
-	obj->local_transform[1][3] = obj->local_position.y;
-	obj->local_transform[0][2] = obj->local_scale.z * (xz + wy);
-	obj->local_transform[1][2] = obj->local_scale.z * (yz - wx);
-	obj->local_transform[2][2] = obj->local_scale.z * (1.0f - (xx + yy));
-	obj->local_transform[2][3] = obj->local_position.z;
-	obj->local_transform[3][0] = 0.0f;
-	obj->local_transform[3][1] = 0.0f;
-	obj->local_transform[3][2] = 0.0f;
-	obj->local_transform[3][3] = 1.0f;
+	obj->local_transform.col[0][0] = obj->local_scale.x * (1.0f - (yy + zz));
+	obj->local_transform.col[0][1] = obj->local_scale.x * (xy + wz);
+	obj->local_transform.col[0][2] = obj->local_scale.x * (xz - wy);
+	
+	obj->local_transform.col[1][0] = obj->local_scale.y * (xy - wz);
+	obj->local_transform.col[1][1] = obj->local_scale.y * (1.0f - (xx + zz));
+	obj->local_transform.col[1][2] = obj->local_scale.y * (yz + wx);
+
+	obj->local_transform.col[2][0] = obj->local_scale.z * (xz + wy);
+	obj->local_transform.col[2][1] = obj->local_scale.z * (yz - wx);
+	obj->local_transform.col[2][2] = obj->local_scale.z * (1.0f - (xx + yy));
+
+	obj->local_transform.col[3][0] = obj->local_position.x;
+	obj->local_transform.col[3][1] = obj->local_position.y;
+	obj->local_transform.col[3][2] = obj->local_position.z;
+
+	obj->local_transform.col[0][3] = 0.0f;
+	obj->local_transform.col[1][3] = 0.0f;
+	obj->local_transform.col[2][3] = 0.0f;
+	obj->local_transform.col[3][3] = 1.0f;
 
 	obj->is_local_transform_dirty = false;
 }

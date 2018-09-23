@@ -49,7 +49,7 @@
 
 #define arr_remove(arr, val) {\
 	int __idx;\
-    arr_find(arr, val, __idx);\
+	arr_find(arr, val, __idx);\
 	if (__idx != -1) {\
 		arr_splice((void **)&(arr).items, &(arr).count, &(arr).capacity,\
 			sizeof((arr).items[0]), __idx, 1);\
@@ -58,7 +58,7 @@
 
 #define arr_find_empty(arr, var) {\
 	(var) = INVALID_INDEX;\
-	for (size_t __i = 0; __i < (arr).capacity; ++__i) {\
+	for (size_t __i = 0; __i < (arr).count; ++__i) {\
 		if ((arr).items[__i] == NULL) {\
 			(var) = __i;\
 			break;\
