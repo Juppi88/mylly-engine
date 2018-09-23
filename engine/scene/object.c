@@ -155,8 +155,8 @@ void obj_update_transform(object_t *obj)
 
 		// Calculate object transform by multiplying the parent's transform and the local transform.
 		mat_multiply(
-			obj_get_local_transform(obj),
 			obj_get_transform(obj->parent),
+			obj_get_local_transform(obj),
 			&obj->transform
 		);
 	}

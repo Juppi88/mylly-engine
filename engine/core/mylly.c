@@ -48,10 +48,10 @@ bool mylly_initialize(int argc, char **argv)
 	test = scene_create_object(scene, NULL);
 	test->model = test_model;
 
-	//obj_set_local_position(test, vector3(-0.25f, 0.0f, 0.0f));
+	obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
 	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
 	obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	//obj_set_local_rotation(test, quat_from_euler(0, 0, DEG_TO_RAD(45)));
+	obj_set_local_rotation(test, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	// TEST CODE
 	printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
@@ -74,7 +74,7 @@ bool mylly_initialize(int argc, char **argv)
 	test2 = scene_create_object(scene, test);
 	test2->model = test_model;
 
-	obj_set_local_position(test2, vector3(0.5f * 0.93f, 0.5f * 0.58f, 0));
+	obj_set_local_position(test2, vector3(0.93f, 0.58f, 0));
 	obj_set_local_scale(test2, vector3(0.75f, 0.5f, 0.5f));
 	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
@@ -124,8 +124,8 @@ void mylly_main_loop(on_loop_t callback)
 
 		float angle = 0.005f * ++frames;
 		//obj_set_local_rotation(test, quat_from_euler(0, 0, angle));
-		//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
-		//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
+		obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
+		obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
 
 		//mat_print(camera_get_view_matrix(camera->camera));
 

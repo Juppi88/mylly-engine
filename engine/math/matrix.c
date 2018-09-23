@@ -13,10 +13,17 @@ void mat_multiply3(const mat_t *mat, const vec3_t *v, vec3_t *out)
 
 void mat_multiply4(const mat_t *mat, const vec4_t *v, vec4_t *out)
 {
-	out->x = mat->col[0][0] * v->x + mat->col[0][1] * v->y + mat->col[0][2] * v->z + mat->col[0][3] * v->w;
-	out->y = mat->col[1][0] * v->x + mat->col[1][1] * v->y + mat->col[1][2] * v->z + mat->col[1][3] * v->w;
-	out->z = mat->col[2][0] * v->x + mat->col[2][1] * v->y + mat->col[2][2] * v->z + mat->col[2][3] * v->w;
-	out->w = mat->col[3][0] * v->x + mat->col[3][1] * v->y + mat->col[3][2] * v->z + mat->col[3][3] * v->w;
+	out->x = mat->col[0][0] * v->x + mat->col[0][1] * v->y +
+			 mat->col[0][2] * v->z + mat->col[0][3] * v->w;
+
+	out->y = mat->col[1][0] * v->x + mat->col[1][1] * v->y +
+			 mat->col[1][2] * v->z + mat->col[1][3] * v->w;
+
+	out->z = mat->col[2][0] * v->x + mat->col[2][1] * v->y +
+			 mat->col[2][2] * v->z + mat->col[2][3] * v->w;
+
+	out->w = mat->col[3][0] * v->x + mat->col[3][1] * v->y +
+			 mat->col[3][2] * v->z + mat->col[3][3] * v->w;
 }
 
 void mat_multiply(const mat_t *mat1, const mat_t *mat2, mat_t *out)
