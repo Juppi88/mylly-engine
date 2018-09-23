@@ -9,35 +9,40 @@
 #define INVALID_INDEX 0xFFFFFFFF
 
 #define arr_t(type) struct {\
-	type *array;\
+	type *items;\
 	size_t count;\
 	size_t capacity;\
 }
 
 #define arr_init(arr)\
-	(arr).array = NULL;\
+	(arr).items = NULL;\
 	(arr).count = 0;\
 	(arr).capacity = 0;
 
 #define arr_clear(arr) {\
-	DELETE((arr).array);\
+	DELETE((arr).items);\
 	(arr).count = 0;\
 	(arr).capacity = 0;\
 }
 
 #define arr_push(arr, item) {\
 	if ((arr).count == (arr).capacity)\
-		arr_resize((void **)&(arr).array, &(arr).count, &(arr).capacity, sizeof((arr).array[0]));\
-	(arr).array[(arr).count++] = item;\
+		arr_resize((void **)&(arr).items, &(arr).count, &(arr).capacity, sizeof((arr).items[0]));\
+	(arr).items[(arr).count++] = item;\
 }
 
-#define arr_foreach(arr, var)\
-	for (size_t __i = 0; __i < (arr).count && ((var) = (arr).array[__i], 1); ++__i)
+#define arr_set(arr, idx, val) \
+	(arr).items[(idx)] = (val)
 
+#define arr_foreach(arr, var)\
+	for (size_t __i = 0; __i < (arr).count && ((var) = (arr).items[__i], 1); ++__i)
+
+#define arr_foreach_reverse(arr, var)\
+	for (size_t __i = (arr).count; __i > 0 && ((var) = (arr).items[__i - 1], 1); --__i)
 
 #define arr_find(arr, val, idx) {\
 	for ((idx) = 0; (idx) < (arr).count; ++(idx)) {\
-		if ((arr).array[(idx)] == (val)) break;\
+		if ((arr).items[(idx)] == (val)) break;\
 	}\
 	if ((idx) == (arr).count) (idx) = -1;\
 }
@@ -46,10 +51,23 @@
 	int __idx;\
     arr_find(arr, val, __idx);\
 	if (__idx != -1) {\
-		arr_splice((void **)&(arr).array, &(arr).count, &(arr).capacity,\
-			sizeof((arr).array[0]), __idx, 1);\
+		arr_splice((void **)&(arr).items, &(arr).count, &(arr).capacity,\
+			sizeof((arr).items[0]), __idx, 1);\
 	}\
 }
+
+#define arr_find_empty(arr, var) {\
+	(var) = INVALID_INDEX;\
+	for (size_t __i = 0; __i < (arr).capacity; ++__i) {\
+		if ((arr).items[__i] == NULL) {\
+			(var) = __i;\
+			break;\
+		}\
+	}\
+}
+
+#define arr_last_index(arr)\
+	((arr).count - 1)
 
 // --------------------------------------------------------------------------------
 

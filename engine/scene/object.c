@@ -1,13 +1,28 @@
 #include "object.h"
-#include "math/math.h"
 #include "camera.h"
+#include "scene.h"
+#include "io/log.h"
+#include "math/math.h"
+#include "renderer/model.h"
 
-object_t *obj_create(object_t *parent)
+// --------------------------------------------------------------------------------
+
+object_t *obj_create(scene_t *scene, object_t *parent)
 {
+	// Make sure the object is created to a scene to avoid leaking objects.
+	if (scene == NULL) {
+		log_error("Scene", "Can't create an object without a scene.");
+		return NULL;
+	}
+
+	// Create the object.
 	NEW(object_t, obj);
 
 	obj->parent = NULL;
+	obj->scene = scene;
+	obj->scene_index = INVALID_INDEX;
 
+	// Move the object to the world origin.
 	obj->local_position = vec3_zero;
 	obj->local_scale = vec3_one;
 	obj->local_rotation = quat_identity;
@@ -16,7 +31,7 @@ object_t *obj_create(object_t *parent)
 	obj->is_local_transform_dirty = true;
 	obj->is_rotation_dirty = true;
 
-	// Set the object's parent.
+	// Attach the object to a parent.
 	if (parent != NULL) {
 		obj_set_parent(obj, parent);
 	}
@@ -35,7 +50,25 @@ void obj_destroy(object_t *obj)
 		obj_set_parent(obj, NULL);
 	}
 
-	// TODO: Destroy all child objects.
+	// Additional cleanup when the object is still in a scene. If the object is no longer in a
+	// scene, the parent scene is being deleted and no additional clean up is necessary.
+	if (obj->scene != NULL) {
+
+		// Remove object references in the scene.
+		scene_remove_references_to_object(obj->scene, obj);
+
+		// Destroy all child objects.
+		object_t *child;
+
+		arr_foreach_reverse(obj->children, child) {
+			obj_destroy(child);
+		}
+	}
+
+	// Destroy components.
+	if (obj->camera != NULL) {
+		camera_destroy(obj->camera);
+	}
 
 	DELETE(obj);
 }
@@ -53,10 +86,19 @@ void obj_set_parent(object_t *obj, object_t *parent)
 
 	// Add this object to the new parent.
 	if (parent != NULL) {
-		arr_push(parent->children, obj);
-	}
 
-	obj->parent = parent;
+		if (parent->scene == obj->scene) {
+
+			arr_push(parent->children, obj);
+			obj->parent = parent;
+		}
+		else {
+			log_error("Scene", "Parent object is in a different scene.");
+		}
+	}
+	else {
+		obj->parent = NULL;
+	}
 
 	// Flag the model matrix dirty.
 	obj_set_dirty(obj);

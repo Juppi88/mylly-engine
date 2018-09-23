@@ -12,6 +12,7 @@ typedef struct object_t object_t;
 typedef struct camera_t {
 
 	object_t *parent; // The object this camera is attached to
+	uint32_t scene_index; // Index of this camera in the scene
 
 	mat_t view; // The view matrix of this camera
 	bool is_view_matrix_dirty; // True when the view matrix has not been updated

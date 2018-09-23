@@ -3,8 +3,12 @@
 #include "platform/thread.h"
 #include "platform/window.h"
 #include "renderer/rendersystem.h"
+#include "renderer/model.h"
 #include "math/math.h"
+#include "scene/scene.h"
+#include "scene/object.h"
 
+static scene_t *scene;
 static model_t *test_model;
 static object_t *test, *test2;
 
@@ -24,8 +28,11 @@ bool mylly_initialize(int argc, char **argv)
 	test_model = model_create();
 	model_setup_primitive(test_model, PRIMITIVE_QUAD);
 
+	// Create a test scene.
+	scene = scene_create();
+
 	// Create a test object and attach the model to it.
-	test = obj_create(NULL);
+	test = scene_create_object(scene, NULL);
 	test->model = test_model;
 
 	obj_set_local_position(test, vector3(0.0f, 0.0f, 0.0f));
@@ -48,7 +55,7 @@ bool mylly_initialize(int argc, char **argv)
 	// END OF TEST CODE
 
 	// Create another object and attach it to the first one.
-	test2 = obj_create(test);
+	test2 = scene_create_object(scene, test);
 	test2->model = test_model;
 
 	obj_set_local_position(test2, vector3(0.93f, 0.58f, 0));

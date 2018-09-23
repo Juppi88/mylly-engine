@@ -5,8 +5,9 @@
 #include "core/array.h"
 #include "math/matrix.h"
 #include "math/quaternion.h"
-#include "renderer/model.h"
 
+typedef struct scene_t scene_t;
+typedef struct model_t model_t;
 typedef struct camera_t camera_t;
 
 // --------------------------------------------------------------------------------
@@ -14,6 +15,10 @@ typedef struct camera_t camera_t;
 typedef struct object_t {
 
 	struct object_t *parent; // The parent of this object
+
+	scene_t *scene; // The scene this object is a part of
+	uint32_t scene_index; // Index in the scene
+
 	arr_t(struct object_t*) children; // A list of children attached to this object
 
 	vec3_t local_position; // Local position in relation to the parent
@@ -42,7 +47,10 @@ typedef struct object_t {
 
 // --------------------------------------------------------------------------------
 
-object_t *obj_create(object_t *parent);
+// Create a new object.
+// NOTE: Please do not use this method directly, use scene_create_object() instead.
+object_t *obj_create(scene_t *scene, object_t *parent);
+
 void obj_destroy(object_t *obj);
 
 void obj_set_parent(object_t *obj, object_t *parent);
