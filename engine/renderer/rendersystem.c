@@ -83,8 +83,11 @@ void rsys_render_scene(scene_t *scene)
 		NEW(rview_t, view);
 
 		// Calculate view-projection matrix for the camera.
-		// TODO: Add projection (now we have just the view one).
-		mat_cpy(&view->projection, camera_get_view_matrix(camera->camera));
+		mat_multiply(
+			camera_get_projection_matrix(camera->camera),
+			camera_get_view_matrix(camera->camera),
+			&view->projection
+		);
 
 		// Add the view to the list of views to be rendered.
 		LIST_ADD(views, view);
