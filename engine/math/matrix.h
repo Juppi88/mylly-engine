@@ -29,6 +29,35 @@ void mat_multiply(const mat_t *mat1, const mat_t *mat2, mat_t *out);
 
 // --------------------------------------------------------------------------------
 
+static INLINE void mat_set(
+	mat_t *mat,
+	float m11, float m12, float m13, float m14,
+	float m21, float m22, float m23, float m24,
+	float m31, float m32, float m33, float m34,
+	float m41, float m42, float m43, float m44)
+{
+	mat->col[0][0] = m11;
+	mat->col[0][1] = m12;
+	mat->col[0][2] = m13;
+	mat->col[0][3] = m14;
+
+	mat->col[1][0] = m21;
+	mat->col[1][1] = m22;
+	mat->col[1][2] = m23;
+	mat->col[1][3] = m24;
+
+	mat->col[2][0] = m31;
+	mat->col[2][1] = m32;
+	mat->col[2][2] = m33;
+	mat->col[2][3] = m34;
+
+	mat->col[3][0] = m41;
+	mat->col[3][1] = m42;
+	mat->col[3][2] = m43;
+	mat->col[3][3] = m44;
+
+}
+
 static INLINE void mat_cpy(mat_t *dst, const mat_t *src)
 {
 	memcpy(dst, src, sizeof(*dst));

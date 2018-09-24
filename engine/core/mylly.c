@@ -124,8 +124,8 @@ void mylly_main_loop(on_loop_t callback)
 
 		float angle = 0.005f * ++frames;
 		//obj_set_local_rotation(test, quat_from_euler(angle, 0, 0));
-		//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
-		//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
+		obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
+		obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
 
 		//mat_print(camera_get_view_matrix(camera->camera));
 

@@ -231,26 +231,28 @@ void obj_update_local_transform(object_t *obj)
 	wy = rw * y2;
 	wz = rw * z2;
 
-	obj->local_transform.col[0][0] = obj->local_scale.x * (1.0f - (yy + zz));
-	obj->local_transform.col[0][1] = obj->local_scale.x * (xy + wz);
-	obj->local_transform.col[0][2] = obj->local_scale.x * (xz - wy);
-	
-	obj->local_transform.col[1][0] = obj->local_scale.y * (xy - wz);
-	obj->local_transform.col[1][1] = obj->local_scale.y * (1.0f - (xx + zz));
-	obj->local_transform.col[1][2] = obj->local_scale.y * (yz + wx);
+	mat_set(&obj->local_transform,
 
-	obj->local_transform.col[2][0] = obj->local_scale.z * (xz + wy);
-	obj->local_transform.col[2][1] = obj->local_scale.z * (yz - wx);
-	obj->local_transform.col[2][2] = obj->local_scale.z * (1.0f - (xx + yy));
+		obj->local_scale.x * (1.0f - (yy + zz)),
+		obj->local_scale.x * (xy + wz),
+		obj->local_scale.x * (xz - wy),
+		0,
 
-	obj->local_transform.col[3][0] = obj->local_position.x;
-	obj->local_transform.col[3][1] = obj->local_position.y;
-	obj->local_transform.col[3][2] = obj->local_position.z;
+		obj->local_scale.y * (xy - wz),
+		obj->local_scale.y * (1.0f - (xx + zz)),
+		obj->local_scale.y * (yz + wx),
+		0,
 
-	obj->local_transform.col[0][3] = 0.0f;
-	obj->local_transform.col[1][3] = 0.0f;
-	obj->local_transform.col[2][3] = 0.0f;
-	obj->local_transform.col[3][3] = 1.0f;
+		obj->local_scale.z * (xz + wy),
+		obj->local_scale.z * (yz - wx),
+		obj->local_scale.z * (1.0f - (xx + yy)),
+		0,
+
+		obj->local_position.x,
+		obj->local_position.y,
+		obj->local_position.z,
+		1
+	);
 
 	obj->is_local_transform_dirty = false;
 }

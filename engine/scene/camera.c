@@ -16,13 +16,10 @@ camera_t *camera_create(object_t *parent)
 	camera->is_projection_matrix_dirty = true;
 
 	camera->is_orthographic = true;
-	camera->near = -1;
-	camera->far = 1;
+	camera->near = ORTOGRAPHIC_NEAR;
+	camera->far = ORTOGRAPHIC_FAR;
 	camera->size = 5;
 	camera->fov = 60;
-
-	//camera->near = 0.3f;
-	//camera->far = 1000;
 
 	return camera;
 }
@@ -94,26 +91,28 @@ void camera_update_view_matrix(camera_t *camera)
 		obj->transform.col[2][2]
 	);
 
-	camera->view.col[0][0] = right.x;
-	camera->view.col[0][1] = right.y;
-	camera->view.col[0][2] = right.z;
+	mat_set(&camera->view,
+			
+		right.x,
+		right.y,
+		right.z,
+		0,
 
-	camera->view.col[1][0] = up.x;
-	camera->view.col[1][1] = up.y;
-	camera->view.col[1][2] = up.z;
+		up.x,
+		up.y,
+		up.z,
+		0,
 
-	camera->view.col[2][0] = -forward.x;
-	camera->view.col[2][1] = -forward.y;
-	camera->view.col[2][2] = -forward.z;
+		-forward.x,
+		-forward.y,
+		-forward.z,
+		0,
 
-	camera->view.col[3][0] = -vec3_dot(&obj->position, &obj->right);
-	camera->view.col[3][1] = -vec3_dot(&obj->position, &obj->up);
-	camera->view.col[3][2] = -vec3_dot(&obj->position, &obj->forward);
-
-	camera->view.col[0][3] = 0;
-	camera->view.col[1][3] = 0;
-	camera->view.col[2][3] = 0;
-	camera->view.col[3][3] = 1;
+		-vec3_dot(&obj->position, &obj->right),
+		-vec3_dot(&obj->position, &obj->up),
+		-vec3_dot(&obj->position, &obj->forward),
+		1
+	);
 
 	camera->is_view_matrix_dirty = false;
 }
@@ -136,25 +135,29 @@ void camera_update_projection_matrix(camera_t *camera)
 		float top = 0.5f * camera->size;
 		float bottom = -0.5f * camera->size;
 
-		camera->projection.col[0][0] = 2.0f / (right - left);
-		camera->projection.col[0][1] = 0;
-		camera->projection.col[0][2] = 0;
-		camera->projection.col[0][3] = 0;
+		mat_set(&camera->projection,
 
-		camera->projection.col[1][0] = 0;
-		camera->projection.col[1][1] = 2.0f / (top - bottom);
-		camera->projection.col[1][2] = 0;
-		camera->projection.col[1][3] = 0;
+			2.0f / (right - left),
+			0,
+			0,
+			0,
 
-		camera->projection.col[2][0] = 0;
-		camera->projection.col[2][1] = -2.0f / (camera->far - camera->near);
-		camera->projection.col[2][2] = 0;
-		camera->projection.col[2][3] = 0;
+			0,
+			2.0f / (top - bottom),
+			0,
+			0,
 
-		camera->projection.col[3][0] = -(right + left) / (right - left);
-		camera->projection.col[3][1] = -(top + bottom) / (top - bottom);
-		camera->projection.col[3][2] = -(camera->far + camera->near) / (camera->far - camera->near);
-		camera->projection.col[3][3] = 1;
+			0,
+			0,
+			-2.0f / (camera->far - camera->near),
+			0,
+
+			-(right + left) / (right - left),
+			-(top + bottom) / (top - bottom),
+			-(camera->far + camera->near) / (camera->far - camera->near),
+			1
+		);
+
 	}
 	else {
 
@@ -162,28 +165,28 @@ void camera_update_projection_matrix(camera_t *camera)
 		float fov_y = DEG_TO_RAD(camera->fov);
 		float f = 1 / tanf(0.5f * fov_y);
 
-		//log_message(fov_y, )
+		mat_set(&camera->projection,
 
-		camera->projection.col[0][0] = f / aspect;
-		camera->projection.col[0][1] = 0;
-		camera->projection.col[0][2] = 0;
-		camera->projection.col[0][3] = 0;
+			f / aspect,
+			0,
+			0,
+			0,
 
-		camera->projection.col[1][0] = 0;
-		camera->projection.col[1][1] = f;
-		camera->projection.col[1][2] = 0;
-		camera->projection.col[1][3] = 0;
+			0,
+			f,
+			0,
+			0,
 
-		camera->projection.col[2][0] = 0;
-		camera->projection.col[2][1] = (camera->far + camera->near) / (camera->near - camera->far);
-		camera->projection.col[2][2] = 0;
-		camera->projection.col[2][3] = -1;
+			0,
+			(camera->far + camera->near) / (camera->near - camera->far),
+			0,
+			-1,
 
-		camera->projection.col[3][0] = 0;
-		camera->projection.col[3][1] = 0;
-		camera->projection.col[3][2] = (2 * camera->far * camera->near) /
-									   (camera->near - camera->far);
-		camera->projection.col[3][3] = 0;
+			0,
+			0,
+			(2 * camera->far * camera->near) / (camera->near - camera->far),
+			0
+		);
 	}
 
 	camera->is_projection_matrix_dirty = false;
