@@ -37,7 +37,7 @@ bool mylly_initialize(int argc, char **argv)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	//obj_set_local_position(camera, vector3(0.25f, 0.0f, 0.0f));
+	obj_set_local_position(camera, vector3(-0.2f, 2.0f, 0.9f));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	// Create a test model (a quad) for testing.
@@ -123,9 +123,9 @@ void mylly_main_loop(on_loop_t callback)
 		//
 
 		float angle = 0.005f * ++frames;
-		//obj_set_local_rotation(test, quat_from_euler(0, 0, angle));
-		obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
-		obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
+		//obj_set_local_rotation(test, quat_from_euler(angle, 0, 0));
+		//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
+		//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
 
 		//mat_print(camera_get_view_matrix(camera->camera));
 

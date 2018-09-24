@@ -7,6 +7,11 @@
 
 typedef struct object_t object_t;
 
+#define PERSPECTIVE_NEAR 0.3f
+#define PERSPECTIVE_FAR 1000
+#define ORTOGRAPHIC_NEAR -1.0f
+#define ORTOGRAPHIC_FAR 1.0f
+
 // --------------------------------------------------------------------------------
 
 typedef struct camera_t {
@@ -24,6 +29,7 @@ typedef struct camera_t {
 	float near; // Near clip plane
 	float far; // Far clip plane
 	float size; // Size of the camera when ortographic
+	float fov; // Field of view
 
 } camera_t;
 
@@ -34,6 +40,9 @@ void camera_destroy(camera_t *camera);
 
 // Set up an orthographic projection.
 void camera_set_orthographic_projection(camera_t *camera, float size, float near, float far);
+
+// Set up a perspective projection.
+void camera_set_perspective_projection(camera_t *camera, float fov, float near, float far);
 
 static INLINE const mat_t *camera_get_view_matrix(camera_t *camera);
 static INLINE const mat_t *camera_get_projection_matrix(camera_t *camera);

@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "object.h"
 #include "io/log.h"
+#include "math/math.h"
 
 // --------------------------------------------------------------------------------
 
@@ -18,6 +19,10 @@ camera_t *camera_create(object_t *parent)
 	camera->near = -1;
 	camera->far = 1;
 	camera->size = 5;
+	camera->fov = 60;
+
+	//camera->near = 0.3f;
+	//camera->far = 1000;
 
 	return camera;
 }
@@ -33,7 +38,30 @@ void camera_destroy(camera_t *camera)
 
 void camera_set_orthographic_projection(camera_t *camera, float size, float near, float far)
 {
+	if (camera == NULL) {
+		return;
+	}
 
+	camera->is_orthographic = true;
+	camera->size = size;
+	camera->near = near;
+	camera->far = far;
+
+	camera->is_projection_matrix_dirty = true;
+}
+
+void camera_set_perspective_projection(camera_t *camera, float fov, float near, float far)
+{
+	if (camera == NULL) {
+		return;
+	}
+
+	camera->is_orthographic = false;
+	camera->fov = fov;
+	camera->near = near;
+	camera->far = far;
+
+	camera->is_projection_matrix_dirty = true;
 }
 
 void camera_update_view_matrix(camera_t *camera)
@@ -96,13 +124,12 @@ void camera_update_projection_matrix(camera_t *camera)
 		return;
 	}
 
+	// TODO: Get this from the rendering system!
+	float aspect = 640.0f / 480.0f;
+
 	if (camera->is_orthographic) {
 
 		// Calculate an orthographic projection matrix.
-
-		// TODO: Get this from the rendering system!
-		float aspect = 640.0f / 480.0f;
-
 		float width = aspect * camera->size;
 		float left = -0.5f * width;
 		float right = 0.5f * width;
@@ -132,7 +159,31 @@ void camera_update_projection_matrix(camera_t *camera)
 	else {
 
 		// Calculate a perspective projection matrix.
-		log_error("Camera", "Perspective projection is not implemented.");
+		float fov_y = DEG_TO_RAD(camera->fov);
+		float f = 1 / tanf(0.5f * fov_y);
+
+		//log_message(fov_y, )
+
+		camera->projection.col[0][0] = f / aspect;
+		camera->projection.col[0][1] = 0;
+		camera->projection.col[0][2] = 0;
+		camera->projection.col[0][3] = 0;
+
+		camera->projection.col[1][0] = 0;
+		camera->projection.col[1][1] = f;
+		camera->projection.col[1][2] = 0;
+		camera->projection.col[1][3] = 0;
+
+		camera->projection.col[2][0] = 0;
+		camera->projection.col[2][1] = (camera->far + camera->near) / (camera->near - camera->far);
+		camera->projection.col[2][2] = 0;
+		camera->projection.col[2][3] = -1;
+
+		camera->projection.col[3][0] = 0;
+		camera->projection.col[3][1] = 0;
+		camera->projection.col[3][2] = (2 * camera->far * camera->near) /
+									   (camera->near - camera->far);
+		camera->projection.col[3][3] = 0;
 	}
 
 	camera->is_projection_matrix_dirty = false;
