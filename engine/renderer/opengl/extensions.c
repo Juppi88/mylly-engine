@@ -28,6 +28,7 @@ PFNGLLINKPROGRAMPROC glLinkProgram;
 PFNGLATTACHSHADERPROC glAttachShader;
 PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
 PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocation;
+PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocation;
 PFNGLUSEPROGRAMPROC glUseProgram;
 
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
@@ -85,6 +86,7 @@ bool glext_initialize(void)
 	glAttachShader = (PFNGLATTACHSHADERPROC)glext_get_method("glAttachShader");
 	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC)glext_get_method("glBindFragDataLocation");
 	glBindAttribLocation = (PFNGLBINDATTRIBLOCATIONARBPROC)glext_get_method("glBindAttribLocation");
+	glGetAttribLocation = (PFNGLGETATTRIBLOCATIONARBPROC)glext_get_method("glGetAttribLocation");
 	glUseProgram = (PFNGLUSEPROGRAMPROC)glext_get_method("glUseProgram");
 
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)glext_get_method("glGetUniformLocation");

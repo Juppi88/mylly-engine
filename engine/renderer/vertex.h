@@ -13,7 +13,7 @@ typedef uint16_t vindex_t;
 // --------------------------------------------------------------------------------
 
 typedef struct vertex_t {
-	vec3_t pos;
+	vec4_t pos;
 	vec3_t normal;
 	vec2_t uv;
 	colour_t colour;

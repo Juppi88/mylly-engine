@@ -4,10 +4,10 @@
 // Vertices and indices for common primitives.
 
 static vertex_t quad_vertices[] = {
-	{ .pos = vec3(-0.5f, -0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec3(0.5f, -0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec3(-0.5f, 0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec3(0.5f, 0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE }
+	{ .pos = vec4(-0.5f, -0.5f, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
+	{ .pos = vec4(0.5f, -0.5f, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
+	{ .pos = vec4(-0.5f, 0.5f, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = vec4(0.5f, 0.5f, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE }
 };
 
 static vindex_t quad_indices[] = {

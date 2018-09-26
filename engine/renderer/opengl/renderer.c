@@ -1,6 +1,7 @@
 #include "renderer/renderer.h"
 #include "extensions.h"
 #include "renderer/vertex.h"
+#include "renderer/texture.h"
 #include "io/log.h"
 #include "platform/window.h"
 #include <stdio.h>
@@ -18,18 +19,32 @@ static GLuint active_shader;
 // The source code for a default GLSL shader which renders everything in purple.
 // Used when no valid shaders are available.
 static const char *default_shader_source =
+
 "uniform mat4 MatrixModel;\n"
 "uniform mat4 MatrixMVP;\n"
+"uniform sampler2D Texture;\n"
+"\n"
+"varying vec2 texCoord;\n"
+"varying vec4 colour;\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
+"attribute vec4 Vertex;"
+"attribute vec3 Normal;"
+"attribute vec4 Colour;"
+"attribute vec2 TexCoord;\n"
+"\n"
 "void main()\n"
 "{\n"
-"	gl_Position = MatrixMVP * gl_Vertex;\n"
+"	gl_Position = MatrixMVP * Vertex;\n"
+"	texCoord = TexCoord;\n"
+"	colour = Colour;"
 "}\n"
+"\n"
 "#elif defined(FRAGMENT_SHADER)\n"
+"\n"
 "void main()\n"
 "{\n"
-"	gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
+"	gl_FragColor = colour * texture(Texture, texCoord.xy);\n"
 "}\n"
 "#endif\n";
 
@@ -40,6 +55,7 @@ static void rend_end_draw(void);
 
 // --------------------------------------------------------------------------------
 
+static GLuint texture;
 bool rend_initialize(void)
 {
 	// Create an OpenGL rendering context.	
@@ -98,15 +114,46 @@ void rend_draw_views(LIST(rview_t) views)
 				glUseProgram(shader);
 				active_shader = shader;
 			}
-
-			/// Bind the meshes vertex buffer and set vertex data pointers.
+	
+			// Bind the meshes vertex buffer and set vertex data pointers.
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
 
-			// Set vertex data offsets in the buffer.
-			glVertexPointer(3, GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
-			glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
-			glTexCoordPointer(2, GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
-			glNormalPointer(GL_FLOAT, sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+			// Set pointers to vertex attributes.
+			if (shader_uses_attribute(mesh->shader, ATTR_VERTEX)) {
+
+				int attribute = shader_get_attribute(mesh->shader, ATTR_VERTEX);
+
+				glEnableVertexAttribArray(attribute);
+				glVertexAttribPointer(attribute, 4, GL_FLOAT, GL_FALSE,
+					sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
+			}
+
+			if (shader_uses_attribute(mesh->shader, ATTR_NORMAL)) {
+
+				int attribute = shader_get_attribute(mesh->shader, ATTR_NORMAL);
+
+				glEnableVertexAttribArray(attribute);
+				glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE,
+					sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+			}
+
+			if (shader_uses_attribute(mesh->shader, ATTR_TEXCOORD)) {
+
+				int attribute = shader_get_attribute(mesh->shader, ATTR_TEXCOORD);
+
+				glEnableVertexAttribArray(attribute);
+				glVertexAttribPointer(attribute, 2, GL_FLOAT, GL_FALSE,
+					sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
+			}
+
+			if (shader_uses_attribute(mesh->shader, ATTR_COLOUR)) {
+
+				int attribute = shader_get_attribute(mesh->shader, ATTR_COLOUR);
+
+				glEnableVertexAttribArray(attribute);
+				glVertexAttribPointer(attribute, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+					sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
+			}
 
 			// Set per-draw shader globals.
 			if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MATRIX)) {
@@ -117,11 +164,19 @@ void rend_draw_views(LIST(rview_t) views)
 				);
 			}
 
-			if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MVP)) {
+			if (shader_uses_global(mesh->shader, GLOBAL_MVP_MATRIX)) {
 
 				glUniformMatrix4fv(
-					shader_get_global_position(mesh->shader, GLOBAL_MODEL_MVP),
+					shader_get_global_position(mesh->shader, GLOBAL_MVP_MATRIX),
 					1, GL_FALSE, mat_as_ptr(mesh->parent->mvp)
+				);
+			}
+
+			if (shader_uses_global(mesh->shader, GLOBAL_TEXTURE)) {
+
+				glUniform1i(
+					shader_get_global_position(mesh->shader, GLOBAL_TEXTURE),
+					0
 				);
 			}
 
@@ -260,6 +315,15 @@ int rend_get_program_uniform_location(shader_program_t program, const char *name
 	return -1;
 }
 
+int rend_get_program_program_attribute_location(shader_program_t program, const char *name)
+{
+	if (program != 0) {
+		return glGetAttribLocation(program, name);
+	}
+
+	return -1;
+}
+
 const char *rend_get_default_shader_source(void)
 {
 	return default_shader_source;
@@ -274,23 +338,8 @@ static void rend_begin_draw(void)
 	glAlphaFunc(GL_GREATER, 1.0f);
 	glEnable(GL_BLEND);
 
-	// Setup the camera.
-	// TODO: Get this from frame data and move it to drawframe!
-//	glViewport(0, 0, 640, 480);
-
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-
-	/*float aspect = 480.0f / 640.0f;
-	float width = 3.0f;
-
-	glOrtho(-width * aspect, width * aspect, -width, width, 1, -1);
-*/
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
-
-	//glOrtho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
-
 }
 
 static void rend_end_draw(void)

@@ -13,7 +13,16 @@ static void shader_destroy_program(shader_t *shader);
 // Shader global variable names, used for getting the position of the variable in a shader.
 static const char *shader_global_names[NUM_SHADER_GLOBALS] = {
 	"MatrixModel",
-	"MatrixMVP"
+	"MatrixMVP",
+	"Texture"
+};
+
+// Shader vertex attribute names.
+static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
+	"Vertex",
+	"Normal",
+	"TexCoord",
+	"Colour"
 };
 
 // --------------------------------------------------------------------------------
@@ -92,8 +101,23 @@ static bool shader_create_program(shader_t *shader, const char *src)
 	// Get and cache shader uniform locations.
 	for (uint32_t i = 0; i < NUM_SHADER_GLOBALS; ++i) {
 
-		int global = rend_get_program_uniform_location(shader->program, shader_global_names[i]);
+		int global = rend_get_program_uniform_location(
+			shader->program,
+			shader_global_names[i]
+		);
+
 		shader->globals[i] = global;
+	}
+
+	// Get and cache vertex attribute indices.
+	for (uint32_t i = 0; i < NUM_SHADER_ATTRIBUTES; ++i) {
+
+		int attribute = rend_get_program_program_attribute_location(
+			shader->program,
+			shader_attribute_names[i]
+		);
+
+		shader->attributes[i] = attribute;
 	}
 
 	return true;

@@ -48,6 +48,9 @@ void rend_destroy_shader_program(shader_program_t program);
 // Returns the location of a uniform in a shader program, -1 if the uniform is not declared.
 int rend_get_program_uniform_location(shader_program_t program, const char *name);
 
+// Returns the index of a vertex attribute in a shader program, -1 if the attribute is not declared.
+int rend_get_program_program_attribute_location(shader_program_t program, const char *name);
+
 // Returns the source code for a default shader which renders everything in purple.
 const char *rend_get_default_shader_source(void);
 
