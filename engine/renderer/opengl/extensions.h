@@ -41,6 +41,7 @@ extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
 extern PFNGLLINKPROGRAMPROC glLinkProgram;
 extern PFNGLATTACHSHADERPROC glAttachShader;
 extern PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+extern PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocation;
 extern PFNGLUSEPROGRAMPROC glUseProgram;
 
 extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
@@ -48,6 +49,10 @@ extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLUNIFORM3FVPROC glUniform3fv;
 extern PFNGLUNIFORM4FVPROC glUniform4fv;
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+extern PFNGLUNIFORM1IARBPROC glUniform1i;
+extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointer;
+extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArray;
+extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 
 // --------------------------------------------------------------------------------
 
