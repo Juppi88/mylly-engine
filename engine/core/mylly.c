@@ -1,4 +1,5 @@
 #include "mylly.h"
+#include "core/time.h"
 #include "io/log.h"
 #include "platform/thread.h"
 #include "platform/window.h"
@@ -27,6 +28,8 @@ bool mylly_initialize(int argc, char **argv)
 		log_error("Mylly", "Unable to create main window.");
 		return false;
 	}
+
+	time_initialize();
 
 	// Initialize the render system.
 	rsys_initialize();
@@ -65,6 +68,8 @@ void mylly_main_loop(on_loop_t callback)
 		}
 
 		rsys_end_frame();
+
+		time_tick();
 
 		thread_sleep(10);
 	}

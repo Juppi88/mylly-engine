@@ -1,4 +1,5 @@
 #include "core/mylly.h"
+#include "core/time.h"
 #include "framework/resources.h"
 #include "renderer/model.h"
 #include "scene/scene.h"
@@ -8,7 +9,6 @@
 
 // --------------------------------------------------------------------------------
 
-static int frames = 0;
 static scene_t *scene;
 static object_t *camera;
 static model_t *test_model;
@@ -88,7 +88,7 @@ static void main_loop(void)
 	// TEST CODE!
 	//
 
-	float angle = 0.005f * ++frames;
+	float angle = get_time().time;
 	obj_set_local_rotation(test, quat_from_euler(DEG_TO_RAD(-45), angle, 0));
 	//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
