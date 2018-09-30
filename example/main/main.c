@@ -38,7 +38,7 @@ static void setup(void)
 	test_model = model_create();
 	model_setup_primitive(test_model, PRIMITIVE_CUBE);
 	//model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
-	model_set_material(test_model, -1, res_get_shader("test"), res_get_texture("pico"));
+	model_set_material(test_model, -1, res_get_shader("test-animated"), res_get_texture("animtest"));
 
 	// Create a test object and attach the model to it.
 	test = scene_create_object(scene, NULL);

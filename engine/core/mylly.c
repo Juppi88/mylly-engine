@@ -23,7 +23,7 @@ bool mylly_initialize(int argc, char **argv)
 	mylly_set_working_directory();
 
 	// Create the main window.
-	if (!window_create(false, 640, 480)) {
+	if (!window_create(false, 800, 600)) {
 
 		log_error("Mylly", "Unable to create main window.");
 		return false;

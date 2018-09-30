@@ -74,7 +74,9 @@ bool shader_load_from_source(shader_t *shader, const char *source)
 
 	if (shader->vertex == 0) {
 
-		log_note("Renderer", "Failed to compile vertex shader '%s':\n%s", shader->name, log);
+		log_note("Renderer", "Failed to compile vertex shader '%s':\n%s",
+			shader->resource.name, log);
+		
 		return false;
 	}
 
@@ -83,7 +85,9 @@ bool shader_load_from_source(shader_t *shader, const char *source)
 
 	if (shader->fragment == 0) {
 
-		log_note("Renderer", "Failed to compile fragment shader '%s':\n%s", shader->name, log);
+		log_note("Renderer", "Failed to compile fragment shader '%s':\n%s",
+			shader->resource.name, log);
+
 		return false;
 	}
 
@@ -94,7 +98,7 @@ bool shader_load_from_source(shader_t *shader, const char *source)
 
 	if (shader->program == 0) {
 
-		log_note("Renderer", "Failed to link shader program '%s'", shader->name);
+		log_note("Renderer", "Failed to link shader program '%s'", shader->resource.name);
 		return false;
 	}
 

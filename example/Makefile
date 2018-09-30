@@ -13,7 +13,7 @@ builddirs:
 
 clean:
 	$(MAKE) -C ../engine clean
-	rm -rf build/objs/*.o build/bin/*
+	rm -rf build/objs/*.o build/bin/mylly.bin
 
 mylly.bin: $(OBJS)
 	$(CC) $(addprefix build/objs/, $^) $(LDFLAGS) -o build/bin/$@

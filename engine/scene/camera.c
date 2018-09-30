@@ -124,7 +124,7 @@ void camera_update_projection_matrix(camera_t *camera)
 	}
 
 	// TODO: Get this from the rendering system!
-	float aspect = 640.0f / 480.0f;
+	float aspect = 800.0f / 600.0f;
 
 	if (camera->is_orthographic) {
 
