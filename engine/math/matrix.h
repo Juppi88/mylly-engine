@@ -31,10 +31,10 @@ void mat_multiply(const mat_t *mat1, const mat_t *mat2, mat_t *out);
 
 static INLINE void mat_set(
 	mat_t *mat,
-	float m11, float m12, float m13, float m14,
-	float m21, float m22, float m23, float m24,
-	float m31, float m32, float m33, float m34,
-	float m41, float m42, float m43, float m44)
+	float m11, float m12, float m13, float m14, // Column 1
+	float m21, float m22, float m23, float m24, // Column 2
+	float m31, float m32, float m33, float m34, // Column 3
+	float m41, float m42, float m43, float m44) // Column 4
 {
 	mat->col[0][0] = m11;
 	mat->col[0][1] = m12;

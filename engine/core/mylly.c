@@ -8,6 +8,14 @@
 #include "scene/scene.h"
 #include "scene/object.h"
 #include "scene/camera.h"
+#include "framework/resources.h"
+#include <unistd.h>
+
+// --------------------------------------------------------------------------------
+
+static void mylly_set_working_directory(void);
+
+// --------------------------------------------------------------------------------
 
 static scene_t *scene;
 static object_t *camera;
@@ -16,6 +24,9 @@ static object_t *test, *test2;
 
 bool mylly_initialize(int argc, char **argv)
 {
+	// Set working directory to the path of the executable.
+	mylly_set_working_directory();
+
 	// Create the main window.
 	if (!window_create(false, 640, 480)) {
 
@@ -25,6 +36,9 @@ bool mylly_initialize(int argc, char **argv)
 
 	// Initialize the render system.
 	rsys_initialize();
+
+	// Load resources from files.
+	res_initialize();
 
 	//
 	// TEST CODE!
@@ -43,6 +57,7 @@ bool mylly_initialize(int argc, char **argv)
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
 	model_setup_primitive(test_model, PRIMITIVE_QUAD);
+	model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("test"));
 
 	// Create a test object and attach the model to it.
 	test = scene_create_object(scene, NULL);
@@ -54,7 +69,7 @@ bool mylly_initialize(int argc, char **argv)
 	obj_set_local_rotation(test, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	// TEST CODE
-	printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
+	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	mat_print(obj_get_transform(test));
 
@@ -68,7 +83,7 @@ bool mylly_initialize(int argc, char **argv)
 	// END OF TEST CODE
 
 	mat_print(obj_get_transform(camera));
-	mat_print(camera_get_view_matrix(camera->camera));
+	mat_print(camera_get_view_matrix(camera->camera));*/
 
 	// Create another object and attach it to the first one.
 	test2 = scene_create_object(scene, test);
@@ -77,6 +92,7 @@ bool mylly_initialize(int argc, char **argv)
 	obj_set_local_position(test2, vector3(0.93f, 0.58f, 0));
 	obj_set_local_scale(test2, vector3(0.75f, 0.5f, 0.5f));
 	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
+
 
 	//
 	// END OF TEST CODE!
@@ -97,6 +113,9 @@ static void mylly_shutdown(void)
 	//
 	// END OF TEST CODE!
 	//
+
+	// Unload all loaded resources.
+	res_shutdown();
 	
 	rsys_shutdown();
 }
@@ -142,4 +161,26 @@ void mylly_main_loop(on_loop_t callback)
 
 	// Do cleanup when exiting the main loop.
 	mylly_shutdown();
+}
+
+static void mylly_set_working_directory(void)
+{
+	// TODO: Move this to platform specific code!
+
+	// Get the full path for the executable.
+	char path[260];
+	size_t read = readlink("/proc/self/exe", path, sizeof(path));
+
+	// Null terminate the path and remove the name of the binary from it.
+	path[read] = 0;
+
+	for (size_t i = read; i > 0; i--) {
+		if (path[i] == '/') {
+			path[i] = 0;
+			break;
+		}
+	}
+
+	// Set working directory to the path of the executable.
+	UNUSED_RETURN(chdir(path));
 }

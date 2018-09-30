@@ -2,7 +2,7 @@
 .PHONY: all clean
 CC = clang-6.0
 CFLAGS = -Wall -g -I../engine
-LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm
+LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng
 
 OBJS = main/main.o
 DEPS =
@@ -13,10 +13,11 @@ builddirs:
 
 clean:
 	$(MAKE) -C ../engine clean
-	rm -f build/objs/*.o build/bin/*
+	rm -rf build/objs/*.o build/bin/*
 
 mylly.bin: $(OBJS)
 	$(CC) $(addprefix build/objs/, $^) $(LDFLAGS) -o build/bin/$@
+	cp -r ../engine/resources/* build/bin/
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)

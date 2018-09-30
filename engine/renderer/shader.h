@@ -3,11 +3,14 @@
 #define __SHADER_H
 
 #include "core/defines.h"
+#include "framework/resources.h"
 
 // --------------------------------------------------------------------------------
 
 typedef uint32_t shader_object_t;
 typedef uint32_t shader_program_t;
+
+// --------------------------------------------------------------------------------
 
 typedef enum {
 	GLOBAL_MODEL_MATRIX,
@@ -16,6 +19,8 @@ typedef enum {
 	NUM_SHADER_GLOBALS
 } SHADER_GLOBAL;
 
+// --------------------------------------------------------------------------------
+
 typedef enum {
 	ATTR_VERTEX,
 	ATTR_NORMAL,
@@ -23,6 +28,8 @@ typedef enum {
 	ATTR_COLOUR,
 	NUM_SHADER_ATTRIBUTES
 } SHADER_ATTRIBUTE;
+
+// --------------------------------------------------------------------------------
 
 typedef enum {
 	SHADER_VERTEX,
@@ -33,6 +40,7 @@ typedef enum {
 
 typedef struct shader_t {
 
+	resource_t resource; // Resource info
 	char *name; // Name of the shader
 
 	shader_object_t vertex; // Vertex shader stage
@@ -41,12 +49,16 @@ typedef struct shader_t {
 
 	int globals[NUM_SHADER_GLOBALS]; // List of shader constants used by the program
 	int attributes[NUM_SHADER_ATTRIBUTES]; // List of vertex attributes used by the program
+
 } shader_t;
 
 // --------------------------------------------------------------------------------
 
-shader_t * shader_create(const char *name, const char *source);
+// NOTE: Should not be used directly. Load resources via the res_* API.
+shader_t * shader_create(const char *name, const char *path);
 void shader_destroy(shader_t *shader);
+
+bool shader_load_from_source(shader_t *shader, const char *source);
 
 // --------------------------------------------------------------------------------
 

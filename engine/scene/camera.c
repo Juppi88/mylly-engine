@@ -18,7 +18,7 @@ camera_t *camera_create(object_t *parent)
 	camera->is_orthographic = true;
 	camera->near = ORTOGRAPHIC_NEAR;
 	camera->far = ORTOGRAPHIC_FAR;
-	camera->size = 5;
+	camera->size = 2;
 	camera->fov = 60;
 
 	return camera;

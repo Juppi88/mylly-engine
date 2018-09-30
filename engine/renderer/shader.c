@@ -5,7 +5,6 @@
 
 // --------------------------------------------------------------------------------
 
-static bool shader_create_program(shader_t *shader, const char *src);
 static void shader_destroy_program(shader_t *shader);
 
 // --------------------------------------------------------------------------------
@@ -27,11 +26,15 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 
 // --------------------------------------------------------------------------------
 
-shader_t * shader_create(const char *name, const char *source)
+shader_t * shader_create(const char *name, const char *path)
 {
 	NEW(shader_t, shader);
 
-	shader->name = string_duplicate(name);
+	shader->resource.name = string_duplicate(name);
+
+	if (path != NULL) {
+		shader->resource.path = string_duplicate(path);
+	}
 
 	shader->vertex = 0;
 	shader->fragment = 0;
@@ -39,11 +42,6 @@ shader_t * shader_create(const char *name, const char *source)
 
 	for (uint32_t i = 0; i < NUM_SHADER_GLOBALS; ++i) {
 		shader->globals[i] = -1;
-	}
-
-	// Compile the shader.
-	if (shader_create_program(shader, source)) {
-		log_message("Renderer", "Loaded shader '%s'.", name);
 	}
 
 	return shader;
@@ -54,11 +52,12 @@ void shader_destroy(shader_t *shader)
 	// Destroy the GPU objects.
 	shader_destroy_program(shader);
 
-	DELETE(shader->name);
+	DELETE(shader->resource.name);
+	DELETE(shader->resource.path);
 	DELETE(shader);
 }
 
-static bool shader_create_program(shader_t *shader, const char *src)
+bool shader_load_from_source(shader_t *shader, const char *source)
 {
 	if (shader == NULL) {
 		return false;
@@ -70,7 +69,7 @@ static bool shader_create_program(shader_t *shader, const char *src)
 	const char *log;
 
 	// Compile the vertex shader.
-	shader->vertex = rend_create_shader(SHADER_VERTEX, src, &log);
+	shader->vertex = rend_create_shader(SHADER_VERTEX, source, &log);
 
 	if (shader->vertex == 0) {
 
@@ -79,7 +78,7 @@ static bool shader_create_program(shader_t *shader, const char *src)
 	}
 
 	// Compile the fragment shader.
-	shader->fragment = rend_create_shader(SHADER_FRAGMENT, src, &log);
+	shader->fragment = rend_create_shader(SHADER_FRAGMENT, source, &log);
 
 	if (shader->fragment == 0) {
 
