@@ -178,8 +178,8 @@ void camera_update_projection_matrix(camera_t *camera)
 			0,
 
 			0,
-			(camera->far + camera->near) / (camera->near - camera->far),
 			0,
+			(camera->far + camera->near) / (camera->near - camera->far),
 			-1,
 
 			0,

@@ -362,6 +362,8 @@ static void rend_begin_draw(void)
 	glAlphaFunc(GL_GREATER, 1.0f);
 	glEnable(GL_BLEND);
 
+	glDisable(GL_CULL_FACE);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 }

@@ -51,22 +51,24 @@ bool mylly_initialize(int argc, char **argv)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	obj_set_local_position(camera, vector3(-0.2f, 2.0f, 0.9f));
+	obj_set_local_position(camera, vector3(0.0f, 0.0f, 5.0f));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
+
+	camera_set_perspective_projection(camera->camera, 40, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
 
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
-	model_setup_primitive(test_model, PRIMITIVE_QUAD);
+	model_setup_primitive(test_model, PRIMITIVE_CUBE);
 	model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("test"));
 
 	// Create a test object and attach the model to it.
 	test = scene_create_object(scene, NULL);
 	test->model = test_model;
 
-	obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
+	//obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
 	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
-	obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	obj_set_local_rotation(test, quat_from_euler(0, 0, DEG_TO_RAD(45)));
+	//obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
+	//obj_set_local_rotation(test, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	// TEST CODE
 	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
@@ -86,12 +88,13 @@ bool mylly_initialize(int argc, char **argv)
 	mat_print(camera_get_view_matrix(camera->camera));*/
 
 	// Create another object and attach it to the first one.
-	test2 = scene_create_object(scene, test);
+	/*test2 = scene_create_object(scene, test);
 	test2->model = test_model;
 
 	obj_set_local_position(test2, vector3(0.93f, 0.58f, 0));
 	obj_set_local_scale(test2, vector3(0.75f, 0.5f, 0.5f));
 	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
+	*/
 
 
 	//
@@ -142,9 +145,9 @@ void mylly_main_loop(on_loop_t callback)
 		//
 
 		float angle = 0.005f * ++frames;
-		//obj_set_local_rotation(test, quat_from_euler(angle, 0, 0));
-		obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
-		obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
+		obj_set_local_rotation(test, quat_from_euler(angle, angle, 0));
+		//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
+		//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
 
 		//mat_print(camera_get_view_matrix(camera->camera));
 
