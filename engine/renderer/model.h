@@ -22,6 +22,8 @@ void model_destroy(model_t *model);
 mesh_t *model_add_mesh(model_t *model, const vertex_t *vertices, size_t num_vertices, const vindex_t *indices, size_t num_indices);
 void model_remove_meshes(model_t *model);
 
+void model_set_material(model_t *model, int mesh, shader_t *shader, texture_t *texture);
+
 void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type);
 
 #endif

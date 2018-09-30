@@ -6,6 +6,7 @@
 #include "renderer/model.h"
 #include "renderer/renderview.h"
 #include "renderer/shader.h"
+#include "renderer/texture.h"
 #include "renderer/vertexbuffer.h"
 
 bool rend_initialize(void);
@@ -53,5 +54,16 @@ int rend_get_program_program_attribute_location(shader_program_t program, const 
 
 // Returns the source code for a default shader which renders everything in purple.
 const char *rend_get_default_shader_source(void);
+
+//
+// Textures
+//
+
+// Generate a GPU texture object.
+texture_name_t rend_generate_texture(void *image, size_t width, size_t height);
+
+// Destroy a texture on the GPU.
+void rend_delete_texture(texture_name_t texture);
+
 
 #endif

@@ -8,6 +8,11 @@
 
 // --------------------------------------------------------------------------------
 
+typedef struct shader_t shader_t;
+typedef struct texture_t texture_t;
+
+// --------------------------------------------------------------------------------
+
 typedef struct mesh_t {
 
 	uint32_t index; // Sub-mesh index
@@ -20,6 +25,9 @@ typedef struct mesh_t {
 
 	vertexbuffer_t *vertex_buffer; // GPU buffer objects
 	vertexbuffer_t *index_buffer;
+
+	shader_t *shader; // Shader used for rendering this mesh
+	texture_t *texture; // Texture on this mesh
 
 } mesh_t;
 

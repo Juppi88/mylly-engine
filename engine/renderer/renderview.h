@@ -3,10 +3,14 @@
 #define __RENDERVIEW_H
 
 #include "core/list.h"
-#include "renderer/model.h"
-#include "renderer/shader.h"
-#include "renderer/vertexbuffer.h"
 #include "math/matrix.h"
+
+// --------------------------------------------------------------------------------
+
+typedef struct model_t model_t;
+typedef struct vertexbuffer_t vertexbuffer_t;
+typedef struct shader_t shader_t;
+typedef struct texture_t texture_t;
 
 // --------------------------------------------------------------------------------
 // robject_t is a structure which contains data about an object which is visible
@@ -33,6 +37,7 @@ typedef struct rmesh_t {
 	vertexbuffer_t *vertices; // Vertex buffer containing the vertices of this mesh
 	vertexbuffer_t *indices; // Vertex buffer containing the indices of this mesh
 	shader_t *shader; // The shader used for rendering this mesh
+	texture_t *texture; // The texture applied to this mesh.
 
 } rmesh_t;
 

@@ -12,7 +12,8 @@
 static GLXContext context;
 #endif
 
-static GLuint active_shader;
+static GLuint active_shader = -1;
+static GLuint active_texture = -1;
 
 // --------------------------------------------------------------------------------
 
@@ -20,32 +21,24 @@ static GLuint active_shader;
 // Used when no valid shaders are available.
 static const char *default_shader_source =
 
-"uniform mat4 MatrixModel;\n"
 "uniform mat4 MatrixMVP;\n"
-"uniform sampler2D Texture;\n"
-"\n"
-"varying vec2 texCoord;\n"
-"varying vec4 colour;\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
-"attribute vec4 Vertex;"
-"attribute vec3 Normal;"
-"attribute vec4 Colour;"
-"attribute vec2 TexCoord;\n"
+"\n"
+"attribute vec4 Vertex;\n"
 "\n"
 "void main()\n"
 "{\n"
 "	gl_Position = MatrixMVP * Vertex;\n"
-"	texCoord = TexCoord;\n"
-"	colour = Colour;"
 "}\n"
 "\n"
 "#elif defined(FRAGMENT_SHADER)\n"
 "\n"
 "void main()\n"
 "{\n"
-"	gl_FragColor = colour * texture(Texture, texCoord.xy);\n"
+"	gl_FragColor = vec4(1, 0, 1, 1);\n"
 "}\n"
+"\n"
 "#endif\n";
 
 // --------------------------------------------------------------------------------
@@ -55,7 +48,6 @@ static void rend_end_draw(void);
 
 // --------------------------------------------------------------------------------
 
-static GLuint texture;
 bool rend_initialize(void)
 {
 	// Create an OpenGL rendering context.	
@@ -114,7 +106,16 @@ void rend_draw_views(LIST(rview_t) views)
 				glUseProgram(shader);
 				active_shader = shader;
 			}
-	
+
+			// Select the active texture.
+			GLuint texture = (mesh->texture != NULL ? mesh->texture->gpu_texture : -1);
+
+			if (texture != active_texture) {
+
+				glBindTexture(GL_TEXTURE_2D, texture);
+				active_texture = texture;
+			}
+
 			// Bind the meshes vertex buffer and set vertex data pointers.
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
 
@@ -327,6 +328,29 @@ int rend_get_program_program_attribute_location(shader_program_t program, const 
 const char *rend_get_default_shader_source(void)
 {
 	return default_shader_source;
+}
+
+texture_name_t rend_generate_texture(void *image, size_t width, size_t height)
+{
+	// Generate a texture name.
+	GLuint texture;
+	glGenTextures(1, &texture);
+
+	// Upload the texture to the GPU.
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	return texture;
+}
+
+void rend_delete_texture(texture_name_t texture)
+{
+	glDeleteTextures(1, &texture);
 }
 
 static void rend_begin_draw(void)
