@@ -37,7 +37,8 @@ static void setup(void)
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
 	model_setup_primitive(test_model, PRIMITIVE_CUBE);
-	model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
+	//model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
+	model_set_material(test_model, -1, res_get_shader("test"), res_get_texture("pico"));
 
 	// Create a test object and attach the model to it.
 	test = scene_create_object(scene, NULL);

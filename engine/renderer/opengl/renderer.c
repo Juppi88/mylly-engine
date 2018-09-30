@@ -4,6 +4,7 @@
 #include "renderer/texture.h"
 #include "io/log.h"
 #include "platform/window.h"
+#include "core/time.h"
 #include <stdio.h>
 
 #ifdef _WIN32
@@ -178,6 +179,17 @@ void rend_draw_views(LIST(rview_t) views)
 				glUniform1i(
 					shader_get_global_position(mesh->shader, GLOBAL_TEXTURE),
 					0
+				);
+			}
+
+			if (shader_uses_global(mesh->shader, GLOBAL_TIME)) {
+
+				vec4_t time = get_shader_time();
+
+				glUniform4fv(
+					shader_get_global_position(mesh->shader, GLOBAL_TIME),
+					1,
+					&time
 				);
 			}
 

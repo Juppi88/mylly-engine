@@ -13,7 +13,8 @@ static void shader_destroy_program(shader_t *shader);
 static const char *shader_global_names[NUM_SHADER_GLOBALS] = {
 	"MatrixModel",
 	"MatrixMVP",
-	"Texture"
+	"Texture",
+	"Time"
 };
 
 // Shader vertex attribute names.

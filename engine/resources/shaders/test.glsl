@@ -1,6 +1,7 @@
 uniform mat4 MatrixModel;
 uniform mat4 MatrixMVP;
 uniform sampler2D Texture;
+uniform vec4 Time;
 
 varying vec2 texCoord;
 varying vec4 colour;
@@ -26,10 +27,10 @@ void main()
 {
 	if (texCoord.s < 0.01 || texCoord.s > 0.99 ||
 		texCoord.t < 0.01 || texCoord.t > 0.99) {
-		gl_FragColor = vec4(1, 0, 0, 1);
+		gl_FragColor = vec4(0, 0, 0, 1);
 	}
 	else {
-		gl_FragColor = vec4(1, 1, 1, 1);
+		gl_FragColor = vec4(abs(Time.y), abs(Time.z), 0, 1);
 	}
 }
 
