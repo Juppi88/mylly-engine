@@ -17,14 +17,20 @@ static arr_t(shader_t*) shaders;
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type);
 static void res_load_texture(const char *file_name);
 static void res_load_shader(const char *file_name);
+static void res_parse_shader_line(char *line, size_t length, void *context);
 
 // --------------------------------------------------------------------------------
 
 void res_initialize(void)
 {
 	// Create default resources here, add them to the beginning of resource list.
+	const char *source[] = {
+		NULL, // Empty line for shader resources
+		rend_get_default_shader_source()
+	};
+
 	shader_t *default_shader = shader_create("default", NULL);
-	shader_load_from_source(default_shader, rend_get_default_shader_source());
+	shader_load_from_source(default_shader, source, 2);
 
 	arr_push(shaders, default_shader);
 	default_shader->resource.index = arr_last_index(shaders);
@@ -134,23 +140,71 @@ static void res_load_texture(const char *file_name)
 
 static void res_load_shader(const char *file_name)
 {
-	char *buffer;
-	size_t length;
+	// Read the shader source into an array of lines.
+	arr_t(char*) lines;
+	arr_init(lines);
 
-	if (file_read_all_text(file_name, &buffer, &length)) {
+	// Add an empty line for defines. This is a requirement for the shader compiler.
+	arr_push(lines, NULL);
 
-		// Create the shader.
-		char name[260];
-		string_get_file_name_without_extension(file_name, name, sizeof(name));
+	if (!file_for_each_line(file_name, res_parse_shader_line, &lines, true)) {
+		return;
+	}
 
-		shader_t *shader = shader_create(name, file_name);
+	// Create and parse the shader from the lines.
+	char name[260];
+	string_get_file_name_without_extension(file_name, name, sizeof(name));
 
-		if (shader_load_from_source(shader, buffer)) {
-			shader->resource.is_loaded = true;
+	shader_t *shader = shader_create(name, file_name);
+
+	if (shader_load_from_source(shader, (const char **)lines.items, lines.count)) {
+		shader->resource.is_loaded = true;
+	}
+
+	// Add to resource list.
+	arr_push(shaders, shader);
+	shader->resource.index = arr_last_index(shaders);
+
+	// Remove all temporarily allocated memory.
+	char *line;
+
+	arr_foreach(lines, line) {
+		mem_free(line);
+	}
+
+	arr_clear(lines);
+}
+
+static void res_parse_shader_line(char *line, size_t length, void *context)
+{
+	arr_t(char*) *lines = context;
+
+	// Check the source code for #pragma include directives.
+	if (string_starts_with(line, "#pragma include ", 16)) {
+
+		// Attempt to read the include file.
+		char *include = &line[16];
+		char file_name[260];
+
+		// Strip white space from the end of the file name (line change etc).
+		string_strip_end(&include);
+
+		snprintf(file_name, sizeof(file_name), "./shaders/%s", include);
+
+		char *include_buffer;
+		size_t include_length;
+
+		if (file_read_all_text(file_name, &include_buffer, &include_length)) {
+
+			// Push the contents of the include file to the line list.
+			arr_push(*lines, string_duplicate(include_buffer));
 		}
-
-		// Add to resource list.
-		arr_push(shaders, shader);
-		shader->resource.index = arr_last_index(shaders);
+		else {
+			log_note("Resources", "Could not include a shader named '%s'.", include);
+		}
+	}
+	else {
+		// Push the line to the list as-is.
+		arr_push(*lines, string_duplicate(line));
 	}
 }

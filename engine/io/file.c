@@ -18,7 +18,8 @@ static size_t file_get_size(FILE *file);
 
 // --------------------------------------------------------------------------------
 
-void file_for_each_in_directory(const char *directory, const char *extension, void (*method)(const char *file))
+void file_for_each_in_directory(const char *directory,
+								const char *extension, void (*method)(const char *file))
 {
 #ifdef _WIN32
 	#error "file_for_each_in_directory is not implemented on Windows."
@@ -54,17 +55,20 @@ void file_for_each_in_directory(const char *directory, const char *extension, vo
 #endif
 }
 
-void file_for_each_line(const char *path, void (*method)(char *line, size_t line_len))
+bool file_for_each_line(const char *path,
+						void (*method)(char *line, size_t line_len, void *context),
+						void *context,
+						bool keep_new_line)
 {
 	if (method == NULL) {
-		return;
+		return false;
 	}
 
 	// Try to open the file.
 	FILE *file = fopen(path, "r");
 
 	if (file == NULL) {
-		return;
+		return false;
 	}
 
 	char line[1024];
@@ -77,6 +81,12 @@ void file_for_each_line(const char *path, void (*method)(char *line, size_t line
 		do {
 			c = getc(file);
 
+			// Keep line endings for each line when keep_new_line is set.
+			if (keep_new_line && (c == '\n' || c == '\r')) {
+				line[i++] = '\n';
+			}
+
+			// Break on line change.
 			if (c == EOF || c == '\n' || c == '\r') {
 				break;
 			}
@@ -87,13 +97,15 @@ void file_for_each_line(const char *path, void (*method)(char *line, size_t line
 		// Null-terminate the line and handle it.
 		if (i != 0) {
 			line[i] = 0;
-			method(line, i);
+			method(line, i, context);
 
 			i = 0;
 		}
 	}
 
 	fclose(file);
+
+	return true;
 }
 
 bool file_read_all_text(const char *path, char **buf, size_t *bytes_read)

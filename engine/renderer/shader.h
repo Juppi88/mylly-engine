@@ -3,7 +3,7 @@
 #define __SHADER_H
 
 #include "core/defines.h"
-#include "framework/resources.h"
+#include "resources/resources.h"
 
 // --------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ typedef struct shader_t {
 shader_t * shader_create(const char *name, const char *path);
 void shader_destroy(shader_t *shader);
 
-bool shader_load_from_source(shader_t *shader, const char *source);
+bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines);
 
 // --------------------------------------------------------------------------------
 

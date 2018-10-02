@@ -13,11 +13,11 @@ builddirs:
 
 clean:
 	$(MAKE) -C ../engine clean
-	rm -rf build/objs/*.o build/bin/mylly.bin
+	rm -rf build/objs/*.o build/bin/shaders/ build/bin/mylly.bin
 
 mylly.bin: $(OBJS)
 	$(CC) $(addprefix build/objs/, $^) $(LDFLAGS) -o build/bin/$@
-	cp -r ../engine/resources/* build/bin/
+	cp -r ../engine/resources/shaders/ build/bin/
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)

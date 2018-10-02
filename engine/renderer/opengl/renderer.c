@@ -189,7 +189,7 @@ void rend_draw_views(LIST(rview_t) views)
 				glUniform4fv(
 					shader_get_global_position(mesh->shader, GLOBAL_TIME),
 					1,
-					&time
+					(const GLfloat *)&time
 				);
 			}
 
@@ -231,7 +231,8 @@ void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_ind
 	}
 }
 
-shader_object_t rend_create_shader(SHADER_TYPE type, const char *source, const char **compiler_log)
+shader_object_t rend_create_shader(SHADER_TYPE type, const char **lines, size_t num_lines,
+								   const char **compiler_log)
 {
 	GLenum shader_type;
 
@@ -255,12 +256,12 @@ shader_object_t rend_create_shader(SHADER_TYPE type, const char *source, const c
 	// Create a shader object.
 	GLuint shader = glCreateShader(shader_type);
 
-	const char *src[2];
-	src[0] = defines;
-	src[1] = source;
+	// Prepend the defines to the list of source code lines.
+	// The resource loader should have left the first line empty for this.
+	lines[0] = defines;
 
 	// Compile the source code with the defines set above.
-	glShaderSource(shader, 2, src, NULL);
+	glShaderSource(shader, num_lines, lines, NULL);
 	glCompileShader(shader);
 
 	// Get the compiler log.
@@ -282,6 +283,9 @@ shader_object_t rend_create_shader(SHADER_TYPE type, const char *source, const c
 		glDeleteShader(shader);
 		shader = 0;
 	}
+
+	// Remove the defines string from the list since it is not on the heap.
+	lines[0] = NULL;
 
 	return shader;
 }

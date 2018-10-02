@@ -58,7 +58,7 @@ void shader_destroy(shader_t *shader)
 	DELETE(shader);
 }
 
-bool shader_load_from_source(shader_t *shader, const char *source)
+bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines)
 {
 	if (shader == NULL) {
 		return false;
@@ -70,7 +70,7 @@ bool shader_load_from_source(shader_t *shader, const char *source)
 	const char *log;
 
 	// Compile the vertex shader.
-	shader->vertex = rend_create_shader(SHADER_VERTEX, source, &log);
+	shader->vertex = rend_create_shader(SHADER_VERTEX, lines, num_lines, &log);
 
 	if (shader->vertex == 0) {
 
@@ -81,7 +81,7 @@ bool shader_load_from_source(shader_t *shader, const char *source)
 	}
 
 	// Compile the fragment shader.
-	shader->fragment = rend_create_shader(SHADER_FRAGMENT, source, &log);
+	shader->fragment = rend_create_shader(SHADER_FRAGMENT, lines, num_lines, &log);
 
 	if (shader->fragment == 0) {
 

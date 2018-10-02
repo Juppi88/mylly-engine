@@ -23,7 +23,7 @@ static LIST(setting_t) commands;
 // --------------------------------------------------------------------------------
 
 static void config_parse_file(const char *path);
-static void config_parse_line(char *line, size_t line_len);
+static void config_parse_line(char *line, size_t line_len, void *context);
 static LIST_OBJ(setting_t) config_get_setting(const char *key);
 
 // --------------------------------------------------------------------------------
@@ -87,10 +87,10 @@ int config_get_int(const char *key, int default_value)
 
 static void config_parse_file(const char *path)
 {
-	file_for_each_line(path, config_parse_line);
+	file_for_each_line(path, config_parse_line, NULL, false);
 }
 
-static void config_parse_line(char *line, size_t line_len)
+static void config_parse_line(char *line, size_t line_len, void *context)
 {
 	char *key, *value;
 	string_parse_command(line, &key, &value);

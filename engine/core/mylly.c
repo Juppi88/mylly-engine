@@ -4,7 +4,7 @@
 #include "platform/thread.h"
 #include "platform/window.h"
 #include "renderer/rendersystem.h"
-#include "framework/resources.h"
+#include "resources/resources.h"
 #include <unistd.h>
 
 // --------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 #define __TEXTURE_H
 
 #include "core/defines.h"
-#include "framework/resources.h"
+#include "resources/resources.h"
 
 // --------------------------------------------------------------------------------
 

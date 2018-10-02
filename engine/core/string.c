@@ -222,12 +222,50 @@ char *string_strip(char **input)
 {
 	register char *s = *input;
 
-	while (*s == ' ') {
-		++s;
+	while (*s) {
+
+		switch (*s) {
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				++s;
+				continue;
+		}
+
+		break;
 	}
 
 	*input = s;
 	return s;
+}
+
+char *string_strip_end(char **input)
+{
+	// Nothing to strip from an empty string.
+	if (string_is_null_or_empty(*input)) {
+		return *input;
+	}
+
+	// Get the end of the string.
+	register char *s = *input + strlen(*input) - 1;
+
+	// Skip characters until a non-white space character is found.
+	while (s != *input) {
+
+		switch (*s) {
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				*s-- = 0;
+				continue;
+		}
+
+		break;
+	}
+
+	return *input;
 }
 
 bool string_is_numeric(const char *text)

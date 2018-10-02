@@ -1,0 +1,20 @@
+#ifndef MYLLY_GLINC
+#define MYLLY_GLINC
+
+// Shader constants
+uniform mat4 MatrixModel;
+uniform mat4 MatrixMVP;
+uniform sampler2D Texture;
+uniform vec4 Time; // time, cosTime, sinTime, deltaTime
+
+// Vertex attributes
+#if defined(VERTEX_SHADER)
+
+attribute vec4 Vertex;
+attribute vec3 Normal;
+attribute vec4 Colour;
+attribute vec2 TexCoord;
+
+#endif
+
+#endif

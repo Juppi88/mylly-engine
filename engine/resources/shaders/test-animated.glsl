@@ -1,16 +1,9 @@
-uniform mat4 MatrixMVP;
-uniform sampler2D Texture;
-uniform vec4 Time;
+#pragma include inc/mylly.glinc
 
 varying vec2 texCoord;
 varying vec4 colour;
 
 #if defined(VERTEX_SHADER)
-
-attribute vec4 Vertex;
-attribute vec3 Normal;
-attribute vec4 Colour;
-attribute vec2 TexCoord;
 
 const int frames = 4;
 const float animSpeed = 2.0;

@@ -32,9 +32,10 @@ void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_ind
 // Shaders/shader programs
 //
 
-// Compile a shader from source code. Returns the shader object if the compile succeeds,
-// 0 otherwise. Will save the compiler log to compiler_log if set (can be left to NULL).
-shader_object_t rend_create_shader(SHADER_TYPE type, const char *source, const char **compiler_log);
+// Compile a shader from an array of source code lines. Returns the shader object if the compile
+// succeeds, 0 otherwise. Will save the compiler log to compiler_log if set (can be left to NULL).
+shader_object_t rend_create_shader(SHADER_TYPE type, const char **lines, size_t num_lines,
+								   const char **compiler_log);
 
 // Links a list of shader objects into a shader program. Returns the shader program if succeeds,
 // 0 otherwise.
