@@ -380,6 +380,8 @@ static void rend_begin_draw(void)
 
 	glDisable(GL_CULL_FACE);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 }

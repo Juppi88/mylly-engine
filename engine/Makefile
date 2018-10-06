@@ -4,7 +4,7 @@ CC = clang-6.0
 CFLAGS = -Wall -g -D_DEBUG -I.
 
 OBJS = core/array.o core/mylly.o core/memory.o core/string.o core/time.o\
-       input/input.o\
+       input/input.o input/keybind.o\
        io/config.o io/console.o io/file.o io/log.o\
        math/matrix.o math/quaternion.o math/vector.o\
        platform/thread.o platform/timer.o platform/window.o\
