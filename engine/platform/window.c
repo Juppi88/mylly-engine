@@ -58,7 +58,8 @@ bool window_create(bool fullscreen, int width, int height)
 	// And finally, create the window.
 	int x = 0, y = 0;
 
-	window = XCreateWindow(display, root, x, y, width, height, 0, visual->depth, InputOutput, visual->visual, CWColormap | CWEventMask, &windowAttr);
+	window = XCreateWindow(display, root, x, y, width, height, 0, visual->depth, InputOutput,
+						   visual->visual, CWColormap | CWEventMask, &windowAttr);
 
 	XMapWindow(display, window);
 	XStoreName(display, window, "Mylly");
@@ -66,6 +67,9 @@ bool window_create(bool fullscreen, int width, int height)
 	XClassHint hint = { "Mylly", "Mylly" };
 	XSetClassHint(display, window, &hint);
 
+	// Request input events from the X server for input processing and key binds.
+	XSelectInput(display, window, KeyPressMask | KeyReleaseMask | PointerMotionMask |
+								  ButtonPressMask | ButtonReleaseMask);
 
 	log_message("Platform", "Main window was created successfully, handle: 0x%X", (void *)window);
 
@@ -106,6 +110,20 @@ Window window_get_handle(void)
 XVisualInfo *window_get_visual_info(void)
 {
 	return visual;
+}
+
+void window_process_events(input_hook_t handler)
+{
+	XEvent event;
+
+	while (XPending(display)) {
+
+		XNextEvent(display, &event);
+
+		if (handler != NULL) {
+			handler(&event);
+		}
+	}
 }
 
 #endif

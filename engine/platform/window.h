@@ -4,8 +4,13 @@
 
 #include "core/defines.h"
 
+typedef bool (*input_hook_t)(void *args);
+
+// --------------------------------------------------------------------------------
+
 bool window_create(bool fullscreen, int width, int height);
 void window_pump_events(void);
+void window_process_events(input_hook_t handler);
 
 #ifndef _WIN32
 
