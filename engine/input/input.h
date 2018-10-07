@@ -38,6 +38,9 @@ typedef enum mouse_wheel_t {
 
 // --------------------------------------------------------------------------------
 
+void input_get_cursor_position(uint16_t *x, uint16_t *y);
+void input_set_cursor_position(uint16_t x, uint16_t y);
+
 bool input_handle_keyboard_event(input_event_t type, uint32_t key);
 
 bool input_handle_mouse_event(input_event_t type, int16_t x, int16_t y,

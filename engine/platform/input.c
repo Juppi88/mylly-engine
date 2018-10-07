@@ -1,4 +1,5 @@
 #include "input.h"
+#include "window.h"
 #include "input/input.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -144,4 +145,12 @@ bool input_process_messages(void *params)
 		}
 	}
 	return true;
+}
+
+void input_warp_cursor(int16_t x, int16_t y)
+{
+	Display *display = window_get_display();
+	Window root = XRootWindow(display, 0);
+
+	XWarpPointer(display, None, root, 0, 0, 0, 0, x, y);
 }

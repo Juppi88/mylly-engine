@@ -6,6 +6,7 @@
 #include "scene/object.h"
 #include "scene/camera.h"
 #include "math/math.h"
+#include "input/input.h"
 
 // --------------------------------------------------------------------------------
 
@@ -13,6 +14,7 @@ static scene_t *scene;
 static object_t *camera;
 static model_t *test_model;
 static object_t *test, *test2;
+static uint16_t mouse_x, mouse_y;
 
 // --------------------------------------------------------------------------------
 
@@ -75,6 +77,9 @@ static void setup(void)
 	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 	*/
 
+	// Get initial cursor position.
+	input_get_cursor_position(&mouse_x, &mouse_y);
+
 	mylly_set_scene(scene);
 
 
@@ -89,8 +94,11 @@ static void main_loop(void)
 	// TEST CODE!
 	//
 
-	float angle = get_time().time;
-	obj_set_local_rotation(test, quat_from_euler(DEG_TO_RAD(-45), angle, 0));
+	//float angle = get_time().time;
+	//obj_set_local_rotation(test, quat_from_euler(DEG_TO_RAD(-45), angle, 0));
+
+	input_get_cursor_position(&mouse_x, &mouse_y);
+	obj_set_local_rotation(test, quat_from_euler(0, -DEG_TO_RAD(mouse_x), -DEG_TO_RAD(mouse_y)));
 	//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
 

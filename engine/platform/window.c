@@ -9,6 +9,7 @@
 #else
 
 #include "io/log.h"
+#include "input/input.h"
 #include <X11/Xlib.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -70,6 +71,9 @@ bool window_create(bool fullscreen, int width, int height)
 	// Request input events from the X server for input processing and key binds.
 	XSelectInput(display, window, KeyPressMask | KeyReleaseMask | PointerMotionMask |
 								  ButtonPressMask | ButtonReleaseMask);
+
+	// Move cursor to the center of the new window.
+	input_set_cursor_position(width / 2, height / 2);
 
 	log_message("Platform", "Main window was created successfully, handle: 0x%X", (void *)window);
 
