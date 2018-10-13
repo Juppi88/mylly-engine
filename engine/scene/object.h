@@ -64,6 +64,8 @@ static INLINE vec3_t obj_get_position(object_t *obj);
 static INLINE vec3_t obj_get_scale(object_t *obj);
 static INLINE quat_t obj_get_rotation(object_t *obj);
 
+static INLINE void obj_set_position(object_t *obj, const vec3_t position);
+
 static INLINE void obj_set_local_position(object_t *obj, const vec3_t position);
 static INLINE void obj_set_local_rotation(object_t *obj, const quat_t rotation);
 static INLINE void obj_set_local_scale(object_t *obj, const vec3_t scale);
@@ -137,6 +139,21 @@ static INLINE quat_t obj_get_rotation(object_t *obj)
 	}
 
 	return obj->rotation;
+}
+
+static INLINE void obj_set_position(object_t *obj, const vec3_t position)
+{
+	vec3_t local = position;
+
+	if (obj->parent != NULL) {
+
+		// Offset the position by the parent's position.
+		vec3_t parent_position = obj_get_position(obj->parent);
+		local = vec3_subtract(&position, &parent_position);
+	}
+
+	// Set the world position by updating the local position.
+	obj_set_local_position(obj, position);
 }
 
 static INLINE void obj_set_local_position(object_t *obj, const vec3_t position)

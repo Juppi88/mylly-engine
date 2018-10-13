@@ -20,7 +20,7 @@ static uint32_t key_released_frames[KEY_CODES];
 
 // --------------------------------------------------------------------------------
 
-bool input_process_messages(void *params)
+bool input_sys_process_messages(void *params)
 {
 	XEvent *event = (XEvent *)params;
 
@@ -186,7 +186,7 @@ bool input_process_messages(void *params)
 	return true;
 }
 
-void input_warp_cursor(int16_t x, int16_t y)
+void input_sys_warp_cursor(int16_t x, int16_t y)
 {
 	Display *display = window_get_display();
 	Window root = XRootWindow(display, 0);
@@ -194,7 +194,7 @@ void input_warp_cursor(int16_t x, int16_t y)
 	XWarpPointer(display, None, root, 0, 0, 0, 0, x, y);
 }
 
-uint32_t input_get_key_pressed_frame(uint32_t key_symbol)
+uint32_t input_sys_get_key_pressed_frame(uint32_t key_symbol)
 {
 	// Symbols below 8 are reserved for mouse buttons.
 	if (key_symbol < 8) {
@@ -211,7 +211,7 @@ uint32_t input_get_key_pressed_frame(uint32_t key_symbol)
 	return 0;
 }
 
-uint32_t input_get_key_released_frame(uint32_t key_symbol)
+uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
 {
 	if (key_symbol < 8) {
 		return key_released_frames[key_symbol];

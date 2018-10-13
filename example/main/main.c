@@ -18,6 +18,14 @@ static uint16_t mouse_x, mouse_y;
 
 // --------------------------------------------------------------------------------
 
+typedef enum {
+	BUTTON_UP,
+	BUTTON_DOWN,
+	BUTTON_LEFT,
+	BUTTON_RIGHT,
+	BUTTON_EXIT,
+} key_bind_t;
+
 static void setup(void)
 {
 	//
@@ -80,6 +88,13 @@ static void setup(void)
 	// Get initial cursor position.
 	input_get_cursor_position(&mouse_x, &mouse_y);
 
+	// Bind virtual buttons.
+	input_bind_button(BUTTON_UP, 'W');
+	input_bind_button(BUTTON_LEFT, 'A');
+	input_bind_button(BUTTON_DOWN, 'S');
+	input_bind_button(BUTTON_RIGHT, 'D');
+	input_bind_button(BUTTON_EXIT, MKEY_ESCAPE);
+
 	mylly_set_scene(scene);
 
 
@@ -112,6 +127,38 @@ static void main_loop(void)
 
 	mouse_x = x;
 	mouse_y = y;
+
+	// Exit the program when escape is pressed.
+	if (input_get_button_pressed(BUTTON_EXIT)) {
+
+		printf("Exiting...\n");
+		mylly_exit();
+	}
+
+	// Handle camera movement.
+	const float speed = 1.0f;
+
+	vec3_t position = obj_get_position(camera);
+	vec3_t movement = vec3_zero();
+
+	if (input_is_button_down(BUTTON_UP)) {
+		movement.y += 1.0f;
+	}
+	if (input_is_button_down(BUTTON_DOWN)) {
+		movement.y -= 1.0f;
+	}
+	if (input_is_button_down(BUTTON_LEFT)) {
+		movement.x -= 1.0f;
+	}
+	if (input_is_button_down(BUTTON_RIGHT)) {
+		movement.x += 1.0f;
+	}
+
+	movement = vec3_multiply(&movement, speed * get_time().delta_time);
+	position = vec3_add(&position, &movement);
+
+	// Update camera position.
+	obj_set_position(camera, position);
 	
 
 	//

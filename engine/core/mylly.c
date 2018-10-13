@@ -16,6 +16,7 @@ static void mylly_set_working_directory(void);
 // --------------------------------------------------------------------------------
 
 static scene_t *current_scene;
+static bool is_running = true;
 
 // --------------------------------------------------------------------------------
 
@@ -53,11 +54,11 @@ static void mylly_shutdown(void)
 void mylly_main_loop(on_loop_t callback)
 {
 	// Enter the main loop.
-	for (;;) {
+	while (is_running) {
 
 		// Process window events and input.
 		window_pump_events();
-		window_process_events(input_process_messages);
+		window_process_events(input_sys_process_messages);
 
 		// Call the main loop callback.
 		if (callback != NULL) {
@@ -86,6 +87,11 @@ void mylly_set_scene(scene_t *scene)
 {
 	// TODO: Create a proper scene manager for scenes!
 	current_scene = scene;
+}
+
+void mylly_exit(void)
+{
+	is_running = false;
 }
 
 static void mylly_set_working_directory(void)

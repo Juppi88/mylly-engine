@@ -7,6 +7,46 @@
 
 // --------------------------------------------------------------------------------
 
+// Mouse buttons. Can be used as key symbols alongside those defined in 'input/keys.h'.
+typedef enum mouse_button_t {
+	MOUSE_NONE,
+	MOUSE_LBUTTON,
+	MOUSE_MBUTTON,
+	MOUSE_RBUTTON,
+	MOUSE_FORCE_DWORD = 0x7FFFFFFF
+} mouse_button_t;
+
+// Mouse wheel events.
+typedef enum mouse_wheel_t {
+	MWHEEL_STATIONARY,
+	MWHEEL_UP,
+	MWHEEL_DOWN,
+} mouse_wheel_t;
+
+// --------------------------------------------------------------------------------
+
+// Bind an arbitrary button index to a key symbol from 'input/keys.h'. The value can then be used
+// to query the state of a button without hardcoding the symbol into the code. Setting the key
+// symbol to 0 will unbind the symbol.
+typedef uint8_t button_t;
+
+void input_bind_button(button_t button, uint32_t key_symbol);
+
+// Returns whether the button is currently pressed down.
+bool input_is_button_down(button_t button);
+
+// Returns whether the button was just pressed down or released.
+bool input_get_button_pressed(button_t button);
+bool input_get_button_released(button_t button);
+
+// --------------------------------------------------------------------------------
+
+// Retrieve and set cursor position.
+void input_get_cursor_position(uint16_t *x, uint16_t *y);
+void input_set_cursor_position(uint16_t x, uint16_t y);
+
+// --------------------------------------------------------------------------------
+
 typedef enum input_event_t {
 	INPUT_CHARACTER, // Input a character
 	INPUT_KEY_UP, // A keyboard button is released
@@ -22,28 +62,13 @@ typedef enum input_event_t {
 	NUM_INPUT_EVENTS
 } input_event_t;
 
-typedef enum mouse_button_t {
-	MOUSE_NONE,
-	MOUSE_LBUTTON,
-	MOUSE_MBUTTON,
-	MOUSE_RBUTTON,
-	MOUSE_FORCE_DWORD = 0x7FFFFFFF
-} mouse_button_t;
-
-typedef enum mouse_wheel_t {
-	MWHEEL_STATIONARY,
-	MWHEEL_UP,
-	MWHEEL_DOWN,
-} mouse_wheel_t;
-
-// --------------------------------------------------------------------------------
-
-void input_get_cursor_position(uint16_t *x, uint16_t *y);
-void input_set_cursor_position(uint16_t x, uint16_t y);
-
+// Internal handler for raw keyboard events.
 bool input_handle_keyboard_event(input_event_t type, uint32_t key);
 
+// Internal handler for raw mouse events.
 bool input_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 							  mouse_button_t button, mouse_wheel_t wheel);
+
+// --------------------------------------------------------------------------------
 
 #endif

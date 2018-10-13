@@ -17,4 +17,6 @@ void mylly_main_loop(on_loop_t callback);
 
 void mylly_set_scene(scene_t *scene);
 
+void mylly_exit(void);
+
 #endif
