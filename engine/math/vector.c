@@ -14,6 +14,39 @@ vec4_t vec4_one = vec4_one();
 
 // --------------------------------------------------------------------------------
 
+vec3_t vec3_add(const vec3_t *a, const vec3_t *b)
+{
+	vec3_t result = vec3(
+		a->x + b->x,
+		a->y + b->y,
+		a->z + b->z
+	);
+
+	return result;
+}
+
+vec3_t vec3_subtract(const vec3_t *a, const vec3_t *b)
+{
+	vec3_t result = vec3(
+		a->x - b->x,
+		a->y - b->y,
+		a->z - b->z
+	);
+
+	return result;
+}
+
+vec3_t vec3_multiply(const vec3_t *v, float value)
+{
+	vec3_t result = vec3(
+		v->x * value,
+		v->y * value,
+		v->z * value
+	);
+
+	return result;
+}
+
 float vec3_dot(const vec3_t *a, const vec3_t *b)
 {
 	return (a->x * b->x) + (a->y * b->y) + (a->z * b->z);
