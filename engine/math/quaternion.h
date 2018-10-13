@@ -21,6 +21,8 @@ extern quat_t quat_identity;
 quat_t quat_from_euler(float x, float y, float z);
 quat_t quat_from_euler3(const vec3_t *euler);
 
+quat_t quat_multiply(const quat_t *a, const quat_t *b);
+
 // --------------------------------------------------------------------------------
 
 static INLINE void quat_print(const quat_t quat)
