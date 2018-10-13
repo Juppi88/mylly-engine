@@ -55,13 +55,14 @@ void mylly_main_loop(on_loop_t callback)
 	// Enter the main loop.
 	for (;;) {
 
+		// Process window events and input.
+		window_pump_events();
+		window_process_events(input_process_messages);
+
 		// Call the main loop callback.
 		if (callback != NULL) {
 			callback();
 		}
-
-		window_pump_events();
-		window_process_events(input_process_messages);
 
 		// Render the current scene.
 		rsys_begin_frame();
