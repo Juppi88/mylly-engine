@@ -18,6 +18,8 @@
 #define STRINGIFY(x) #x
 #define BOOL_STRING(x) (x ? "true" : "false")
 
+BEGIN_DECLARATIONS;
+
 void string_copy(char *dst, const char *src, size_t dst_len);
 char *string_duplicate(const char *text);
 size_t string_tokenize(const char *text, char delimiter, char *dst, size_t dst_len);
@@ -34,5 +36,7 @@ char *string_strip_end(char **input);
 bool string_is_numeric(const char *text);
 
 void string_get_file_name_without_extension(const char *text, char *dst, size_t dst_len);
+
+END_DECLARATIONS;
 
 #endif

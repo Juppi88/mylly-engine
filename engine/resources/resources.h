@@ -4,6 +4,8 @@
 
 #include "core/defines.h"
 
+BEGIN_DECLARATIONS;
+
 typedef enum {
 	RES_TEXTURE,
 	RES_SHADER,
@@ -27,5 +29,7 @@ void res_shutdown(void);
 
 texture_t *res_get_texture(const char *name);
 shader_t *res_get_shader(const char *name);
+
+END_DECLARATIONS;
 
 #endif

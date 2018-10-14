@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 
+BEGIN_DECLARATIONS;
+
 // --------------------------------------------------------------------------------
 // mat_t - A 4x4 matrix structure
 
@@ -77,5 +79,7 @@ static INLINE void mat_print(const mat_t *mat)
 	printf("  %+.2f  %+.2f  %+.2f  %+.2f ]\n",
 		mat->col[0][3], mat->col[1][3], mat->col[2][3], mat->col[3][3]);
 }
+
+END_DECLARATIONS;
 
 #endif

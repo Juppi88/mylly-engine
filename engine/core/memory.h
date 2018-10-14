@@ -13,8 +13,12 @@
 	(var) = NULL;\
 }
 
+BEGIN_DECLARATIONS;
+
 void *mem_alloc(size_t size);
 void *mem_alloc_fast(size_t size);
 void mem_free(void *ptr);
+
+END_DECLARATIONS;
 
 #endif

@@ -4,6 +4,8 @@
 
 #include "renderer/vertexbuffer.h"
 
+BEGIN_DECLARATIONS;
+
 // The number of new buffers to allocate when allovating new VBOs.
 #define VBCACHE_ADDITIONAL_BUFFERS (1 << 10)
 
@@ -23,5 +25,7 @@ void vbcache_alloc_buffer(void *data, size_t num_elements, size_t elem_size, ver
 void vbcache_refresh_buffer(vertexbuffer_t *buffer);
 
 void vbcache_free_inactive_buffers(void);
+
+END_DECLARATIONS;
 
 #endif

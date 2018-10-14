@@ -4,6 +4,8 @@
 
 #include "core/defines.h"
 
+BEGIN_DECLARATIONS;
+
 typedef bool (*input_hook_t)(void *args);
 
 // --------------------------------------------------------------------------------
@@ -24,5 +26,7 @@ Window window_get_handle(void);
 XVisualInfo *window_get_visual_info(void);
 
 #endif
+
+END_DECLARATIONS;
 
 #endif

@@ -5,6 +5,8 @@
 #include "core/defines.h"
 #include "input/keys.h"
 
+BEGIN_DECLARATIONS;
+
 // -------------------------------------------------------------------------------------------------
 
 // Mouse buttons. Can be used as key symbols alongside those defined in 'input/keys.h'.
@@ -83,5 +85,7 @@ bool input_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 							  mouse_button_t button, mouse_wheel_t wheel);
 
 // -------------------------------------------------------------------------------------------------
+
+END_DECLARATIONS;
 
 #endif

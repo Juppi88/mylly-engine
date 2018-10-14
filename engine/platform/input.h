@@ -4,6 +4,8 @@
 
 #include "core/defines.h"
 
+BEGIN_DECLARATIONS;
+
 // Process input related window messages and relay them to the input library.
 bool input_sys_process_messages(void *params);
 
@@ -15,5 +17,7 @@ uint32_t input_sys_get_key_pressed_frame(uint32_t key_symbol);
 
 // Returns the frame count when a specific key was released.
 uint32_t input_sys_get_key_released_frame(uint32_t key_symbol);
+
+END_DECLARATIONS;
 
 #endif

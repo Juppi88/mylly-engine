@@ -4,6 +4,8 @@
 
 #include "core/defines.h"
 
+BEGIN_DECLARATIONS;
+
 #ifdef _WIN32
 	typedef uint32_t (__stdcall *thread_t)(void *args);
 	#define THREAD(x) static uint32_t __stdcall x(void *args)
@@ -23,5 +25,7 @@ void thread_init_lock(lock_t *lock);
 void thread_lock(lock_t *lock);
 void thread_unlock(lock_t *lock);
 void thread_destroy_lock(lock_t *lock);
+
+END_DECLARATIONS;
 
 #endif

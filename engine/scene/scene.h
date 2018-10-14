@@ -4,6 +4,8 @@
 
 #include "collections/array.h"
 
+BEGIN_DECLARATIONS;
+
 typedef struct object_t object_t;
 typedef struct camera_t camera_t;
 
@@ -24,5 +26,7 @@ object_t *scene_create_object(scene_t *scene, object_t *parent);
 void scene_register_camera(scene_t *scene, object_t *object);
 
 void scene_remove_references_to_object(scene_t *scene, object_t *object);
+
+END_DECLARATIONS;
 
 #endif

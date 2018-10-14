@@ -22,6 +22,8 @@ void time_tick(void);
 
 // --------------------------------------------------------------------------------
 
+BEGIN_DECLARATIONS;
+
 static INLINE const engine_time_t get_time(void)
 {
 	extern engine_time_t engine_time;
@@ -33,5 +35,7 @@ static INLINE const vec4_t get_shader_time(void)
 	extern vec4_t engine_shader_time;
 	return engine_shader_time;
 }
+
+END_DECLARATIONS;
 
 #endif

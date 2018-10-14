@@ -6,6 +6,8 @@
 #include "math/matrix.h"
 #include "math/quaternion.h"
 
+BEGIN_DECLARATIONS;
+
 typedef struct scene_t scene_t;
 typedef struct model_t model_t;
 typedef struct camera_t camera_t;
@@ -200,5 +202,7 @@ static INLINE vec3_t obj_get_right_vector(object_t *obj)
 
 	return obj->right;
 }
+
+END_DECLARATIONS;
 
 #endif

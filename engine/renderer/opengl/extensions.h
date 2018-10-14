@@ -4,6 +4,8 @@
 
 #include "core/defines.h"
 
+BEGIN_DECLARATIONS;
+
 #ifdef _WIN32
 	#include <Windows.h>
 	#include <GL/gl.h>
@@ -58,5 +60,7 @@ extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 // --------------------------------------------------------------------------------
 
 bool glext_initialize(void);
+
+END_DECLARATIONS;
 
 #endif

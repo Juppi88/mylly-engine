@@ -5,6 +5,8 @@
 #include "core/defines.h"
 #include "math/matrix.h"
 
+BEGIN_DECLARATIONS;
+
 typedef struct object_t object_t;
 
 #define PERSPECTIVE_NEAR 0.1f
@@ -69,5 +71,7 @@ static INLINE const mat_t *camera_get_projection_matrix(camera_t *camera)
 
 	return &camera->projection;
 }
+
+END_DECLARATIONS;
 
 #endif

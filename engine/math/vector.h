@@ -5,6 +5,8 @@
 #include "core/defines.h"
 #include <stdio.h>
 
+BEGIN_DECLARATIONS;
+
 // --------------------------------------------------------------------------------
 // vec2_t
 
@@ -84,5 +86,7 @@ float vec4_normalize(vec4_t *v);
 vec4_t vec4_normalized(const vec4_t *v);
 
 // --------------------------------------------------------------------------------
+
+END_DECLARATIONS;
 
 #endif

@@ -5,6 +5,8 @@
 #include "core/defines.h"
 #include "resources/resources.h"
 
+BEGIN_DECLARATIONS;
+
 // --------------------------------------------------------------------------------
 
 typedef uint32_t shader_object_t;
@@ -75,5 +77,7 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 
 #define shader_get_attribute(shader, attribute)\
 	((shader)->attributes[(attribute)])
+
+END_DECLARATIONS;
 
 #endif

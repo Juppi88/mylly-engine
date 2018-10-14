@@ -2,6 +2,10 @@
 #ifndef __RENDERSYSTEM_H
 #define __RENDERSYSTEM_H
 
+#include "core/defines.h"
+
+BEGIN_DECLARATIONS;
+
 typedef struct scene_t scene_t;
 
 // --------------------------------------------------------------------------------
@@ -15,5 +19,7 @@ void rsys_end_frame(void);
 // Creates all render views for a single scene and adds them to the list of items to be rendered
 // during this frame.
 void rsys_render_scene(scene_t *scene);
+
+END_DECLARATIONS;
 
 #endif

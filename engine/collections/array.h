@@ -81,7 +81,11 @@
 
 // --------------------------------------------------------------------------------
 
+BEGIN_DECLARATIONS;
+
 void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size);
 void arr_splice(void **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items);
+
+END_DECLARATIONS;
 
 #endif

@@ -9,6 +9,8 @@
 #include "renderer/texture.h"
 #include "renderer/vertexbuffer.h"
 
+BEGIN_DECLARATIONS;
+
 bool rend_initialize(void);
 void rend_shutdown(void);
 
@@ -66,5 +68,6 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height);
 // Destroy a texture on the GPU.
 void rend_delete_texture(texture_name_t texture);
 
+END_DECLARATIONS;
 
 #endif

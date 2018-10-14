@@ -4,6 +4,8 @@
 
 #include "vector.h"
 
+BEGIN_DECLARATIONS;
+
 // --------------------------------------------------------------------------------
 // quat_t
 
@@ -31,5 +33,7 @@ static INLINE void quat_print(const quat_t quat)
 }
 
 // --------------------------------------------------------------------------------
+
+END_DECLARATIONS;
 
 #endif

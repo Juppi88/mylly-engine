@@ -5,6 +5,8 @@
 #include "core/defines.h"
 #include "resources/resources.h"
 
+BEGIN_DECLARATIONS;
+
 // --------------------------------------------------------------------------------
 
 typedef uint32_t texture_name_t;
@@ -26,5 +28,7 @@ texture_t *texture_create(const char *name, const char *path);
 void texture_destroy(texture_t *texture);
 
 bool texture_load_png(texture_t *texture, void *data, size_t data_length);
+
+END_DECLARATIONS;
 
 #endif
