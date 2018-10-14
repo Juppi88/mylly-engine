@@ -23,7 +23,7 @@ static Window root;
 
 // --------------------------------------------------------------------------------
 
-bool window_create(bool fullscreen, int width, int height)
+bool window_create(bool fullscreen, int x, int y, int width, int height)
 {
 	// Already connected to the X server, don't do anything.
 	if (display != NULL) {
@@ -57,8 +57,6 @@ bool window_create(bool fullscreen, int width, int height)
 	windowAttr.event_mask = ExposureMask | KeyPressMask;
 
 	// And finally, create the window.
-	int x = 0, y = 0;
-
 	window = XCreateWindow(display, root, x, y, width, height, 0, visual->depth, InputOutput,
 						   visual->visual, CWColormap | CWEventMask, &windowAttr);
 
@@ -71,6 +69,14 @@ bool window_create(bool fullscreen, int width, int height)
 	// Request input events from the X server for input processing and key binds.
 	XSelectInput(display, window, KeyPressMask | KeyReleaseMask | PointerMotionMask |
 								  ButtonPressMask | ButtonReleaseMask);
+
+	// Force the position on the screen. This is in case the window manager decides to move the
+	// window to someplace else.
+	XWindowChanges xwc;
+	xwc.x = x;
+	xwc.y = y;
+
+	XConfigureWindow(display, window, CWX | CWY, &xwc);
 
 	// Move cursor to the center of the new window.
 	input_set_cursor_position(width / 2, height / 2);

@@ -189,9 +189,17 @@ bool input_sys_process_messages(void *params)
 void input_sys_warp_cursor(int16_t x, int16_t y)
 {
 	Display *display = window_get_display();
+	Window window = window_get_handle();
 	Window root = XRootWindow(display, 0);
 
-	XWarpPointer(display, None, root, 0, 0, 0, 0, x, y);
+	// Translate the coordinates and find the target window to be used.
+	int target_x, target_y;
+	Window child;
+
+	XTranslateCoordinates(display, window,root, x, y, &target_x, &target_y, &child);
+
+	// Do the warping.
+	XWarpPointer(display, root, child, 0, 0, 0, 0, target_x, target_y);
 }
 
 uint32_t input_sys_get_key_pressed_frame(uint32_t key_symbol)
