@@ -94,8 +94,8 @@ bool input_sys_process_messages(void *params)
 
 			case Button1:
 				// Left mouse button
-				key_pressed_frames[MOUSE_LBUTTON] = frame;
-				key_released_frames[MOUSE_LBUTTON] = 0;
+				key_pressed_frames[MOUSE_LEFT] = frame;
+				key_released_frames[MOUSE_LEFT] = 0;
 
 				XGrabPointer(button_event->display, button_event->window, false,
 							 ButtonPressMask|ButtonReleaseMask|PointerMotionMask|FocusChangeMask|
@@ -103,24 +103,24 @@ bool input_sys_process_messages(void *params)
 							 GrabModeAsync, GrabModeAsync, button_event->window, None, CurrentTime);
 
 				// Handle mouse button event and related binds.
-				return input_handle_mouse_event(INPUT_LBUTTON_DOWN, mouse_x, mouse_y,
-												MOUSE_LBUTTON, MWHEEL_STATIONARY);
+				return input_handle_mouse_event(INPUT_MOUSE_BUTTON_DOWN, mouse_x, mouse_y,
+												MOUSE_LEFT, MWHEEL_STATIONARY);
 
 			case Button3:
 				// Right mouse button
-				key_pressed_frames[MOUSE_RBUTTON] = frame;
-				key_released_frames[MOUSE_RBUTTON] = 0;
+				key_pressed_frames[MOUSE_RIGHT] = frame;
+				key_released_frames[MOUSE_RIGHT] = 0;
 
-				return input_handle_mouse_event(INPUT_RBUTTON_DOWN, mouse_x, mouse_y,
-												MOUSE_RBUTTON, MWHEEL_STATIONARY);
+				return input_handle_mouse_event(INPUT_MOUSE_BUTTON_DOWN, mouse_x, mouse_y,
+												MOUSE_RIGHT, MWHEEL_STATIONARY);
 				
 			case Button2:
 				// Middle mouse button (wheel)
-				key_pressed_frames[MOUSE_MBUTTON] = frame;
-				key_released_frames[MOUSE_MBUTTON] = 0;
+				key_pressed_frames[MOUSE_MIDDLE] = frame;
+				key_released_frames[MOUSE_MIDDLE] = 0;
 
-				return input_handle_mouse_event(INPUT_MBUTTON_DOWN, mouse_x, mouse_y,
-												MOUSE_MBUTTON, MWHEEL_STATIONARY);
+				return input_handle_mouse_event(INPUT_MOUSE_BUTTON_DOWN, mouse_x, mouse_y,
+												MOUSE_MIDDLE, MWHEEL_STATIONARY);
 				
 			case Button4:
 				// Mouse wheel scroll up
@@ -146,28 +146,28 @@ bool input_sys_process_messages(void *params)
 
 			case Button1:
 				// Left mouse button
-				key_pressed_frames[MOUSE_LBUTTON] = 0;
-				key_released_frames[MOUSE_LBUTTON] = frame;
+				key_pressed_frames[MOUSE_LEFT] = 0;
+				key_released_frames[MOUSE_LEFT] = frame;
 
 				XUngrabPointer(button_event->display, CurrentTime);
 
-				return input_handle_mouse_event(INPUT_LBUTTON_UP, mouse_x, mouse_y,
-												MOUSE_LBUTTON, MWHEEL_STATIONARY);
+				return input_handle_mouse_event(INPUT_MOUSE_BUTTON_UP, mouse_x, mouse_y,
+												MOUSE_LEFT, MWHEEL_STATIONARY);
 
 			case Button3:
 				// Right mouse button
-				key_pressed_frames[MOUSE_RBUTTON] = 0;
-				key_released_frames[MOUSE_RBUTTON] = frame;
+				key_pressed_frames[MOUSE_RIGHT] = 0;
+				key_released_frames[MOUSE_RIGHT] = frame;
 
-				return input_handle_mouse_event(INPUT_RBUTTON_UP, mouse_x, mouse_y,
-										 MOUSE_RBUTTON, MWHEEL_STATIONARY);
+				return input_handle_mouse_event(INPUT_MOUSE_BUTTON_UP, mouse_x, mouse_y,
+										 MOUSE_RIGHT, MWHEEL_STATIONARY);
 			case Button2:
 				// Middle mouse button (wheel)
-				key_pressed_frames[MOUSE_MBUTTON] = 0;
-				key_released_frames[MOUSE_MBUTTON] = frame;
+				key_pressed_frames[MOUSE_MIDDLE] = 0;
+				key_released_frames[MOUSE_MIDDLE] = frame;
 
-				return input_handle_mouse_event(INPUT_MBUTTON_UP, mouse_x, mouse_y,
-												MOUSE_MBUTTON, MWHEEL_STATIONARY);
+				return input_handle_mouse_event(INPUT_MOUSE_BUTTON_UP, mouse_x, mouse_y,
+												MOUSE_MIDDLE, MWHEEL_STATIONARY);
 			}
 
 			return true;

@@ -26,6 +26,18 @@ typedef enum {
 	BUTTON_EXIT,
 } key_bind_t;
 
+KEYBIND_HANDLER(exit_app)
+{
+	if (!pressed) {
+		return true;
+	}
+
+	printf("Exiting...\n");
+	mylly_exit();
+
+	return true;
+}
+
 static void setup(void)
 {
 	//
@@ -93,7 +105,9 @@ static void setup(void)
 	input_bind_button(BUTTON_LEFT, 'A');
 	input_bind_button(BUTTON_DOWN, 'S');
 	input_bind_button(BUTTON_RIGHT, 'D');
-	input_bind_button(BUTTON_EXIT, MKEY_ESCAPE);
+
+	// Exit the program when escape is pressed.
+	input_bind_key(MOUSE_MIDDLE, exit_app);
 
 	mylly_set_scene(scene);
 
@@ -128,13 +142,6 @@ static void main_loop(void)
 	mouse_x = x;
 	mouse_y = y;
 
-	// Exit the program when escape is pressed.
-	if (input_get_button_pressed(BUTTON_EXIT)) {
-
-		printf("Exiting...\n");
-		mylly_exit();
-	}
-
 	// Handle camera movement.
 	const float speed = 1.0f;
 
@@ -168,7 +175,7 @@ static void main_loop(void)
 
 int main(int argc, char **argv)
 {
-	// Initiliaze the engine and enter the main loop.
+	// Initialize the engine and enter the main loop.
 	if (mylly_initialize(argc, argv)) {
 
 		setup();

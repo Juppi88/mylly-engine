@@ -9,16 +9,16 @@
 #include "resources/resources.h"
 #include <unistd.h>
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static void mylly_set_working_directory(void);
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static scene_t *current_scene;
 static bool is_running = true;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 bool mylly_initialize(int argc, char **argv)
 {
@@ -34,8 +34,9 @@ bool mylly_initialize(int argc, char **argv)
 
 	time_initialize();
 
-	// Initialize the render system.
+	// Initialize subsystems.
 	rsys_initialize();
+	input_initialize();
 
 	// Load resources from files.
 	res_initialize();
@@ -48,6 +49,7 @@ static void mylly_shutdown(void)
 	// Unload all loaded resources.
 	res_shutdown();
 	
+	input_shutdown();
 	rsys_shutdown();
 }
 
