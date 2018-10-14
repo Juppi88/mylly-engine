@@ -2,7 +2,7 @@
 #ifndef __SCENE_H
 #define __SCENE_H
 
-#include "core/array.h"
+#include "collections/array.h"
 
 typedef struct object_t object_t;
 typedef struct camera_t camera_t;

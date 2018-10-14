@@ -3,7 +3,7 @@
 #define __MODEL_H
 
 #include "renderer/mesh.h"
-#include "core/array.h"
+#include "collections/array.h"
 
 // --------------------------------------------------------------------------------
 

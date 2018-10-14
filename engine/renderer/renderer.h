@@ -12,7 +12,7 @@
 bool rend_initialize(void);
 void rend_shutdown(void);
 
-void rend_draw_views(LIST(rview_t) views);
+void rend_draw_views(stack_t(rview_t) views);
 
 //
 // Vertex buffer objects

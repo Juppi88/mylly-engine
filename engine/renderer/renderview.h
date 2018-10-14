@@ -2,7 +2,7 @@
 #ifndef __RENDERVIEW_H
 #define __RENDERVIEW_H
 
-#include "core/list.h"
+#include "collections/stack.h"
 #include "math/matrix.h"
 
 // --------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ typedef struct texture_t texture_t;
 // --------------------------------------------------------------------------------
 typedef struct robject_t {
 
-	LIST_ENTRY(robject_t);
+	stack_entry(robject_t);
 
 	model_t *model; // The actual render model containing the base meshes
 	mat_t matrix; // Model to world matrix
@@ -31,7 +31,7 @@ typedef struct robject_t {
 // --------------------------------------------------------------------------------
 typedef struct rmesh_t {
 
-	LIST_ENTRY(rmesh_t);
+	stack_entry(rmesh_t);
 
 	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrix
 	vertexbuffer_t *vertices; // Vertex buffer containing the vertices of this mesh
@@ -49,12 +49,12 @@ typedef struct rmesh_t {
 // --------------------------------------------------------------------------------
 typedef struct rview_t {
 
-	LIST_ENTRY(rview_t);
+	stack_entry(rview_t);
 
 	mat_t projection; // View-projection matrix
 
-	LIST(robject_t) objects; // List of visible objects in the view
-	LIST(rmesh_t) meshes; // List of all the meshes to be rendered in the view
+	stack_t(robject_t) objects; // List of visible objects in the view
+	stack_t(rmesh_t) meshes; // List of all the meshes to be rendered in the view
 
 } rview_t;
 

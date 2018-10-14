@@ -4,8 +4,8 @@
 // Number of frames rendered.
 static int frame_count;
 
-static LIST(vertexbuffer_t) active_buffers;
-static LIST(vertexbuffer_t) free_buffers;
+static stack_t(vertexbuffer_t) active_buffers;
+static stack_t(vertexbuffer_t) free_buffers;
 
 // --------------------------------------------------------------------------------
 
@@ -57,18 +57,19 @@ void vbcache_free_inactive_buffers(void)
 
 	// TODO: Use a real list here instead of a stack.
 	// Stack makes removing from the middle of the stack messy.
-	LIST_FOREACH_SAFE(vertexbuffer_t, buffer, active_buffers) {
-		LIST_FOREACH_SAFE_BEGIN(buffer);
+	stack_foreach_safe(vertexbuffer_t, buffer, active_buffers) {
+
+		stack_foreach_safe_begin(buffer);
 
 		// Check whether this vertex buffer has outlived its time.
 		if (buffer->invalidates < frame_count) {
 
 			// Rearrange the linked list references.
-			if (LIST_IS_FIRST(active_buffers, buffer)) {
-				active_buffers = LIST_FOREACH_SAFE_NEXT();
+			if (stack_is_first(active_buffers, buffer)) {
+				active_buffers = stack_foreach_safe_next();
 			}
 			else if (previous != NULL) {
-				previous->__next = LIST_FOREACH_SAFE_NEXT();
+				previous->__next = stack_foreach_safe_next();
 			}
 
 			// Clear references to this buffer.
@@ -77,7 +78,7 @@ void vbcache_free_inactive_buffers(void)
 			}
 
 			// Add this buffer to the free buffer list.
-			LIST_ADD(free_buffers, buffer);
+			stack_push(free_buffers, buffer);
 		}
 		else {
 			previous = buffer;
@@ -87,8 +88,9 @@ void vbcache_free_inactive_buffers(void)
 
 static void vbcache_destroy_all_buffers(void)
 {
-	LIST_FOREACH_SAFE(vertexbuffer_t, buffer, free_buffers) {
-		LIST_FOREACH_SAFE_BEGIN(buffer);
+	stack_foreach_safe(vertexbuffer_t, buffer, free_buffers) {
+		
+		stack_foreach_safe_begin(buffer);
 
 		// Deallocate GPU resources.
 		if (buffer->vbo != 0) {
@@ -102,7 +104,7 @@ static void vbcache_destroy_all_buffers(void)
 static vertexbuffer_t *vbcache_find_free_buffer(void)
 {
 	// If there aren't any previously allocated free buffers available, create new ones.
-	if (LIST_IS_EMPTY(free_buffers)) {
+	if (stack_is_empty(free_buffers)) {
 
 		for (int i = 0; i < VBCACHE_ADDITIONAL_BUFFERS; ++i) {
 
@@ -112,13 +114,13 @@ static vertexbuffer_t *vbcache_find_free_buffer(void)
 			buffer->vbo = vbo;
 
 			// Add the new buffer to the list of free vertex buffers.
-			LIST_ADD(free_buffers, buffer);
+			stack_push(free_buffers, buffer);
 		}
 	}
 
 	// Return the first available buffer and move it to the active buffer list.
-	vertexbuffer_t *available = LIST_POP_FIRST(free_buffers);
-	LIST_ADD(active_buffers, available);
+	vertexbuffer_t *available = stack_pop_first(free_buffers);
+	stack_push(active_buffers, available);
 
 	return available;
 }

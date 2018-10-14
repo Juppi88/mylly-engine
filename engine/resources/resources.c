@@ -1,5 +1,5 @@
 #include "resources.h"
-#include "core/array.h"
+#include "collections/array.h"
 #include "core/string.h"
 #include "io/file.h"
 #include "io/log.h"

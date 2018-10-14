@@ -3,7 +3,7 @@
 #define __VERTEXBUFFER_H
 
 #include "core/defines.h"
-#include "core/list.h"
+#include "collections/stack.h"
 #include "renderer/vertex.h"
 
 // --------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ typedef uint32_t vbindex_t;
 
 typedef struct vertexbuffer_t {
 
-	LIST_ENTRY(vertexbuffer_t);
+	stack_entry(vertexbuffer_t);
 
 	struct vertexbuffer_t **reference; // The object referencencing this buffer
 	vbindex_t vbo; // Address/index of the generated GPU object

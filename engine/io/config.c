@@ -2,7 +2,7 @@
 #include "console.h"
 #include "log.h"
 #include "file.h"
-#include "core/list.h"
+#include "collections/stack.h"
 #include "core/memory.h"
 #include "core/string.h"
 #include <stdio.h>
@@ -10,21 +10,23 @@
 
 // --------------------------------------------------------------------------------
 
-struct setting_t {
-	LIST_ENTRY(setting_t);
+typedef struct setting_t {
+	
+	stack_entry(setting_t);
 
 	char *key;
 	char *value;
-};
 
-static LIST(setting_t) settings;
-static LIST(setting_t) commands;
+} setting_t;
+
+static stack_t(setting_t) settings;
+static stack_t(setting_t) commands;
 
 // --------------------------------------------------------------------------------
 
 static void config_parse_file(const char *path);
 static void config_parse_line(char *line, size_t line_len, void *context);
-static LIST_OBJ(setting_t) config_get_setting(const char *key);
+static setting_t *config_get_setting(const char *key);
 
 // --------------------------------------------------------------------------------
 
@@ -35,8 +37,8 @@ void config_initialize(const char *directory)
 
 void config_shutdown(void)
 {
-	LIST_FOREACH_SAFE(setting_t, setting, settings) {
-		LIST_FOREACH_SAFE_BEGIN(setting);
+	stack_foreach_safe(setting_t, setting, settings) {
+		stack_foreach_safe_begin(setting);
 
 		mem_free(setting->key);
 		mem_free(setting->value);
@@ -46,8 +48,8 @@ void config_shutdown(void)
 
 void config_execute_commands(void)
 {
-	LIST_FOREACH_SAFE(setting_t, command, commands) {
-		LIST_FOREACH_SAFE_BEGIN(command);
+	stack_foreach_safe(setting_t, command, commands) {
+		stack_foreach_safe_begin(command);
 
 		// Execute the command...
 		console_execute_command(command->key, command->value);
@@ -62,7 +64,7 @@ void config_execute_commands(void)
 const char *config_get_string(const char *key, const char *default_value)
 {
 	if (key != NULL) {
-		LIST_OBJ(setting_t) setting = config_get_setting(key);
+		setting_t *setting = config_get_setting(key);
 
 		if (setting != NULL) {
 			return setting->value;
@@ -75,7 +77,7 @@ const char *config_get_string(const char *key, const char *default_value)
 int config_get_int(const char *key, int default_value)
 {
 	if (key != NULL) {
-		LIST_OBJ(setting_t) setting = config_get_setting(key);
+		setting_t *setting = config_get_setting(key);
 
 		if (setting != NULL) {
 			return atoi(setting->value);
@@ -109,7 +111,7 @@ static void config_parse_line(char *line, size_t line_len, void *context)
 			command->key = string_duplicate(key);
 			command->value = string_duplicate(value);
 
-			LIST_ADD(commands, command);
+			stack_push(commands, command);
 		}
 
 		return;
@@ -128,12 +130,12 @@ static void config_parse_line(char *line, size_t line_len, void *context)
 	setting->key = string_duplicate(key);
 	setting->value = string_duplicate(value);
 
-	LIST_ADD(settings, setting);
+	stack_push(settings, setting);
 }
 
-static LIST_OBJ(setting_t) config_get_setting(const char *key)
+static setting_t *config_get_setting(const char *key)
 {
-	LIST_FOREACH(setting_t, setting, settings) {
+	stack_foreach(setting_t, setting, settings) {
 
 		if (string_equals(setting->key, key)) {
 			return setting;

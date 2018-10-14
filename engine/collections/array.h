@@ -2,6 +2,16 @@
 #ifndef __ARRAY_H
 #define __ARRAY_H
 
+/*
+====================================================================================================
+
+	Array
+
+	A dynamic array type. Array info is not embedded into the collection members.
+
+====================================================================================================
+*/
+
 #include "core/defines.h"
 #include "core/memory.h"
 

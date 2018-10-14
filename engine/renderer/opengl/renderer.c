@@ -89,15 +89,15 @@ void rend_shutdown(void)
 #endif
 }
 
-void rend_draw_views(LIST(rview_t) views)
+void rend_draw_views(stack_t(rview_t) views)
 {
 	rend_begin_draw();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	LIST_FOREACH(rview_t, view, views) {
+	stack_foreach(rview_t, view, views) {
 
-		LIST_FOREACH(rmesh_t, mesh, view->meshes) {
+		stack_foreach(rmesh_t, mesh, view->meshes) {
 
 			// Select the active shader.
 			GLuint shader = mesh->shader->program;

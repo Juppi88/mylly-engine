@@ -2,7 +2,7 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
-#include "core/array.h"
+#include "collections/array.h"
 #include "math/matrix.h"
 #include "math/quaternion.h"
 

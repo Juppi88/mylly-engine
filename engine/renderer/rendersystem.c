@@ -14,7 +14,7 @@
 // --------------------------------------------------------------------------------
 
 static int frames_rendered; // Number of frames rendered so far
-static LIST(rview_t) views; // List of views to be rendered this frame
+static stack_t(rview_t) views; // List of views to be rendered this frame
 
 // --------------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ void rsys_render_scene(scene_t *scene)
 		);
 
 		// Add the view to the list of views to be rendered.
-		LIST_ADD(views, view);
+		stack_push(views, view);
 	}
 
 	// TODO: Find which scene objects are visible in the current camera (for now add all objects).
@@ -97,7 +97,7 @@ void rsys_render_scene(scene_t *scene)
 	}
 
 	// Cull all meshes which aren't in the view.
-	LIST_FOREACH(rview_t, view, views) {
+	stack_foreach(rview_t, view, views) {
 		rsys_cull_meshes(views);
 	}
 }
@@ -112,7 +112,7 @@ static void rsys_cull_object(object_t *object)
 	if (object->model != NULL) {
 
 		// Add the scene object to each of the views as a render object.
-		LIST_FOREACH(rview_t, view, views) {
+		stack_foreach(rview_t, view, views) {
 
 			NEW(robject_t, obj);
 
@@ -123,7 +123,7 @@ static void rsys_cull_object(object_t *object)
 			mat_cpy(&obj->matrix, obj_get_transform(object));
 			mat_multiply(&view->projection, &obj->matrix, &obj->mvp);
 
-			LIST_ADD(view->objects, obj);
+			stack_push(view->objects, obj);
 		}
 	}
 	
@@ -140,7 +140,7 @@ static void rsys_cull_meshes(rview_t *view)
 	shader_t *default_shader = res_get_shader("default");
 
 	// TODO: HANDLE ACTUAL CULLING HERE
-	LIST_FOREACH(robject_t, obj, view->objects) {
+	stack_foreach(robject_t, obj, view->objects) {
 
 		mesh_t *mesh;
 
@@ -181,28 +181,28 @@ static void rsys_cull_meshes(rview_t *view)
 			rmesh->texture = mesh->texture;
 
 			// Add the mesh to the view.
-			LIST_ADD(view->meshes, rmesh);
+			stack_push(view->meshes, rmesh);
 		}
 	}
 }
 
 static void rsys_free_frame_data(void)
 {
-	for (rview_t *view = LIST_FIRST(views), *tmp = NULL; view != NULL; view = tmp) {
+	for (rview_t *view = stack_first(views), *tmp = NULL; view != NULL; view = tmp) {
 
-		tmp = LIST_NEXT(view);
+		tmp = stack_next(view);
 
 		// Remove all mesh copies in the view.
-		LIST_FOREACH_SAFE(rmesh_t, mesh, view->meshes) {
+		stack_foreach_safe(rmesh_t, mesh, view->meshes) {
 
-			LIST_FOREACH_SAFE_BEGIN(mesh);
+			stack_foreach_safe_begin(mesh);
 			mem_free(mesh);
 		}
 
 		// Remove all object copies in the view.
-		LIST_FOREACH_SAFE(robject_t, obj, view->objects) {
+		stack_foreach_safe(robject_t, obj, view->objects) {
 
-			LIST_FOREACH_SAFE_BEGIN(obj);
+			stack_foreach_safe_begin(obj);
 			mem_free(obj);
 		}
 
