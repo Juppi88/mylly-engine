@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <assert.h>
+#include "core/types.h"
 
 #ifdef _WIN32
 #define INLINE __inline
