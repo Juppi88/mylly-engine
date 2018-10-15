@@ -24,6 +24,8 @@ typedef enum {
 	BUTTON_LEFT,
 	BUTTON_RIGHT,
 	BUTTON_EXIT,
+	BUTTON_FORWARD,
+	BUTTON_BACKWARD,
 } key_bind_t;
 
 KEYBIND_HANDLER(exit_app)
@@ -51,14 +53,14 @@ static void setup(void)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	obj_set_local_position(camera, vector3(0.0f, 0.0f, 5.0f));
+	obj_set_local_position(camera, vector3(0.0f, 0.0f, -5.0f));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	camera_set_perspective_projection(camera->camera, 20, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
 
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
-	model_setup_primitive(test_model, PRIMITIVE_CUBE);
+	model_setup_primitive(test_model, PRIMITIVE_QUAD);
 	model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
 	//model_set_material(test_model, -1, res_get_shader("test-animated"), res_get_texture("animtest"));
 
@@ -105,9 +107,11 @@ static void setup(void)
 	input_bind_button(BUTTON_LEFT, 'A');
 	input_bind_button(BUTTON_DOWN, 'S');
 	input_bind_button(BUTTON_RIGHT, 'D');
+	input_bind_button(BUTTON_FORWARD, 'E');
+	input_bind_button(BUTTON_BACKWARD, 'Q');
 
 	// Exit the program when escape is pressed.
-	input_bind_key(MOUSE_MIDDLE, exit_app);
+	input_bind_key(MKEY_ESCAPE, exit_app);
 
 	mylly_set_scene(scene);
 
@@ -133,7 +137,7 @@ static void main_loop(void)
 	quat_t direction = quat_from_euler(0, -DEG_TO_RAD(x - mouse_x), -DEG_TO_RAD(y - mouse_y));
 	quat_t orientation = quat_multiply(&direction, &rotation);
 
-	obj_set_local_rotation(test, orientation);
+	//obj_set_local_rotation(test, orientation);
 	//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, angle));
 
@@ -160,12 +164,23 @@ static void main_loop(void)
 	if (input_is_button_down(BUTTON_RIGHT)) {
 		movement.x += 1.0f;
 	}
+	if (input_is_button_down(BUTTON_FORWARD)) {
+		movement.z += 1.0f;
+	}
+	if (input_is_button_down(BUTTON_BACKWARD)) {
+		movement.z -= 1.0f;
+	}
 
 	movement = vec3_multiply(&movement, speed * get_time().delta_time);
 	position = vec3_add(&position, &movement);
 
 	// Update camera position.
-	obj_set_position(camera, position);
+	if (movement.x != 0 || movement.y != 0 || movement.z != 0) {
+
+		obj_set_position(camera, position);
+		printf("Camera position: %f %f %f\n", position.x, position.y, position.z);
+	}
+
 	
 
 	//

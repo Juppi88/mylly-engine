@@ -110,7 +110,7 @@ void camera_update_view_matrix(camera_t *camera)
 
 		-vec3_dot(&obj->position, &obj->right),
 		-vec3_dot(&obj->position, &obj->up),
-		-vec3_dot(&obj->position, &obj->forward),
+		vec3_dot(&obj->position, &obj->forward),
 		1
 	);
 
