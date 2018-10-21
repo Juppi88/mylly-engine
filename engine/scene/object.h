@@ -76,6 +76,8 @@ static INLINE vec3_t obj_get_forward_vector(object_t *obj);
 static INLINE vec3_t obj_get_up_vector(object_t *obj);
 static INLINE vec3_t obj_get_right_vector(object_t *obj);
 
+void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward);
+
 void obj_set_dirty(object_t *obj);
 void obj_update_transform(object_t *obj);
 void obj_update_local_transform(object_t *obj);

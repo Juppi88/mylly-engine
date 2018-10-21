@@ -40,6 +40,9 @@ typedef struct vec3_t {
 
 extern vec3_t vec3_zero;
 extern vec3_t vec3_one;
+extern vec3_t vec3_right;
+extern vec3_t vec3_up;
+extern vec3_t vec3_forward;
 
 static INLINE vec3_t vector3(float x, float y, float z)
 {
@@ -56,6 +59,8 @@ vec3_t vec3_cross(const vec3_t *a, const vec3_t *b);
 
 float vec3_normalize(vec3_t *v);
 vec3_t vec3_normalized(const vec3_t *v);
+
+vec3_t vec3_sanitize_rotation(const vec3_t *v);
 
 static INLINE void vec3_print(const vec3_t *vec)
 {

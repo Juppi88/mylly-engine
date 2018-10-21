@@ -53,10 +53,10 @@ static void setup(void)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	obj_set_local_position(camera, vector3(0.0f, 0.0f, -5.0f));
+	obj_set_local_position(camera, vector3(0.0f, 0.0f, -4.0f));
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
-	camera_set_perspective_projection(camera->camera, 20, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
+	camera_set_perspective_projection(camera->camera, 100, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
 
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
@@ -147,9 +147,10 @@ static void main_loop(void)
 	mouse_y = y;
 
 	// Handle camera movement.
-	const float speed = 1.0f;
+	const float speed = 0.1f;
 
-	vec3_t position = obj_get_position(camera);
+	static vec3_t position = vec3_zero();
+	//vec3_t position = obj_get_position(camera);
 	vec3_t movement = vec3_zero();
 
 	if (input_is_button_down(BUTTON_UP)) {
@@ -172,13 +173,14 @@ static void main_loop(void)
 	}
 
 	movement = vec3_multiply(&movement, speed * get_time().delta_time);
+	//position = vec3_add(&position, &movement);
 	position = vec3_add(&position, &movement);
 
 	// Update camera position.
 	if (movement.x != 0 || movement.y != 0 || movement.z != 0) {
 
-		obj_set_position(camera, position);
-		printf("Camera position: %f %f %f\n", position.x, position.y, position.z);
+		obj_set_local_rotation(camera, quat_from_euler(position.x, position.y, position.z));
+		printf("Camera rot: %f %f %f\n", position.x, position.y, position.z);
 	}
 
 	

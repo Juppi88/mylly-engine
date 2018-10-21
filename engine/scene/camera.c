@@ -94,23 +94,65 @@ void camera_update_view_matrix(camera_t *camera)
 	mat_set(&camera->view,
 			
 		right.x,
-		right.y,
-		right.z,
-		0,
-
 		up.x,
-		up.y,
-		up.z,
+		-forward.x,
 		0,
 
-		-forward.x,
+		right.y,
+		up.y,
 		-forward.y,
+		0,
+
+		right.z,
+		up.z,
 		-forward.z,
 		0,
 
 		-vec3_dot(&obj->position, &obj->right),
 		-vec3_dot(&obj->position, &obj->up),
 		vec3_dot(&obj->position, &obj->forward),
+		1
+	);
+
+	camera->is_view_matrix_dirty = false;
+}
+
+void camera_look_at(camera_t *camera, const vec3_t target, const vec3_t up)
+{
+	if (camera == NULL) {
+		return;
+	}
+
+	vec3_t position = obj_get_position(camera->parent);
+
+	vec3_t forward = vec3_subtract(&target, &position);
+	vec3_normalize(&forward);
+
+	vec3_t right = vec3_cross(&forward, &up);
+	vec3_normalize(&right);
+
+	vec3_t up2 = vec3_cross(&right, &forward);
+
+	mat_set(&camera->view,
+			
+		right.x,
+		up2.x,
+		-forward.x,
+		0,
+
+		right.y,
+		up2.y,
+		-forward.y,
+		0,
+
+		right.z,
+		up2.z,
+		-forward.z,
+		0,
+
+		-vec3_dot(&position, &right),
+		-vec3_dot(&position, &up2),
+		vec3_dot(&position, &forward),
 		1
 	);
 

@@ -8,6 +8,9 @@ vec2_t vec2_one = vec2_one();
 
 vec3_t vec3_zero = vec3_zero();
 vec3_t vec3_one = vec3_one();
+vec3_t vec3_right = vec3(1, 0, 0);
+vec3_t vec3_up = vec3(0, 1, 0);
+vec3_t vec3_forward = vec3(0, 0, 1);
 
 vec4_t vec4_zero = vec4_zero();
 vec4_t vec4_one = vec4_one();
@@ -81,6 +84,17 @@ vec3_t vec3_normalized(const vec3_t *v)
 	vec3_normalize(&tmp);
 
 	return tmp;
+}
+
+vec3_t vec3_sanitize_rotation(const vec3_t *v)
+{
+	vec3_t vec = vec3(
+		math_sanitize_angle(v->x),
+		math_sanitize_angle(v->y),
+		math_sanitize_angle(v->z)
+	);
+
+	return vec;
 }
 
 float vec4_normalize(vec4_t *v)

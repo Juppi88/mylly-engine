@@ -46,6 +46,8 @@ void camera_set_orthographic_projection(camera_t *camera, float size, float near
 // Set up a perspective projection.
 void camera_set_perspective_projection(camera_t *camera, float fov, float near, float far);
 
+void camera_look_at(camera_t *camera, const vec3_t target, const vec3_t up);
+
 static INLINE const mat_t *camera_get_view_matrix(camera_t *camera);
 static INLINE const mat_t *camera_get_projection_matrix(camera_t *camera);
 
