@@ -153,7 +153,7 @@ static INLINE void obj_set_position(object_t *obj, const vec3_t position)
 
 		// Offset the position by the parent's position.
 		vec3_t parent_position = obj_get_position(obj->parent);
-		local = vec3_subtract(&position, &parent_position);
+		local = vec3_subtract(position, parent_position);
 	}
 
 	// Set the world position by updating the local position.

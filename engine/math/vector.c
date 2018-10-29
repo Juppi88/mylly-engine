@@ -1,5 +1,6 @@
 #include "vector.h"
 #include "math.h"
+#include <cglm/cglm.h>
 
 // --------------------------------------------------------------------------------
 
@@ -17,103 +18,86 @@ vec4_t vec4_one = vec4_one();
 
 // --------------------------------------------------------------------------------
 
-vec3_t vec3_add(const vec3_t *a, const vec3_t *b)
+vec3_t vec3_add(vec3_t a, vec3_t b)
 {
-	vec3_t result = vec3(
-		a->x + b->x,
-		a->y + b->y,
-		a->z + b->z
-	);
+	vec3_t result;
+	glm_vec_add(a.vec, b.vec, result.vec);
 
 	return result;
 }
 
-vec3_t vec3_subtract(const vec3_t *a, const vec3_t *b)
+vec3_t vec3_subtract(vec3_t a, vec3_t b)
 {
-	vec3_t result = vec3(
-		a->x - b->x,
-		a->y - b->y,
-		a->z - b->z
-	);
+	vec3_t result;
+	glm_vec_sub(a.vec, b.vec, result.vec);
 
 	return result;
 }
 
-vec3_t vec3_multiply(const vec3_t *v, float value)
+vec3_t vec3_multiply(vec3_t v, float value)
 {
-	vec3_t result = vec3(
-		v->x * value,
-		v->y * value,
-		v->z * value
-	);
+	vec3_t result;
+	glm_vec_scale(v.vec, value, result.vec);
 
 	return result;
 }
 
-float vec3_dot(const vec3_t *a, const vec3_t *b)
+float vec3_dot(vec3_t a, vec3_t b)
 {
-	return (a->x * b->x) + (a->y * b->y) + (a->z * b->z);
+	return glm_vec_dot(a.vec, b.vec);
 }
 
-vec3_t vec3_cross(const vec3_t *a, const vec3_t *b)
+vec3_t vec3_cross(vec3_t a, vec3_t b)
 {
-	vec3_t cross = vec3(
-		a->y * b->z - a->z * b->y,
-		a->z * b->x - a->x * b->z,
-		a->x * b->y - a->y * b->x
-	);
+	vec3_t result;
+	glm_vec_cross(a.vec, b.vec, result.vec);
 
-	return cross;
+	return result;
 }
 
-float vec3_normalize(vec3_t *v)
+float vec3_normalize(vec3_t v)
 {
-	float len2 = (v->x * v->x) + (v->y * v->y) + (v->z * v->z);
-	float len = math_sqrt(len2);
+	float length = glm_vec_norm(v.vec);
+	glm_vec_divs(v.vec, length, v.vec);
 
-	v->x /= len;
-	v->y /= len;
-	v->z /= len;
-
-	return len;
+	return length;
 }
 
-vec3_t vec3_normalized(const vec3_t *v)
+vec3_t vec3_normalized(vec3_t v)
 {
-	vec3_t tmp = *v;
-	vec3_normalize(&tmp);
+	vec3_t result;
 
-	return tmp;
+	glm_vec_copy(v.vec, result.vec);
+	glm_vec_normalize(result.vec);
+
+	return result;
 }
 
-vec3_t vec3_sanitize_rotation(const vec3_t *v)
+vec3_t vec3_sanitize_rotation(vec3_t v)
 {
 	vec3_t vec = vec3(
-		math_sanitize_angle(v->x),
-		math_sanitize_angle(v->y),
-		math_sanitize_angle(v->z)
+		math_sanitize_angle(v.x),
+		math_sanitize_angle(v.y),
+		math_sanitize_angle(v.z)
 	);
 
 	return vec;
 }
 
-float vec4_normalize(vec4_t *v)
+float vec4_normalize(vec4_t v)
 {
-	float len2 = (v->x * v->x) + (v->y * v->y) + (v->z * v->z) + (v->w * v->w);
-	float len = math_sqrt(len2);
+	float length = glm_vec4_norm(v.vec);
+	glm_vec4_divs(v.vec, length, v.vec);
 
-	v->x /= len;
-	v->y /= len;
-	v->z /= len;
-	v->w /= len;
-
-	return len;
+	return length;
 }
 
-vec4_t vec4_normalized(const vec4_t *v)
+vec4_t vec4_normalized(vec4_t v)
 {
-	vec4_t tmp = *v;
-	vec4_normalize(&tmp);
+	vec4_t result;
 
-	return tmp;
+	glm_vec4_copy(v.vec, result.vec);
+	glm_vec4_normalize(result.vec);
+
+	return result;
 }

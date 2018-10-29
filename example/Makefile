@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean
 CC = clang-6.0
-CFLAGS = -Wall -g -I../engine
+CFLAGS = -Wall -g -I../engine -DCGLM_ALL_UNALIGNED
 LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng
 
 OBJS = main/main.o

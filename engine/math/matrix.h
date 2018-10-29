@@ -25,9 +25,9 @@ extern mat_t mat_identity;
 
 // --------------------------------------------------------------------------------
 
-void mat_multiply3(const mat_t *mat, const vec3_t *v, vec3_t *out);
-void mat_multiply4(const mat_t *mat, const vec4_t *v, vec4_t *out);
-void mat_multiply(const mat_t *mat1, const mat_t *mat2, mat_t *out);
+vec3_t mat_multiply3(mat_t mat, vec3_t v);
+vec4_t mat_multiply4(mat_t mat, vec4_t v);
+void mat_multiply(mat_t mat1, mat_t mat2, mat_t *out);
 
 // --------------------------------------------------------------------------------
 

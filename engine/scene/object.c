@@ -130,24 +130,24 @@ void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 	// Calculate forward, right and up vectors.
 	vec3_t position = obj_get_position(obj);
 
-	vec3_t forward = vec3_subtract(&target, &position);
-	vec3_normalize(&forward);
+	vec3_t forward = vec3_subtract(target, position);
+	vec3_normalize(forward);
 
 
 	//forward = vec3_multiply(&forward, -1);
 
-	vec3_t right = vec3_cross(&forward, &upward);
-	vec3_normalize(&right);
+	vec3_t right = vec3_cross(forward, upward);
+	vec3_normalize(right);
 
-	vec3_t up = vec3_cross(&right, &forward);
+	vec3_t up = vec3_cross(right, forward);
 
-	printf("Pos: "); vec3_print(&position);
-	printf("Tgt: "); vec3_print(&target);
-	printf("Upw: "); vec3_print(&upward);
+	printf("Pos: "); vec3_print(position);
+	printf("Tgt: "); vec3_print(target);
+	printf("Upw: "); vec3_print(upward);
 	printf("\n");
-	printf("Fwd: "); vec3_print(&forward);
-	printf("Up : "); vec3_print(&up);
-	printf("Rgt: "); vec3_print(&right);
+	printf("Fwd: "); vec3_print(forward);
+	printf("Up : "); vec3_print(up);
+	printf("Rgt: "); vec3_print(right);
 
 	// Calculate the quaternion from the direction vectors.
 	quat_t quat;
@@ -193,7 +193,7 @@ void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 	vec3_t euler = vec3(x, y, z);
 
 	//
-	quat = quat_from_euler3(&euler);
+	quat = quat_from_euler3(euler);
 	
 
 	obj->local_rotation = quat;
@@ -204,9 +204,9 @@ void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 	forward = obj_get_forward_vector(obj);
 	up = obj_get_up_vector(obj);
 	right = obj_get_right_vector(obj);
-	printf("Fwd: "); vec3_print(&forward);
-	printf("Up : "); vec3_print(&up);
-	printf("Rgt: "); vec3_print(&right);
+	printf("Fwd: "); vec3_print(forward);
+	printf("Up : "); vec3_print(up);
+	printf("Rgt: "); vec3_print(right);
 
 	printf("Transform:\n");
 	mat_print(&obj->transform);
@@ -217,8 +217,8 @@ void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 
 	euler = quat_to_euler(&quat);
 	*/
-	vec3_t euler2 = quat_to_euler(&quat);
-	printf("Quat: "); quat_print(&quat);
+	vec3_t euler2 = quat_to_euler(quat);
+	printf("Quat: "); quat_print(quat);
 	printf("Euler1: %.1f %.1f %.1f\n", RAD_TO_DEG(euler.x), RAD_TO_DEG(euler.y), RAD_TO_DEG(euler.z));
 	printf("Euler2: %.1f %.1f %.1f\n", RAD_TO_DEG(euler2.x), RAD_TO_DEG(euler2.y), RAD_TO_DEG(euler2.z));
 
@@ -226,15 +226,15 @@ void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 	vec3_t result_upw = vec3(0, 1, 0);
 	vec3_t result_fwd = vec3(0, 0, 1);
 
-	result_rgt = quat_multiply_vec3(&quat, &result_rgt);
-	result_upw = quat_multiply_vec3(&quat, &result_upw);
-	result_fwd = quat_multiply_vec3(&quat, &result_fwd);
+	result_rgt = quat_rotate_vec3(quat, result_rgt);
+	result_upw = quat_rotate_vec3(quat, result_upw);
+	result_fwd = quat_rotate_vec3(quat, result_fwd);
 
 	printf("----------\n");
 
-	printf("MULT Fwd: "); vec3_print(&result_fwd);
-	printf("MULT Up : "); vec3_print(&result_upw);
-	printf("MULT Rgt: "); vec3_print(&result_rgt);
+	printf("MULT Fwd: "); vec3_print(result_fwd);
+	printf("MULT Up : "); vec3_print(result_upw);
+	printf("MULT Rgt: "); vec3_print(result_rgt);
 }
 
 void obj_set_dirty(object_t *obj)
@@ -271,8 +271,8 @@ void obj_update_transform(object_t *obj)
 
 		// Calculate object transform by multiplying the parent's transform and the local transform.
 		mat_multiply(
-			obj_get_transform(obj->parent),
-			obj_get_local_transform(obj),
+			*obj_get_transform(obj->parent),
+			*obj_get_local_transform(obj),
 			&obj->transform
 		);
 	}
@@ -308,9 +308,9 @@ void obj_update_transform(object_t *obj)
 		);
 
 	obj->scale = vector3(
-		vec3_normalize(&obj->right),
-		vec3_normalize(&obj->up),
-		vec3_normalize(&obj->forward)
+		vec3_normalize(obj->right),
+		vec3_normalize(obj->up),
+		vec3_normalize(obj->forward)
 	);
 
 	obj->is_transform_dirty = false;

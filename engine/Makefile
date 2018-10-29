@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean
 CC = clang-6.0
-CFLAGS = -Wall -g -D_DEBUG -I.
+CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I.
 
 OBJS = collections/array.o\
        core/mylly.o core/memory.o core/string.o core/time.o\

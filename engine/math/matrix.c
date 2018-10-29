@@ -1,51 +1,27 @@
 #include "matrix.h"
+#include <cglm/cglm.h>
 
 mat_t mat_identity = mat_identity();
 
 // --------------------------------------------------------------------------------
 
-void mat_multiply3(const mat_t *mat, const vec3_t *v, vec3_t *out)
+vec3_t mat_multiply3(mat_t mat, vec3_t v)
 {
-	out->x = mat->col[0][0] * v->x + mat->col[0][1] * v->y + mat->col[0][2] * v->z + mat->col[0][3];
-	out->y = mat->col[1][0] * v->x + mat->col[1][1] * v->y + mat->col[1][2] * v->z + mat->col[1][3];
-	out->z = mat->col[2][0] * v->x + mat->col[2][1] * v->y + mat->col[2][2] * v->z + mat->col[2][3];
+	vec3_t result;
+	glm_mat4_mulv3(mat.col, v.vec, 0, result.vec);
+	
+	return result;
 }
 
-void mat_multiply4(const mat_t *mat, const vec4_t *v, vec4_t *out)
+vec4_t mat_multiply4(mat_t mat, vec4_t v)
 {
-	out->x = mat->col[0][0] * v->x + mat->col[0][1] * v->y +
-			 mat->col[0][2] * v->z + mat->col[0][3] * v->w;
-
-	out->y = mat->col[1][0] * v->x + mat->col[1][1] * v->y +
-			 mat->col[1][2] * v->z + mat->col[1][3] * v->w;
-
-	out->z = mat->col[2][0] * v->x + mat->col[2][1] * v->y +
-			 mat->col[2][2] * v->z + mat->col[2][3] * v->w;
-
-	out->w = mat->col[3][0] * v->x + mat->col[3][1] * v->y +
-			 mat->col[3][2] * v->z + mat->col[3][3] * v->w;
+	vec4_t result;
+	glm_mat4_mulv(mat.col, v.vec, result.vec);
+	
+	return result;
 }
 
-void mat_multiply(const mat_t *mat1, const mat_t *mat2, mat_t *out)
+void mat_multiply(mat_t mat1, mat_t mat2, mat_t *out)
 {
-	// Get pointers to the matrices as float arrays.
-	const float
-		*m1 = mat_as_ptr(*mat1),
-		*m2 = mat_as_ptr(*mat2);
-		
-	float *m = mat_as_ptr(*out);
-
-	for (int i = 0; i < 4; i++) {
-
-		for (int j = 0; j < 4; j++) {
-			
-			 *m = m2[0] * m1[0 * 4 + j]
-				+ m2[1] * m1[1 * 4 + j]
-				+ m2[2] * m1[2 * 4 + j]
-				+ m2[3] * m1[3 * 4 + j];
-			++m;
-		}
-
-		m2 += 4;
-	}
+	glm_mat4_mul(mat1.col, mat2.col, out->col);
 }

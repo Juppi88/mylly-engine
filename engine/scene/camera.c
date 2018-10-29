@@ -108,9 +108,9 @@ void camera_update_view_matrix(camera_t *camera)
 		-forward.z,
 		0,
 
-		-vec3_dot(&obj->position, &obj->right),
-		-vec3_dot(&obj->position, &obj->up),
-		vec3_dot(&obj->position, &obj->forward),
+		-vec3_dot(obj->position, obj->right),
+		-vec3_dot(obj->position, obj->up),
+		vec3_dot(obj->position, obj->forward),
 		1
 	);
 
@@ -125,13 +125,13 @@ void camera_look_at(camera_t *camera, const vec3_t target, const vec3_t up)
 
 	vec3_t position = obj_get_position(camera->parent);
 
-	vec3_t forward = vec3_subtract(&target, &position);
-	vec3_normalize(&forward);
+	vec3_t forward = vec3_subtract(target, position);
+	vec3_normalize(forward);
 
-	vec3_t right = vec3_cross(&forward, &up);
-	vec3_normalize(&right);
+	vec3_t right = vec3_cross(forward, up);
+	vec3_normalize(right);
 
-	vec3_t up2 = vec3_cross(&right, &forward);
+	vec3_t up2 = vec3_cross(right, forward);
 
 	mat_set(&camera->view,
 			
@@ -150,9 +150,9 @@ void camera_look_at(camera_t *camera, const vec3_t target, const vec3_t up)
 		-forward.z,
 		0,
 
-		-vec3_dot(&position, &right),
-		-vec3_dot(&position, &up2),
-		vec3_dot(&position, &forward),
+		-vec3_dot(position, right),
+		-vec3_dot(position, up2),
+		vec3_dot(position, forward),
 		1
 	);
 

@@ -129,13 +129,13 @@ static void main_loop(void)
 
 	//float angle = get_time().time;
 	//obj_set_local_rotation(test, quat_from_euler(DEG_TO_RAD(-45), angle, 0));
-
+return;
 	uint16_t x, y;
 	input_get_cursor_position(&x, &y);
 
 	quat_t rotation = obj_get_local_rotation(test);
 	quat_t direction = quat_from_euler(0, -DEG_TO_RAD(x - mouse_x), -DEG_TO_RAD(y - mouse_y));
-	quat_t orientation = quat_multiply(&direction, &rotation);
+	quat_t orientation = quat_multiply(direction, rotation);
 
 	//obj_set_local_rotation(test, orientation);
 	//obj_set_local_position(camera, vector3(0.5f, 0.5f, 0));
@@ -172,9 +172,9 @@ static void main_loop(void)
 		movement.z -= 1.0f;
 	}
 
-	movement = vec3_multiply(&movement, speed * get_time().delta_time);
+	movement = vec3_multiply(movement, speed * get_time().delta_time);
 	//position = vec3_add(&position, &movement);
-	position = vec3_add(&position, &movement);
+	position = vec3_add(position, movement);
 
 	// Update camera position.
 	if (movement.x != 0 || movement.y != 0 || movement.z != 0) {
