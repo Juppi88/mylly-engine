@@ -72,7 +72,7 @@ static INLINE void vec3_print(vec3_t vec)
 // --------------------------------------------------------------------------------
 // vec4_t
 
-typedef struct vec4_t {
+typedef union vec4_t {
 	struct { float x, y, z, w; };
 	float vec[4];
 } vec4_t;

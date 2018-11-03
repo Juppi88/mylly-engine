@@ -60,7 +60,7 @@ static void setup(void)
 
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
-	model_setup_primitive(test_model, PRIMITIVE_QUAD);
+	model_setup_primitive(test_model, PRIMITIVE_CUBE);
 	model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
 	//model_set_material(test_model, -1, res_get_shader("test-animated"), res_get_texture("animtest"));
 
@@ -71,7 +71,7 @@ static void setup(void)
 	//obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
 	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
 	//obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	//obj_set_local_rotation(test, quat_from_euler(0, DEG_TO_RAD(45), 0));
+	obj_set_local_rotation(test, quat_from_euler(0, DEG_TO_RAD(45), 0));
 
 	// TEST CODE
 	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
@@ -129,7 +129,7 @@ static void main_loop(void)
 
 	//float angle = get_time().time;
 	//obj_set_local_rotation(test, quat_from_euler(DEG_TO_RAD(-45), angle, 0));
-return;
+
 	uint16_t x, y;
 	input_get_cursor_position(&x, &y);
 
