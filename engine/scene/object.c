@@ -120,7 +120,7 @@ camera_t *obj_add_camera(object_t *obj)
 
 	return obj->camera;
 }
-#include <cglm/cglm.h>
+
 void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 {
 	if (obj == NULL) {
