@@ -39,11 +39,13 @@ void camera_set_orthographic_projection(camera_t *camera, float size, float near
 		return;
 	}
 
+	// Set camera parameters for orthographic projection.
 	camera->is_orthographic = true;
 	camera->size = size;
 	camera->near = near;
 	camera->far = far;
 
+	// Flag the camera as dirty so the projection matrix is recalculated before use.
 	camera->is_projection_matrix_dirty = true;
 }
 
@@ -53,11 +55,13 @@ void camera_set_perspective_projection(camera_t *camera, float fov, float near, 
 		return;
 	}
 
+	// Set camera parameters for perspective projection.
 	camera->is_orthographic = false;
 	camera->fov = fov;
 	camera->near = near;
 	camera->far = far;
 
+	// Flag the camera as dirty so the projection matrix is recalculated before use.
 	camera->is_projection_matrix_dirty = true;
 }
 
@@ -69,28 +73,17 @@ void camera_update_view_matrix(camera_t *camera)
 
 	object_t *obj = camera->parent;
 
+	// Update the camera object's transform matrix when it's not up to date.
 	if (obj->is_transform_dirty) {
 		obj_update_transform(obj);
 	}
 
-	vec3_t right = vec3(
-		obj->transform.col[0][0],
-		obj->transform.col[1][0],
-		obj->transform.col[2][0]
-	);
+	// Get up to date directional vectors.
+	vec3_t right = obj_get_right_vector(obj);
+	vec3_t up = obj_get_up_vector(obj);
+	vec3_t forward = obj_get_forward_vector(obj);
 
-	vec3_t up = vector3(
-		obj->transform.col[0][1],
-		obj->transform.col[1][1],
-		obj->transform.col[2][1]
-	);
-
-	vec3_t forward = vector3(
-		obj->transform.col[0][2],
-		obj->transform.col[1][2],
-		obj->transform.col[2][2]
-	);
-
+	// Compose a view matrix from the direction vectors.
 	mat_set(&camera->view,
 			
 		right.x,
@@ -108,51 +101,9 @@ void camera_update_view_matrix(camera_t *camera)
 		-forward.z,
 		0,
 
-		-vec3_dot(obj->position, obj->right),
-		-vec3_dot(obj->position, obj->up),
-		vec3_dot(obj->position, obj->forward),
-		1
-	);
-
-	camera->is_view_matrix_dirty = false;
-}
-
-void camera_look_at(camera_t *camera, const vec3_t target, const vec3_t up)
-{
-	if (camera == NULL) {
-		return;
-	}
-
-	vec3_t position = obj_get_position(camera->parent);
-
-	vec3_t forward = vec3_subtract(target, position);
-	vec3_normalize(forward);
-
-	vec3_t right = vec3_cross(forward, up);
-	vec3_normalize(right);
-
-	vec3_t up2 = vec3_cross(right, forward);
-
-	mat_set(&camera->view,
-			
-		right.x,
-		up2.x,
-		-forward.x,
-		0,
-
-		right.y,
-		up2.y,
-		-forward.y,
-		0,
-
-		right.z,
-		up2.z,
-		-forward.z,
-		0,
-
-		-vec3_dot(position, right),
-		-vec3_dot(position, up2),
-		vec3_dot(position, forward),
+		vec3_dot(obj->position, right),
+		vec3_dot(obj->position, up),
+		vec3_dot(obj->position, forward),
 		1
 	);
 

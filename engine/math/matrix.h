@@ -3,6 +3,7 @@
 #define __MATRIX_H
 
 #include "math/vector.h"
+#include "math/quaternion.h"
 #include "core/defines.h"
 #include <stdio.h>
 #include <string.h>
@@ -28,6 +29,7 @@ extern mat_t mat_identity;
 vec3_t mat_multiply3(mat_t mat, vec3_t v);
 vec4_t mat_multiply4(mat_t mat, vec4_t v);
 void mat_multiply(mat_t mat1, mat_t mat2, mat_t *out);
+quat_t mat_to_quat(mat_t mat);
 
 // --------------------------------------------------------------------------------
 
@@ -57,7 +59,6 @@ static INLINE void mat_set(
 	mat->col[3][1] = m42;
 	mat->col[3][2] = m43;
 	mat->col[3][3] = m44;
-
 }
 
 static INLINE void mat_cpy(mat_t *dst, const mat_t *src)
@@ -65,19 +66,19 @@ static INLINE void mat_cpy(mat_t *dst, const mat_t *src)
 	memcpy(dst, src, sizeof(*dst));
 }
 
-static INLINE void mat_print(const mat_t *mat)
+static INLINE void mat_print(const mat_t mat)
 {
 	printf("[ %+.2f  %+.2f  %+.2f  %+.2f  \n",
-		mat->col[0][0], mat->col[1][0], mat->col[2][0], mat->col[3][0]);
+		mat.col[0][0], mat.col[1][0], mat.col[2][0], mat.col[3][0]);
 
 	printf("  %+.2f  %+.2f  %+.2f  %+.2f  \n",
-		mat->col[0][1], mat->col[1][1], mat->col[2][1], mat->col[3][1]);
+		mat.col[0][1], mat.col[1][1], mat.col[2][1], mat.col[3][1]);
 
 	printf("  %+.2f  %+.2f  %+.2f  %+.2f  \n",
-		mat->col[0][2], mat->col[1][2], mat->col[2][2], mat->col[3][2]);
+		mat.col[0][2], mat.col[1][2], mat.col[2][2], mat.col[3][2]);
 
 	printf("  %+.2f  %+.2f  %+.2f  %+.2f ]\n",
-		mat->col[0][3], mat->col[1][3], mat->col[2][3], mat->col[3][3]);
+		mat.col[0][3], mat.col[1][3], mat.col[2][3], mat.col[3][3]);
 }
 
 END_DECLARATIONS;

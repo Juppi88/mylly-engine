@@ -25,3 +25,11 @@ void mat_multiply(mat_t mat1, mat_t mat2, mat_t *out)
 {
 	glm_mat4_mul(mat1.col, mat2.col, out->col);
 }
+
+quat_t mat_to_quat(mat_t mat)
+{
+	quat_t quat;
+	glm_mat4_quat(mat.col, quat.vec);
+
+	return quat;
+}

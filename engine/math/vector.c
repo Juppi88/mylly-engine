@@ -55,10 +55,10 @@ vec3_t vec3_cross(vec3_t a, vec3_t b)
 	return result;
 }
 
-float vec3_normalize(vec3_t v)
+float vec3_normalize(vec3_t *v)
 {
-	float length = glm_vec_norm(v.vec);
-	glm_vec_divs(v.vec, length, v.vec);
+	float length = glm_vec_norm(v->vec);
+	glm_vec_divs(v->vec, length, v->vec);
 
 	return length;
 }
@@ -71,6 +71,15 @@ vec3_t vec3_normalized(vec3_t v)
 	glm_vec_normalize(result.vec);
 
 	return result;
+}
+
+void vec3_orthonormalize(vec3_t *a, vec3_t *b)
+{
+	vec3_normalize(a);
+	vec3_t v = vec3_cross(*a, *b);
+	vec3_normalize(&v);
+
+	*b = vec3_cross(v, *a);
 }
 
 vec3_t vec3_sanitize_rotation(vec3_t v)

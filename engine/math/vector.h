@@ -59,8 +59,10 @@ vec3_t vec3_multiply(vec3_t v, float value);
 float vec3_dot(vec3_t a, vec3_t b);
 vec3_t vec3_cross(vec3_t a, vec3_t b);
 
-float vec3_normalize(vec3_t v);
+float vec3_normalize(vec3_t *v);
 vec3_t vec3_normalized(vec3_t v);
+
+void vec3_orthonormalize(vec3_t *a, vec3_t *b);
 
 vec3_t vec3_sanitize_rotation(vec3_t v);
 

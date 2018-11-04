@@ -120,121 +120,39 @@ camera_t *obj_add_camera(object_t *obj)
 
 	return obj->camera;
 }
-
+#include <cglm/cglm.h>
 void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 {
 	if (obj == NULL) {
 		return;
 	}
 
-	// Calculate forward, right and up vectors.
+	// Calculate forward vector (direction from the object to target)
 	vec3_t position = obj_get_position(obj);
-
 	vec3_t forward = vec3_subtract(target, position);
-	vec3_normalize(forward);
-
-
-	//forward = vec3_multiply(&forward, -1);
-
-	vec3_t right = vec3_cross(forward, upward);
-	vec3_normalize(right);
-
-	vec3_t up = vec3_cross(right, forward);
-
-	printf("Pos: "); vec3_print(position);
-	printf("Tgt: "); vec3_print(target);
-	printf("Upw: "); vec3_print(upward);
-	printf("\n");
-	printf("Fwd: "); vec3_print(forward);
-	printf("Up : "); vec3_print(up);
-	printf("Rgt: "); vec3_print(right);
-
-	// Calculate the quaternion from the direction vectors.
-	quat_t quat;
-
-
-	float x, y, z;
-	y = asinf(-forward.x);
-
-	float cy = sqrtf(1 - forward.z * forward.z);
-
-	if (cy == 0 || fabsf(forward.z) >= 1) {
-
-		// Looking straight up or down.
-		if (y > 0) {
-			z = 0;
-			x = atan2f(-up.y, -up.x) + PI;
-		}
-		else {
-			z = 0;
-			x = -atan2f(up.y, up.x) + PI;
-		}
-	}
-	else {
-
-		float cz = forward.x / cy;
-		float sz = forward.y / cy;
-
-		z = atan2f(sz, cz);
-
-		float cx = up.z / cy;
-		float sx;
-
-		if (fabsf(cz) < fabsf(sz)) {
-			sx = -(up.x + forward.z * cx * cz) / sz;
-		}
-		else {
-			sx = (up.y + forward.z * cx * sz) / cz;
-		}
-
-		x = atan2f(sx, cx);
-	}
-
-	vec3_t euler = vec3(x, y, z);
-
-	//
-	quat = quat_from_euler3(euler);
 	
+	// Ensure forward and up vectors are orthogonal, normalize them.
+	vec3_t up = upward;
+	vec3_orthonormalize(&forward, &up);
 
+	// Calculate right vector.
+	vec3_t right = vec3_cross(up, forward);
+
+	// Create a rotation matrix from the directions.
+	mat_t rotation;
+
+	mat_set(&rotation,
+		right.x, right.y, right.z, 0,
+		up.x, up.y, up.z, 0,
+		forward.x, forward.y, forward.z, 0,
+		0, 0, 0, 1);
+
+	// Convert the rotation matrix into a quaternion.
+	quat_t quat = mat_to_quat(rotation);
+
+	// Update the object's rotation and flag its transformation as dirty.
 	obj->local_rotation = quat;
 	obj_set_dirty(obj);
-
-
-	printf("----------\n");
-	forward = obj_get_forward_vector(obj);
-	up = obj_get_up_vector(obj);
-	right = obj_get_right_vector(obj);
-	printf("Fwd: "); vec3_print(forward);
-	printf("Up : "); vec3_print(up);
-	printf("Rgt: "); vec3_print(right);
-
-	printf("Transform:\n");
-	mat_print(&obj->transform);
-
-	/*vec3_t euler = vec3(DEG_TO_RAD(30), DEG_TO_RAD(60), DEG_TO_RAD(70));
-	quat = quat_from_euler3(&euler);
-	printf("Euler: %.1f %.1f %.1f\n", RAD_TO_DEG(euler.x), RAD_TO_DEG(euler.y), RAD_TO_DEG(euler.z));
-
-	euler = quat_to_euler(&quat);
-	*/
-	vec3_t euler2 = quat_to_euler(quat);
-	printf("Quat: "); quat_print(quat);
-	printf("Euler1: %.1f %.1f %.1f\n", RAD_TO_DEG(euler.x), RAD_TO_DEG(euler.y), RAD_TO_DEG(euler.z));
-	printf("Euler2: %.1f %.1f %.1f\n", RAD_TO_DEG(euler2.x), RAD_TO_DEG(euler2.y), RAD_TO_DEG(euler2.z));
-
-	vec3_t result_rgt = vec3(1, 0, 0);
-	vec3_t result_upw = vec3(0, 1, 0);
-	vec3_t result_fwd = vec3(0, 0, 1);
-
-	result_rgt = quat_rotate_vec3(quat, result_rgt);
-	result_upw = quat_rotate_vec3(quat, result_upw);
-	result_fwd = quat_rotate_vec3(quat, result_fwd);
-
-	printf("----------\n");
-
-	printf("MULT Fwd: "); vec3_print(result_fwd);
-	printf("MULT Up : "); vec3_print(result_upw);
-	printf("MULT Rgt: "); vec3_print(result_rgt);
 }
 
 void obj_set_dirty(object_t *obj)
@@ -291,26 +209,26 @@ void obj_update_transform(object_t *obj)
 
 	obj->right = vector3(
 			obj->transform.col[0][0],
-			obj->transform.col[1][0],
-			obj->transform.col[2][0]
+			obj->transform.col[0][1],
+			obj->transform.col[0][2]
 		);
 
 	obj->up = vector3(
-			obj->transform.col[0][1],
+			obj->transform.col[1][0],
 			obj->transform.col[1][1],
-			obj->transform.col[2][1]
+			obj->transform.col[1][2]
 		);
 
 	obj->forward = vector3(
-			obj->transform.col[0][2],
-			obj->transform.col[1][2],
+			obj->transform.col[2][0],
+			obj->transform.col[2][1],
 			obj->transform.col[2][2]
 		);
 
 	obj->scale = vector3(
-		vec3_normalize(obj->right),
-		vec3_normalize(obj->up),
-		vec3_normalize(obj->forward)
+		vec3_normalize(&obj->right),
+		vec3_normalize(&obj->up),
+		vec3_normalize(&obj->forward)
 	);
 
 	obj->is_transform_dirty = false;
@@ -321,37 +239,47 @@ void obj_update_local_transform(object_t *obj)
 	if (obj == NULL || !obj->is_local_transform_dirty) {
 		return;
 	}
-
+	
 	float rx = obj->local_rotation.x;
 	float ry = obj->local_rotation.y;
 	float rz = obj->local_rotation.z;
 	float rw = obj->local_rotation.w;
+	float wx, wy, wz;
+	float xx, yy, yz;
+	float xy, xz, zz;
+	float x2, y2, z2;
 
-	float qxx = (rx * rx);
-	float qyy = (ry * ry);
-	float qzz = (rz * rz);
-	float qxz = (rx * rz);
-	float qxy = (rx * ry);
-	float qyz = (ry * rz);
-	float qwx = (rw * rx);
-	float qwy = (rw * ry);
-	float qwz = (rw * rz);
+	x2 = rx + rx;
+	y2 = ry + ry;
+	z2 = rz + rz;
+
+	xx = rx * x2;
+	xy = rx * y2;
+	xz = rx * z2;
+
+	yy = ry * y2;
+	yz = ry * z2;
+	zz = rz * z2;
+
+	wx = rw * x2;
+	wy = rw * y2;
+	wz = rw * z2;
 
 	mat_set(&obj->local_transform,
 
-		obj->local_scale.x * (1.0f - 2 * (qyy + qzz)),
-		obj->local_scale.x * 2 * (qxy + qwz),
-		obj->local_scale.x * 2 * (qxz - qwy),
+		obj->local_scale.x * (1.0f - (yy + zz)),
+		obj->local_scale.x * (xy + wz),
+		obj->local_scale.x * (xz - wy),
 		0,
 
-		obj->local_scale.y * 2 * (qxy - qwz),
-		obj->local_scale.y * (1.0f - 2 * (qxx + qzz)),
-		obj->local_scale.y * 2 * (qyz + qwx),
+		obj->local_scale.y * (xy - wz),
+		obj->local_scale.y * (1.0f - (xx + zz)),
+		obj->local_scale.y * (yz + wx),
 		0,
 
-		obj->local_scale.z * 2 * (qxz + qwy),
-		obj->local_scale.z * 2 * (qyz - qwx),
-		obj->local_scale.z * (1.0f - 2 * (qxx + qyy)),
+		obj->local_scale.z * (xz + wy),
+		obj->local_scale.z * (yz - wx),
+		obj->local_scale.z * (1.0f - (xx + yy)),
 		0,
 
 		obj->local_position.x,
