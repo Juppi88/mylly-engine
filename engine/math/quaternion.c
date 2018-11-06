@@ -9,11 +9,8 @@ quat_t quat_identity = quat_identity();
 
 quat_t quat_from_euler(float x, float y, float z)
 {
-	return quat_from_euler3(vector3(x, y, z));
-}
+	vec3_t euler = vec3(x, y, z);
 
-quat_t quat_from_euler3(vec3_t euler)
-{
 	// Convert the euler angles to a rotation matrix.
 	mat4 rotation;
 	glm_euler(euler.vec, rotation);
@@ -23,6 +20,11 @@ quat_t quat_from_euler3(vec3_t euler)
 	glm_mat4_quat(rotation, quat.vec);
 
 	return quat;
+}
+
+quat_t quat_from_euler_deg(float x, float y, float z)
+{
+	return quat_from_euler(DEG_TO_RAD(x), DEG_TO_RAD(y), DEG_TO_RAD(z));
 }
 
 vec3_t quat_to_euler(quat_t quat)

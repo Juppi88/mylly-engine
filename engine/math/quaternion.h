@@ -25,7 +25,7 @@ static INLINE quat_t quaternion(float x, float y, float z, float w)
 }
 
 quat_t quat_from_euler(float x, float y, float z);
-quat_t quat_from_euler3(vec3_t euler);
+quat_t quat_from_euler_deg(float x, float y, float z);
 vec3_t quat_to_euler(quat_t quat);
 
 quat_t quat_multiply(quat_t a, quat_t b);

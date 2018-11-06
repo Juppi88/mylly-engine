@@ -18,6 +18,8 @@
 #define INITIAL_CAPACITY 16
 #define INVALID_INDEX 0xFFFFFFFF
 
+#define arr_initializer { NULL, 0, 0 }
+
 #define arr_t(type) struct {\
 	type *items;\
 	size_t count;\
