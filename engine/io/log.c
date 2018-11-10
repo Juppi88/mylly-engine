@@ -33,7 +33,7 @@ void log_message(const char *note, const char *format, ...)
 	fprintf(stdout, "[%s] %s\n", note, buffer);
 }
 
-void log_note(const char *note, const char *format, ...)
+void log_warning(const char *note, const char *format, ...)
 {
 	char buffer[1024];
 	va_list args;

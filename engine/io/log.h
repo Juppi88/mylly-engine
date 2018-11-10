@@ -7,7 +7,7 @@
 BEGIN_DECLARATIONS;
 
 void log_message(const char *note, const char *format, ...);
-void log_note(const char *note, const char *format, ...);
+void log_warning(const char *note, const char *format, ...);
 void log_error(const char *note, const char *format, ...);
 
 END_DECLARATIONS;

@@ -78,7 +78,7 @@ texture_t *res_get_texture(const char *name)
 		}
 	}
 
-	log_note("Resources", "Could not find a texture named '%s'.", name);
+	log_warning("Resources", "Could not find a texture named '%s'.", name);
 
 	return NULL;
 }
@@ -95,7 +95,7 @@ shader_t *res_get_shader(const char *name)
 		}
 	}
 
-	log_note("Resources", "Could not find a shader named '%s'.", name);
+	log_warning("Resources", "Could not find a shader named '%s'.", name);
 
 	return NULL;
 }
@@ -200,7 +200,7 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 			arr_push(*lines, string_duplicate(include_buffer));
 		}
 		else {
-			log_note("Resources", "Could not include a shader named '%s'.", include);
+			log_warning("Resources", "Could not include a shader named '%s'.", include);
 		}
 	}
 	else {

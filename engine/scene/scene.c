@@ -71,13 +71,13 @@ void scene_register_camera(scene_t *scene, object_t *object)
 
 	// Ensure the object is in this scene.
 	if (object->scene != scene) {
-		log_note("Scene", "Failed to register a camera: the object is in a different scene.");
+		log_warning("Scene", "Failed to register a camera: the object is in a different scene.");
 		return;
 	}
 
 	// Make sure the camera is not added to a scene already.
 	if (object->camera->scene_index != INVALID_INDEX) {
-		log_note("Scene", "Failed to register a camera: the camera is already in a scene.");
+		log_warning("Scene", "Failed to register a camera: the camera is already in a scene.");
 		return;	
 	}
 
@@ -105,7 +105,7 @@ void scene_remove_references_to_object(scene_t *scene, object_t *object)
 
 	// Make sure the object is actually in this scene.
 	if (scene != object->scene) {
-		log_note("Scene", "Failed to remove references: the object is in a different scene.");
+		log_warning("Scene", "Failed to remove references: the object is in a different scene.");
 		return;
 	}
 
