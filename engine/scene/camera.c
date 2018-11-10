@@ -83,27 +83,27 @@ void camera_update_view_matrix(camera_t *camera)
 	vec3_t up = obj_get_up_vector(obj);
 	vec3_t forward = obj_get_forward_vector(obj);
 
-	// Compose a view matrix from the direction vectors.
+	// Compose a left-hand view matrix from the direction vectors.
 	mat_set(&camera->view,
 			
 		right.x,
 		up.x,
-		-forward.x,
+		forward.x,
 		0,
 
 		right.y,
 		up.y,
-		-forward.y,
+		forward.y,
 		0,
 
 		right.z,
 		up.z,
-		-forward.z,
+		forward.z,
 		0,
 
-		vec3_dot(obj->position, right),
-		vec3_dot(obj->position, up),
-		vec3_dot(obj->position, forward),
+		-vec3_dot(right, obj->position),
+		-vec3_dot(up, obj->position),
+		-vec3_dot(forward, obj->position),
 		1
 	);
 
@@ -172,12 +172,12 @@ void camera_update_projection_matrix(camera_t *camera)
 
 			0,
 			0,
-			(camera->far + camera->near) / (camera->near - camera->far),
-			-1,
+			(camera->far + camera->near) / (camera->far - camera->near),
+			1,
 
 			0,
 			0,
-			(2 * camera->far * camera->near) / (camera->near - camera->far),
+			(2 * camera->far * camera->near) / (camera->far - camera->near),
 			0
 		);
 	}

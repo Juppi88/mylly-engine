@@ -95,6 +95,11 @@ static INLINE vec4_t vector4(float x, float y, float z, float w)
 float vec4_normalize(vec4_t v);
 vec4_t vec4_normalized(vec4_t v);
 
+static INLINE void vec4_print(vec4_t vec)
+{
+	printf("%.2f  %.2f  %.2f  %.2f\n", vec.x, vec.y, vec.z, vec.w);
+}
+
 // --------------------------------------------------------------------------------
 
 END_DECLARATIONS;

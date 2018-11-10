@@ -9,8 +9,8 @@ BEGIN_DECLARATIONS;
 
 typedef struct object_t object_t;
 
-#define PERSPECTIVE_NEAR 0.1f
-#define PERSPECTIVE_FAR 1000
+#define PERSPECTIVE_NEAR -0.1f
+#define PERSPECTIVE_FAR -1000
 #define ORTOGRAPHIC_NEAR 0.01f
 #define ORTOGRAPHIC_FAR 10.0f
 

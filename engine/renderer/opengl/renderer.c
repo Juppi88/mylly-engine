@@ -380,6 +380,9 @@ static void rend_begin_draw(void)
 
 	glDisable(GL_CULL_FACE);
 
+	//glClearDepth(0);
+	//glDepthFunc(GL_GEQUAL);
+
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glMatrixMode(GL_PROJECTION);

@@ -136,13 +136,15 @@ void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 	vec3_orthonormalize(&forward, &up);
 
 	// Calculate right vector.
-	vec3_t right = vec3_cross(up, forward);
+	vec3_t right = vec3_cross(forward, up);
 
 	// Create a rotation matrix from the directions.
 	mat_t rotation;
 
+	// Negate right vector for a left hand system where Y is up.
+	// Don't know why this works, but it does so let's leave it here.
 	mat_set(&rotation,
-		right.x, right.y, right.z, 0,
+		-right.x, -right.y, -right.z, 0,
 		up.x, up.y, up.z, 0,
 		forward.x, forward.y, forward.z, 0,
 		0, 0, 0, 1);
@@ -207,10 +209,11 @@ void obj_update_transform(object_t *obj)
 			obj->transform.col[3][2]
 		);
 
+	// Negate right vector for a left hand system where Y is up.
 	obj->right = vector3(
-			obj->transform.col[0][0],
-			obj->transform.col[0][1],
-			obj->transform.col[0][2]
+			-obj->transform.col[0][0],
+			-obj->transform.col[0][1],
+			-obj->transform.col[0][2]
 		);
 
 	obj->up = vector3(

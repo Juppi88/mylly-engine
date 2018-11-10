@@ -121,7 +121,11 @@ static void rsys_cull_object(object_t *object)
 
 			// Copy matrices.
 			mat_cpy(&obj->matrix, obj_get_transform(object));
-			mat_multiply(view->projection, obj->matrix, &obj->mvp);
+
+			mat_multiply(
+				view->projection,
+				obj->matrix,
+				&obj->mvp);
 
 			stack_push(view->objects, obj);
 		}
