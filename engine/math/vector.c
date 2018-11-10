@@ -18,6 +18,38 @@ vec4_t vec4_one = vec4_one();
 
 // --------------------------------------------------------------------------------
 
+vec2_t vec2_add(vec2_t a, vec2_t b)
+{
+	vec2_t result = vec2(
+		a.x + b.x,
+		a.y + b.y
+	);
+
+	return result;
+}
+
+vec2_t vec2_subtract(vec2_t a, vec2_t b)
+{
+	vec2_t result = vec2(
+		a.x - b.x,
+		a.y - b.y
+	);
+
+	return result;
+}
+
+vec2_t vec2_multiply(vec2_t v, float value)
+{
+	vec2_t result = vec2(
+		v.x * value,
+		v.y * value
+	);
+
+	return result;
+}
+
+// --------------------------------------------------------------------------------
+
 vec3_t vec3_add(vec3_t a, vec3_t b)
 {
 	vec3_t result;
@@ -92,6 +124,8 @@ vec3_t vec3_sanitize_rotation(vec3_t v)
 
 	return vec;
 }
+
+// --------------------------------------------------------------------------------
 
 float vec4_normalize(vec4_t v)
 {
