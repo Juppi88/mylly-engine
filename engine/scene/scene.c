@@ -24,8 +24,10 @@ void scene_destroy(scene_t *scene)
 
 		// Remove the scene reference to speed up the destroying
 		// (skips unnecessary additional cleanup).
-		obj->scene = NULL;
-		obj_destroy(obj);
+		if (obj != NULL) {
+			obj->scene = NULL;
+			obj_destroy(obj);
+		}
 	}
 
 	// Destroy the scene.
