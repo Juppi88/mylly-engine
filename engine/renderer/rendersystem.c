@@ -167,7 +167,7 @@ static void rsys_cull_meshes(rview_t *view)
 			if (mesh->index_buffer == NULL) { 
 
 				vbcache_alloc_buffer(mesh->indices, mesh->num_indices,
-									sizeof(vertex_t), &mesh->index_buffer, true);
+									sizeof(vindex_t), &mesh->index_buffer, true);
 			}
 			else {
 				vbcache_refresh_buffer(mesh->index_buffer);
