@@ -15,14 +15,14 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static Display *display;
 static XVisualInfo *visual;
 static Window window;
 static Window root;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 bool window_create(bool fullscreen, int monitor, int x, int y, int width, int height)
 {
@@ -89,7 +89,8 @@ bool window_create(bool fullscreen, int monitor, int x, int y, int width, int he
 	// Move cursor to the center of the new window.
 	input_set_cursor_position(width / 2, height / 2);
 
-	log_message("Platform", "Main window was created successfully, handle: 0x%X", (void *)window);
+	log_message("Platform", "Main window was created successfully, resolution: %ux%u",
+		width, height);
 
 	return true;
 }

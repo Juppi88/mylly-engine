@@ -6,6 +6,8 @@
 
 BEGIN_DECLARATIONS;
 
+// -------------------------------------------------------------------------------------------------
+
 typedef bool (*input_hook_t)(void *args);
 
 typedef struct monitor_info_t {
@@ -13,7 +15,7 @@ typedef struct monitor_info_t {
 	int width, height; // Resolution of the monitor
 } monitor_info_t;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 bool window_create(bool fullscreen, int monitor, int x, int y, int width, int height);
 void window_pump_events(void);
