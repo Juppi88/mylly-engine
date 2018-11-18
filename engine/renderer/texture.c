@@ -2,6 +2,7 @@
 #include "core/memory.h"
 #include "core/string.h"
 #include "renderer/renderer.h"
+#include "io/log.h"
 #include <png.h>
 #include <stdio.h>
 
@@ -118,6 +119,15 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 
 	png_get_IHDR(png, info, &width, &height, &bit_depth, &colour_type, NULL, NULL, NULL);
 
+	if (colour_type != PNG_COLOR_TYPE_RGB_ALPHA) {
+
+		log_warning("Renderer",
+			"Unsupported texture type (currently only PNG_COLOR_TYPE_RGB_ALPHA is supported)");
+
+		png_destroy_read_struct(&png, &info, &end);
+		return false;
+	}
+
 	texture->width = (uint16_t)width;
 	texture->height = (uint16_t)height;
 	
@@ -141,6 +151,7 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 
     // Finally read the PNG data.
     png_read_image(png, row_pointers);
+    png_read_end(png, NULL);
 
     texture->data = tex_data;
 
