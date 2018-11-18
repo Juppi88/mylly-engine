@@ -120,6 +120,24 @@ camera_t *obj_add_camera(object_t *obj)
 	return obj->camera;
 }
 
+void obj_set_model(object_t *obj, model_t *model)
+{
+	if (obj == NULL) {
+		return;
+	}
+
+	obj->model = model;
+}
+
+void obj_set_sprite(object_t *obj, sprite_t *sprite)
+{
+	if (obj == NULL) {
+		return;
+	}
+
+	obj->sprite = sprite;
+}
+
 void obj_look_at(object_t *obj, const vec3_t target, const vec3_t upward)
 {
 	if (obj == NULL) {
