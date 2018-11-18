@@ -3,7 +3,6 @@
 #include "scene.h"
 #include "io/log.h"
 #include "math/math.h"
-#include "renderer/model.h"
 
 // --------------------------------------------------------------------------------
 

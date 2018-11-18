@@ -5,12 +5,9 @@
 #include "collections/array.h"
 #include "math/matrix.h"
 #include "math/quaternion.h"
+#include "core/defines.h"
 
 BEGIN_DECLARATIONS;
-
-typedef struct scene_t scene_t;
-typedef struct model_t model_t;
-typedef struct camera_t camera_t;
 
 // --------------------------------------------------------------------------------
 
@@ -42,7 +39,8 @@ typedef struct object_t {
 	bool is_local_transform_dirty; // True when the local transform matrix hasn't been updated
 	bool is_rotation_dirty; // True when the world rotation has not been updated
 
-	model_t *model; // Render model
+	model_t *model; // 3D render model (collection of meshes)
+	sprite_t *sprite; // A single mesh for a 2D sprite
 	camera_t *camera; // Camera attached to the object
 	
 } object_t;

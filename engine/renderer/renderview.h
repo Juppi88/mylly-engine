@@ -20,7 +20,6 @@ typedef struct robject_t {
 
 	stack_entry(robject_t);
 
-	model_t *model; // The actual render model containing the base meshes
 	mat_t matrix; // Model to world matrix
 	mat_t mvp; // Model-view-projection matrix
 
@@ -33,7 +32,7 @@ typedef struct rmesh_t {
 
 	stack_entry(rmesh_t);
 
-	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrix
+	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrices
 	vertexbuffer_t *vertices; // Vertex buffer containing the vertices of this mesh
 	vertexbuffer_t *indices; // Vertex buffer containing the indices of this mesh
 	shader_t *shader; // The shader used for rendering this mesh

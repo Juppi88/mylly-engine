@@ -12,7 +12,9 @@ mesh_t *mesh_create(uint32_t index)
 
 void mesh_destroy(mesh_t *mesh)
 {
-	assert(mesh != NULL);
+	if (mesh == NULL) {
+		return;
+	}
 
 	DELETE(mesh->vertices);
 	DELETE(mesh->indices);
@@ -21,7 +23,9 @@ void mesh_destroy(mesh_t *mesh)
 
 void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertices)
 {
-	assert(mesh != NULL && vertices != NULL);
+	if (mesh == NULL || vertices == NULL) {
+		return;
+	}
 
 	NEW_ARRAY(vertex_t, arr, num_vertices);
 
@@ -36,7 +40,9 @@ void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertic
 
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 {
-	assert(mesh != NULL && indices != NULL);
+	if (mesh == NULL || indices == NULL) {
+		return;
+	}
 
 	NEW_ARRAY(vindex_t, arr, num_indices);
 
@@ -47,4 +53,14 @@ void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 
 	mesh->indices = arr;
 	mesh->num_indices = num_indices;
+}
+
+void mesh_set_material(mesh_t *mesh, shader_t *shader, texture_t *texture)
+{
+	if (mesh == NULL) {
+		return;
+	}
+
+	mesh->texture = texture;
+	mesh->shader = shader;
 }

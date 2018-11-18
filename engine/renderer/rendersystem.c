@@ -3,6 +3,7 @@
 #include "vbcache.h"
 #include "renderview.h"
 #include "model.h"
+#include "sprite.h"
 #include "shader.h"
 #include "texture.h"
 #include "vertexbuffer.h"
@@ -11,18 +12,20 @@
 #include "scene/camera.h"
 #include "io/log.h"
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static int frames_rendered; // Number of frames rendered so far
 static stack_t(rview_t) views; // List of views to be rendered this frame
+static shader_t *default_shader; // Default shader used for rendering when a mesh has no shader
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static void rsys_cull_object(object_t *object);
-static void rsys_cull_meshes(rview_t *view);
+static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t *view);
+static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view);
 static void rsys_free_frame_data(void);
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void rsys_initialize(void)
 {
@@ -41,6 +44,11 @@ void rsys_shutdown(void)
 
 void rsys_begin_frame(void)
 {
+	// Attempt to load the default shader if it has not been loaded.
+	if (default_shader == NULL) {
+		default_shader = res_get_shader("default");
+	}
+
 	vbcache_set_current_frame(frames_rendered);
 }
 
@@ -95,11 +103,6 @@ void rsys_render_scene(scene_t *scene)
 	arr_foreach(scene->objects, object) {
 		rsys_cull_object(object);
 	}
-
-	// Cull all meshes which aren't in the view.
-	stack_foreach(rview_t, view, views) {
-		rsys_cull_meshes(views);
-	}
 }
 
 static void rsys_cull_object(object_t *object)
@@ -109,15 +112,13 @@ static void rsys_cull_object(object_t *object)
 	}
 
 	// Skip non-visible objects.
-	if (object->model != NULL) {
+	if (object->model != NULL ||
+		object->sprite != NULL) {
 
 		// Add the scene object to each of the views as a render object.
 		stack_foreach(rview_t, view, views) {
 
 			NEW(robject_t, obj);
-
-			// Copy model data.
-			obj->model = object->model;
 
 			// Copy matrices.
 			mat_cpy(&obj->matrix, obj_get_transform(object));
@@ -128,6 +129,9 @@ static void rsys_cull_object(object_t *object)
 				&obj->mvp);
 
 			stack_push(view->objects, obj);
+
+			// Cull object meshes.
+			rsys_cull_object_meshes(object, obj, view);
 		}
 	}
 	
@@ -139,55 +143,66 @@ static void rsys_cull_object(object_t *object)
 	}
 }
 
-static void rsys_cull_meshes(rview_t *view)
+static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t *view)
 {
-	shader_t *default_shader = res_get_shader("default");
-
 	// TODO: HANDLE ACTUAL CULLING HERE
-	stack_foreach(robject_t, obj, view->objects) {
+	
+	// 3D model meshes
+	if (object->model != NULL) {
 
 		mesh_t *mesh;
+		arr_foreach(object->model->meshes, mesh) {
 
-		arr_foreach(obj->model->meshes, mesh) {
-
-			// Upload vertex and data to the GPU. If the data is already copied to buffer objects,
-			// refresh them to avoid automatic cleanup.
-
-			// Vertex data
-			if (mesh->vertex_buffer == NULL) {
-
-				vbcache_alloc_buffer(mesh->vertices, mesh->num_vertices,
-									sizeof(vertex_t), &mesh->vertex_buffer, false);
+			if (mesh != NULL) {
+				rsys_add_mesh_to_view(mesh, parent, view);
 			}
-			else {
-				vbcache_refresh_buffer(mesh->vertex_buffer);
-			}
-
-			// Index data.
-			if (mesh->index_buffer == NULL) { 
-
-				vbcache_alloc_buffer(mesh->indices, mesh->num_indices,
-									sizeof(vindex_t), &mesh->index_buffer, true);
-			}
-			else {
-				vbcache_refresh_buffer(mesh->index_buffer);
-			}
-
-			// Create a new render mesh as a copy for the renderer.
-			NEW(rmesh_t, rmesh);
-
-			rmesh->parent = obj;
-			rmesh->vertices = mesh->vertex_buffer;
-			rmesh->indices = mesh->index_buffer;
-
-			// Use default shader until others are available.
-			rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
-			rmesh->texture = mesh->texture;
-
-			// Add the mesh to the view.
-			stack_push(view->meshes, rmesh);
 		}
 	}
+
+	// 2D sprite mesh
+	if (object->sprite != NULL && object->sprite->mesh != NULL) {
+		rsys_add_mesh_to_view(object->sprite->mesh, parent, view);
+	}
+}
+
+static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view)
+{
+	// Upload vertex and data to the GPU. If the data is already copied to buffer objects,
+	// refresh them to avoid automatic cleanup.
+
+	// Vertex data
+	if (mesh->vertex_buffer == NULL) {
+
+		vbcache_alloc_buffer(mesh->vertices, mesh->num_vertices,
+							sizeof(vertex_t), &mesh->vertex_buffer, false);
+	}
+	else {
+		vbcache_refresh_buffer(mesh->vertex_buffer);
+	}
+
+	// Index data.
+	if (mesh->index_buffer == NULL) { 
+
+		vbcache_alloc_buffer(mesh->indices, mesh->num_indices,
+							sizeof(vindex_t), &mesh->index_buffer, true);
+	}
+	else {
+		vbcache_refresh_buffer(mesh->index_buffer);
+	}
+
+	// Create a new render mesh as a copy for the renderer.
+	NEW(rmesh_t, rmesh);
+
+	rmesh->parent = parent;
+	rmesh->vertices = mesh->vertex_buffer;
+	rmesh->indices = mesh->index_buffer;
+
+	// Use default shader until others are available.
+	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
+	rmesh->texture = mesh->texture;
+
+	// Add the mesh to the view.
+	stack_push(view->meshes, rmesh);
 }
 
 static void rsys_free_frame_data(void)

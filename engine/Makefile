@@ -10,7 +10,7 @@ OBJS = collections/array.o\
        math/matrix.o math/quaternion.o math/vector.o\
        platform/input.o platform/thread.o platform/timer.o platform/window.o\
        renderer/mesh.o renderer/model.o renderer/rendersystem.o renderer/shader.o renderer/vbcache.o\
-       renderer/texture.o\
+       renderer/sprite.o renderer/texture.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
        resources/resources.o\
        scene/camera.o scene/object.o scene/scene.o
