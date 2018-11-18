@@ -18,6 +18,11 @@ void main()
 void main()
 {
 	gl_FragColor = colour * texture(Texture, texCoord.st);
+
+	// Alpha cutoff
+	if (gl_FragColor.a < 0.01) {
+		discard;
+	}
 }
 
 #endif

@@ -67,7 +67,7 @@ static void sprite_create_mesh(sprite_t *sprite)
 
 	// Calculate half the width/height of the sprite in world units and the offset caused by pivot.
 	float width = 0.5f * sprite->size.x / sprite->pixels_per_unit;
-	float height = 0.5f * sprite->size.x / sprite->pixels_per_unit;
+	float height = 0.5f * sprite->size.y / sprite->pixels_per_unit;
 	float pivot_x = sprite->pivot.x / sprite->pixels_per_unit;
 	float pivot_y = sprite->pivot.y / sprite->pixels_per_unit;
 
@@ -103,11 +103,6 @@ static void sprite_create_mesh(sprite_t *sprite)
 		0, 1, 2,
 		2, 1, 3
 	};
-
-	vec4_print(vertices[0].pos);
-	vec4_print(vertices[1].pos);
-	vec4_print(vertices[2].pos);
-	vec4_print(vertices[3].pos);
 
 	// Create a mesh with the quad vertex data.
 	sprite->mesh = mesh_create(0);

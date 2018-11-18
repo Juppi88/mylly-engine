@@ -17,6 +17,7 @@ static void mylly_set_working_directory(void);
 
 static scene_t *current_scene;
 static bool is_running = true;
+static monitor_info_t monitor; // Info about the monitor the engine is running on
 
 // -------------------------------------------------------------------------------------------------
 
@@ -27,7 +28,13 @@ bool mylly_initialize(int argc, char **argv)
 
 	// Create the main window.
 	// TODO: Figure out the coordinates and the resolution.
-	if (!window_create(false, 800, 450, 800, 600)) {
+	window_get_monitor_info(0, &monitor);
+
+	/*monitor.width = 800;
+	monitor.height = 600;
+
+	if (!window_create(false, 0, 800, 450, 800, 600)) {*/
+	if (!window_create(true, 0, 0, 0, monitor.width, monitor.height)) {
 
 		log_error("Mylly", "Unable to create main window.");
 		return false;
@@ -95,6 +102,15 @@ void mylly_set_scene(scene_t *scene)
 void mylly_exit(void)
 {
 	is_running = false;
+}
+
+void mylly_get_resolution(uint16_t *width, uint16_t *height)
+{
+	if (width != NULL && height != NULL) {
+
+		*width = (uint16_t)monitor.width;
+		*height = (uint16_t)monitor.height;
+	}
 }
 
 static void mylly_set_working_directory(void)

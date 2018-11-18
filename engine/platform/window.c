@@ -11,6 +11,7 @@
 #include "io/log.h"
 #include "input/input.h"
 #include <X11/Xlib.h>
+#include <X11/extensions/Xrandr.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 
@@ -23,7 +24,7 @@ static Window root;
 
 // --------------------------------------------------------------------------------
 
-bool window_create(bool fullscreen, int x, int y, int width, int height)
+bool window_create(bool fullscreen, int monitor, int x, int y, int width, int height)
 {
 	// Already connected to the X server, don't do anything.
 	if (display != NULL) {
@@ -75,6 +76,13 @@ bool window_create(bool fullscreen, int x, int y, int width, int height)
 	XWindowChanges xwc;
 	xwc.x = x;
 	xwc.y = y;
+
+	monitor_info_t monitor_info;
+
+	if (window_get_monitor_info(monitor, &monitor_info)) {
+		xwc.x += monitor_info.x;
+		xwc.y += monitor_info.y;
+	}
 
 	XConfigureWindow(display, window, CWX | CWY, &xwc);
 
@@ -134,6 +142,37 @@ void window_process_events(input_hook_t handler)
 			handler(&event);
 		}
 	}
+}
+
+bool window_get_monitor_info(int monitor, monitor_info_t *info_dest)
+{
+	Display *display = XOpenDisplay(NULL);
+
+	if (display == NULL) {
+		return false;
+	}
+
+	Window root = DefaultRootWindow(display);
+
+	// Get screen resources.
+	XRRScreenResources *screen_info = XRRGetScreenResources(display, root);
+
+	// Ensure the screen exists.
+	if (monitor < 0 || monitor >= screen_info->noutput) {
+		return false;
+	}
+
+	// Get monitor information.
+	XRRCrtcInfo *monitor_info = XRRGetCrtcInfo(display, screen_info, screen_info->crtcs[monitor]);
+
+	if (info_dest != NULL) {
+		info_dest->x = monitor_info->x;
+		info_dest->y = monitor_info->y;
+		info_dest->width = monitor_info->width;
+		info_dest->height = monitor_info->height;
+	}
+
+	return true;
 }
 
 #endif

@@ -2,6 +2,7 @@
 #include "object.h"
 #include "io/log.h"
 #include "math/math.h"
+#include "core/mylly.h"
 
 // --------------------------------------------------------------------------------
 
@@ -116,8 +117,11 @@ void camera_update_projection_matrix(camera_t *camera)
 		return;
 	}
 
-	// TODO: Get this from the rendering system!
-	float aspect = 800.0f / 600.0f;
+	// Calculate aspect ratio from the used resolution.
+	uint16_t screen_width, screen_height;
+	mylly_get_resolution(&screen_width, &screen_height);
+
+	float aspect = (float)screen_width / screen_height;
 
 	if (camera->is_orthographic) {
 
