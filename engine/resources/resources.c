@@ -181,6 +181,21 @@ static void res_load_texture(const char *file_name)
 		// Add to resource list.
 		arr_push(textures, texture);
 		texture->resource.index = arr_last_index(textures);
+
+		// Add the entire texture as a sprite as well (for easy 1-sprite sheet importing).
+		if (texture->resource.is_loaded) {
+
+			// Create a sprite and set its data.
+			sprite_t *sprite = sprite_create(name);
+			sprite_set(sprite, texture,
+				vec2_zero, vector2(texture->width, texture->height), vec2_zero, 100);
+
+			// Add to resource list.
+			sprite->resource.index = arr_last_index(sprites);
+			sprite->resource.is_loaded = true;
+
+			arr_push(sprites, sprite);
+		}
 	}
 }
 
@@ -342,9 +357,10 @@ static void res_load_sprite(texture_t *texture, const char *text,
 		sprite_set(sprite, texture, position, size, pivot, ppu);
 
 		// Add to resource list.
-		arr_push(sprites, sprite);
 		sprite->resource.index = arr_last_index(sprites);
 		sprite->resource.is_loaded = true;
+
+		arr_push(sprites, sprite);
 	}
 
 	*idx = i;
