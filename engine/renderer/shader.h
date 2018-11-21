@@ -46,6 +46,7 @@ typedef enum {
 	QUEUE_GEOMETRY,
 	QUEUE_TRANSPARENT,
 	QUEUE_OVERLAY,
+	NUM_QUEUES
 } SHADER_QUEUE;
 
 // -------------------------------------------------------------------------------------------------

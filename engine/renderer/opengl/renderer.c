@@ -44,6 +44,7 @@ static const char *default_shader_source =
 
 // --------------------------------------------------------------------------------
 
+static void rend_draw_mesh(rmesh_t *mesh);
 static void rend_begin_draw(void);
 static void rend_end_draw(void);
 
@@ -89,119 +90,134 @@ void rend_shutdown(void)
 #endif
 }
 
-void rend_draw_views(stack_t(rview_t) views)
+void rend_draw_views(rview_t *first_view)
 {
 	rend_begin_draw();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	stack_foreach(rview_t, view, views) {
+	// Create a temporary list from which to render the views.
+	list_t(rview_t) views = list_init();
+	views.first = first_view;
 
-		stack_foreach(rmesh_t, mesh, view->meshes) {
+	rview_t *view;
+	rmesh_t *mesh;
 
-			// Select the active shader.
-			GLuint shader = mesh->shader->program;
+	// Draw meshes from each view sorted by render queue.
+	list_foreach(views, view) {
 
-			if (shader != active_shader) {
+		for (int i = 0; i < NUM_QUEUES; i++) {
 
-				glUseProgram(shader);
-				active_shader = shader;
+			list_foreach(view->meshes[i], mesh) {
+				rend_draw_mesh(mesh);
 			}
-
-			// Select the active texture.
-			GLuint texture = (mesh->texture != NULL ? mesh->texture->gpu_texture : -1);
-
-			if (texture != active_texture) {
-
-				glBindTexture(GL_TEXTURE_2D, texture);
-				active_texture = texture;
-			}
-
-			// Bind the meshes vertex buffer and set vertex data pointers.
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
-
-			// Set pointers to vertex attributes.
-			if (shader_uses_attribute(mesh->shader, ATTR_VERTEX)) {
-
-				int attribute = shader_get_attribute(mesh->shader, ATTR_VERTEX);
-
-				glEnableVertexAttribArray(attribute);
-				glVertexAttribPointer(attribute, 4, GL_FLOAT, GL_FALSE,
-					sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
-			}
-
-			if (shader_uses_attribute(mesh->shader, ATTR_NORMAL)) {
-
-				int attribute = shader_get_attribute(mesh->shader, ATTR_NORMAL);
-
-				glEnableVertexAttribArray(attribute);
-				glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE,
-					sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
-			}
-
-			if (shader_uses_attribute(mesh->shader, ATTR_TEXCOORD)) {
-
-				int attribute = shader_get_attribute(mesh->shader, ATTR_TEXCOORD);
-
-				glEnableVertexAttribArray(attribute);
-				glVertexAttribPointer(attribute, 2, GL_FLOAT, GL_FALSE,
-					sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
-			}
-
-			if (shader_uses_attribute(mesh->shader, ATTR_COLOUR)) {
-
-				int attribute = shader_get_attribute(mesh->shader, ATTR_COLOUR);
-
-				glEnableVertexAttribArray(attribute);
-				glVertexAttribPointer(attribute, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-					sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
-			}
-
-			// Set per-draw shader globals.
-			if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MATRIX)) {
-
-				glUniformMatrix4fv(
-					shader_get_global_position(mesh->shader, GLOBAL_MODEL_MATRIX),
-					1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
-				);
-			}
-
-			if (shader_uses_global(mesh->shader, GLOBAL_MVP_MATRIX)) {
-
-				glUniformMatrix4fv(
-					shader_get_global_position(mesh->shader, GLOBAL_MVP_MATRIX),
-					1, GL_FALSE, mat_as_ptr(mesh->parent->mvp)
-				);
-			}
-
-			if (shader_uses_global(mesh->shader, GLOBAL_TEXTURE)) {
-
-				glUniform1i(
-					shader_get_global_position(mesh->shader, GLOBAL_TEXTURE),
-					0
-				);
-			}
-
-			if (shader_uses_global(mesh->shader, GLOBAL_TIME)) {
-
-				vec4_t time = get_shader_time();
-
-				glUniform4fv(
-					shader_get_global_position(mesh->shader, GLOBAL_TIME),
-					1,
-					(const GLfloat *)&time
-				);
-			}
-
-			// Draw the triangles of the mesh.
-			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
-			glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
 		}
 	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 	rend_end_draw();
+}
+
+static void rend_draw_mesh(rmesh_t *mesh)
+{
+	// Select the active shader.
+	GLuint shader = mesh->shader->program;
+
+	if (shader != active_shader) {
+
+		glUseProgram(shader);
+		active_shader = shader;
+	}
+
+	// Select the active texture.
+	GLuint texture = (mesh->texture != NULL ? mesh->texture->gpu_texture : -1);
+
+	if (texture != active_texture) {
+
+		glBindTexture(GL_TEXTURE_2D, texture);
+		active_texture = texture;
+	}
+
+	// Bind the meshes vertex buffer and set vertex data pointers.
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
+
+	// Set pointers to vertex attributes.
+	if (shader_uses_attribute(mesh->shader, ATTR_VERTEX)) {
+
+		int attribute = shader_get_attribute(mesh->shader, ATTR_VERTEX);
+
+		glEnableVertexAttribArray(attribute);
+		glVertexAttribPointer(attribute, 4, GL_FLOAT, GL_FALSE,
+			sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
+	}
+
+	if (shader_uses_attribute(mesh->shader, ATTR_NORMAL)) {
+
+		int attribute = shader_get_attribute(mesh->shader, ATTR_NORMAL);
+
+		glEnableVertexAttribArray(attribute);
+		glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE,
+			sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+	}
+
+	if (shader_uses_attribute(mesh->shader, ATTR_TEXCOORD)) {
+
+		int attribute = shader_get_attribute(mesh->shader, ATTR_TEXCOORD);
+
+		glEnableVertexAttribArray(attribute);
+		glVertexAttribPointer(attribute, 2, GL_FLOAT, GL_FALSE,
+			sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
+	}
+
+	if (shader_uses_attribute(mesh->shader, ATTR_COLOUR)) {
+
+		int attribute = shader_get_attribute(mesh->shader, ATTR_COLOUR);
+
+		glEnableVertexAttribArray(attribute);
+		glVertexAttribPointer(attribute, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+			sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
+	}
+
+	// Set per-draw shader globals.
+	if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MATRIX)) {
+
+		glUniformMatrix4fv(
+			shader_get_global_position(mesh->shader, GLOBAL_MODEL_MATRIX),
+			1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
+		);
+	}
+
+	if (shader_uses_global(mesh->shader, GLOBAL_MVP_MATRIX)) {
+
+		glUniformMatrix4fv(
+			shader_get_global_position(mesh->shader, GLOBAL_MVP_MATRIX),
+			1, GL_FALSE, mat_as_ptr(mesh->parent->mvp)
+		);
+	}
+
+	if (shader_uses_global(mesh->shader, GLOBAL_TEXTURE)) {
+
+		glUniform1i(
+			shader_get_global_position(mesh->shader, GLOBAL_TEXTURE),
+			0
+		);
+	}
+
+	if (shader_uses_global(mesh->shader, GLOBAL_TIME)) {
+
+		vec4_t time = get_shader_time();
+
+		glUniform4fv(
+			shader_get_global_position(mesh->shader, GLOBAL_TIME),
+			1,
+			(const GLfloat *)&time
+		);
+	}
+
+	// Draw the triangles of the mesh.
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
+	glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
 }
 
 vbindex_t rend_generate_buffer(void)

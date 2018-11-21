@@ -15,7 +15,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static int frames_rendered; // Number of frames rendered so far
-static stack_t(rview_t) views; // List of views to be rendered this frame
+static list_t(rview_t) views; // List of views to be rendered this frame
 static shader_t *default_shader; // Default shader used for rendering when a mesh has no shader
 
 // -------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ void rsys_begin_frame(void)
 void rsys_end_frame(void)
 {
 	// Issue the actual draw calls here.
-	rend_draw_views(views);
+	rend_draw_views(views.first);
 
 	// Release all temporary data.
 	rsys_free_frame_data();
@@ -94,7 +94,7 @@ void rsys_render_scene(scene_t *scene)
 		);
 
 		// Add the view to the list of views to be rendered.
-		stack_push(views, view);
+		list_push(views, view);
 	}
 
 	// TODO: Find which scene objects are visible in the current camera (for now add all objects).
@@ -116,7 +116,9 @@ static void rsys_cull_object(object_t *object)
 		object->sprite != NULL) {
 
 		// Add the scene object to each of the views as a render object.
-		stack_foreach(rview_t, view, views) {
+		rview_t *view;
+
+		list_foreach(views, view) {
 
 			NEW(robject_t, obj);
 
@@ -128,7 +130,7 @@ static void rsys_cull_object(object_t *object)
 				obj->matrix,
 				&obj->mvp);
 
-			stack_push(view->objects, obj);
+			list_push(view->objects, obj);
 
 			// Cull object meshes.
 			rsys_cull_object_meshes(object, obj, view);
@@ -201,27 +203,30 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
 	rmesh->texture = mesh->texture;
 
-	// Add the mesh to the view.
-	stack_push(view->meshes, rmesh);
+	// Add the mesh to the view to a render queue determined by its shader.
+	list_push(view->meshes[rmesh->shader->queue], rmesh);
 }
 
 static void rsys_free_frame_data(void)
 {
-	for (rview_t *view = stack_first(views), *tmp = NULL; view != NULL; view = tmp) {
+	rview_t *view, *tmp_view;
 
-		tmp = stack_next(view);
+	list_foreach_safe(views, view, tmp_view) {
 
 		// Remove all mesh copies in the view.
-		stack_foreach_safe(rmesh_t, mesh, view->meshes) {
+		rmesh_t *mesh, *tmp;
 
-			stack_foreach_safe_begin(mesh);
-			mem_free(mesh);
+		for (int i = 0; i < NUM_QUEUES; i++) {
+
+			list_foreach_safe(view->meshes[i], mesh, tmp) {
+				mem_free(mesh);
+			}
 		}
 
 		// Remove all object copies in the view.
-		stack_foreach_safe(robject_t, obj, view->objects) {
+		robject_t *obj, *tmp2;
 
-			stack_foreach_safe_begin(obj);
+		list_foreach_safe(view->objects, obj, tmp2) {
 			mem_free(obj);
 		}
 
@@ -229,5 +234,5 @@ static void rsys_free_frame_data(void)
 		mem_free(view);
 	}
 
-	views = NULL;
+	list_clear(views);
 }

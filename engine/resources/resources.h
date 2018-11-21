@@ -3,14 +3,19 @@
 #define __RESOURCES_H
 
 #include "core/defines.h"
+#include "core/types.h"
 
 BEGIN_DECLARATIONS;
+
+// -------------------------------------------------------------------------------------------------
 
 typedef enum {
 	RES_TEXTURE,
 	RES_SPRITE,
 	RES_SHADER,
 } res_type_t;
+
+// -------------------------------------------------------------------------------------------------
 
 typedef struct resource_t {
 	uint32_t index;
@@ -20,11 +25,7 @@ typedef struct resource_t {
 	char *path;
 } resource_t;
 
-typedef struct texture_t texture_t;
-typedef struct sprite_t sprite_t;
-typedef struct shader_t shader_t;
-
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void res_initialize(void);
 void res_shutdown(void);

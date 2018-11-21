@@ -14,7 +14,7 @@ BEGIN_DECLARATIONS;
 bool rend_initialize(void);
 void rend_shutdown(void);
 
-void rend_draw_views(stack_t(rview_t) views);
+void rend_draw_views(rview_t *first_view);
 
 //
 // Vertex buffer objects

@@ -3,11 +3,11 @@
 #include "core/string.h"
 #include "io/log.h"
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static void shader_destroy_program(shader_t *shader);
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // Shader global variable names, used for getting the position of the variable in a shader.
 static const char *shader_global_names[NUM_SHADER_GLOBALS] = {
@@ -25,7 +25,7 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 	"Colour"
 };
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 shader_t * shader_create(const char *name, const char *path)
 {
@@ -124,8 +124,9 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 		shader->attributes[i] = attribute;
 	}
 
-	// Resolve the render queue used by the shader.
-	shader->queue = 0;
+	// Resolve the render queue used by the shader. If the shader doesn't define its queue, use
+	// the geometry queue by default.
+	shader->queue = QUEUE_GEOMETRY;
 
 	for (int i = 0; i < num_lines; ++i) {
 
@@ -133,7 +134,8 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 
 			const char *queue = &lines[i][14];
 
-			if (string_starts_with(queue, "GEOMETRY", 8)) shader->queue = QUEUE_GEOMETRY;
+			if (string_starts_with(queue, "BACKGROUND", 10)) shader->queue = QUEUE_BACKGROUND;
+			else if (string_starts_with(queue, "GEOMETRY", 8)) shader->queue = QUEUE_GEOMETRY;
 			else if (string_starts_with(queue, "TRANSPARENT", 11)) shader->queue = QUEUE_TRANSPARENT;
 			else if (string_starts_with(queue, "OVERLAY", 7)) shader->queue = QUEUE_OVERLAY;
 
