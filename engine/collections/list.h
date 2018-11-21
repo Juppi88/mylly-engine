@@ -22,6 +22,8 @@
 	struct type *previous;\
 } __entry
 
+#define list_init() { NULL, NULL }
+
 // -------------------------------------------------------------------------------------------------
 
 #define list_push(list, item)\
@@ -35,6 +37,7 @@
 		(list).last->__entry.next = (item);\
 		(item)->__entry.previous = (list).last;\
 		(item)->__entry.next = NULL;\
+		(list).last = (item);\
 	}
 
 #define list_remove(list, item)\
@@ -55,5 +58,9 @@
 		(var) = (list).first, (tmp) = ((var) ? (var)->__entry.next : NULL);\
 		(var);\
 		(var) = (tmp), (tmp) = ((var) ? (var)->__entry.next : NULL))
+
+#define list_clear(list)\
+	list.first = NULL;\
+	list.last = NULL;
 
 #endif
