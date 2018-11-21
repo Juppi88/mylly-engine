@@ -2,6 +2,7 @@
 #include "mesh.h"
 #include "texture.h"
 #include "core/memory.h"
+#include "core/string.h"
 #include "math/math.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -10,15 +11,37 @@ static void sprite_create_mesh(sprite_t *sprite);
 
 // -------------------------------------------------------------------------------------------------
 
-sprite_t *sprite_create(texture_t *texture, vec2_t position, vec2_t size,
-						vec2_t pivot, float pixels_per_unit)
+sprite_t *sprite_create(const char *name)
 {
-	if (texture == NULL) {
-		return NULL;
-	}
-
 	// Create a new sprite structure.
 	NEW(sprite_t, sprite);
+
+	sprite->resource.name = string_duplicate(name);
+	sprite->resource.path = NULL; // The individual sprite does not have a path (the sheet does)
+
+	return sprite;
+}
+
+void sprite_destroy(sprite_t *sprite)
+{
+	if (sprite == NULL) {
+		return;
+	}
+
+	mesh_destroy(sprite->mesh);
+
+	DELETE(sprite->resource.name);
+	DELETE(sprite->resource.path);
+
+	DELETE(sprite);
+}
+
+void sprite_set(sprite_t *sprite, texture_t *texture,
+                vec2_t position, vec2_t size, vec2_t pivot, float pixels_per_unit)
+{
+	if (sprite == NULL || texture == NULL) {
+		return;
+	}
 
 	sprite->texture = texture;
 	sprite->pixels_per_unit = pixels_per_unit;
@@ -42,21 +65,13 @@ sprite_t *sprite_create(texture_t *texture, vec2_t position, vec2_t size,
 	);
 
 	// Create a mesh for the sprite.
+	if (sprite->mesh != NULL) {
+		mesh_destroy(sprite->mesh);
+	}
+
 	sprite_create_mesh(sprite);
 
 	mesh_set_material(sprite->mesh, res_get_shader("default-sprite"), texture);
-
-	return sprite;
-}
-
-void sprite_destroy(sprite_t *sprite)
-{
-	if (sprite == NULL) {
-		return;
-	}
-
-	mesh_destroy(sprite->mesh);
-	DELETE(sprite);
 }
 
 static void sprite_create_mesh(sprite_t *sprite)

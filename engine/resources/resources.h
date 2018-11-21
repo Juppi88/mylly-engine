@@ -8,6 +8,7 @@ BEGIN_DECLARATIONS;
 
 typedef enum {
 	RES_TEXTURE,
+	RES_SPRITE,
 	RES_SHADER,
 } res_type_t;
 
@@ -20,6 +21,7 @@ typedef struct resource_t {
 } resource_t;
 
 typedef struct texture_t texture_t;
+typedef struct sprite_t sprite_t;
 typedef struct shader_t shader_t;
 
 // --------------------------------------------------------------------------------
@@ -28,6 +30,7 @@ void res_initialize(void);
 void res_shutdown(void);
 
 texture_t *res_get_texture(const char *name);
+sprite_t *res_get_sprite(const char *name);
 shader_t *res_get_shader(const char *name);
 
 END_DECLARATIONS;

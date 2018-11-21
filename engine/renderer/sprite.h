@@ -4,12 +4,15 @@
 
 #include "core/types.h"
 #include "math/vector.h"
+#include "resources/resources.h"
 
 BEGIN_DECLARATIONS;
 
 // -------------------------------------------------------------------------------------------------
 
 typedef struct sprite_t {
+
+	resource_t resource; // Resource info
 
 	mesh_t *mesh; // Sprite mesh
 	texture_t *texture; // Texture this sprite is a part of
@@ -25,10 +28,12 @@ typedef struct sprite_t {
 
 // -------------------------------------------------------------------------------------------------
 
-sprite_t *sprite_create(texture_t *texture, vec2_t position, vec2_t size,
-						vec2_t pivot, float pixels_per_unit);
-
+sprite_t *sprite_create(const char *name);
 void sprite_destroy(sprite_t *sprite);
+
+void sprite_set(sprite_t *sprite, texture_t *texture,
+                vec2_t position, vec2_t size, vec2_t pivot, float pixels_per_unit);
+
 
 END_DECLARATIONS;
 

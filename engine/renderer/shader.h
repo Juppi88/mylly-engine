@@ -44,7 +44,6 @@ typedef enum {
 typedef struct shader_t {
 
 	resource_t resource; // Resource info
-	char *name; // Name of the shader
 
 	shader_object_t vertex; // Vertex shader stage
 	shader_object_t fragment; // Fragment shader stage

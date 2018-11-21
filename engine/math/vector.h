@@ -32,6 +32,11 @@ vec2_t vec2_multiply(vec2_t v, float value);
 extern vec2_t vec2_zero;
 extern vec2_t vec2_one;
 
+static INLINE void vec2_print(vec2_t vec)
+{
+	printf("%.2f  %.2f\n", vec.x, vec.y);
+}
+
 // --------------------------------------------------------------------------------
 // vec3_t
 
