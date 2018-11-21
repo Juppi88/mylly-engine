@@ -57,6 +57,9 @@ extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointer;
 extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArray;
 extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 
+// Misc functions
+extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
+
 // --------------------------------------------------------------------------------
 
 bool glext_initialize(void);

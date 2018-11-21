@@ -376,9 +376,10 @@ static void rend_begin_draw(void)
 	glClearDepth(1.0f);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glAlphaFunc(GL_GREATER, 1.0f);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	glEnable(GL_BLEND);
 
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_CULL_FACE);
 
 	//glClearDepth(0);
 	//glDepthFunc(GL_GEQUAL);

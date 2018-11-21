@@ -41,6 +41,8 @@ PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointer;
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArray;
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 
+PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
+
 // --------------------------------------------------------------------------------
 
 static bool glext_is_supported(const char *extension);
@@ -98,6 +100,8 @@ bool glext_initialize(void)
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERARBPROC)glext_get_method("glVertexAttribPointer");
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glEnableVertexAttribArray");
 	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glDisableVertexAttribArray");
+
+	glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)glext_get_method("glBlendFuncSeparate");
 
 	return true;
 }

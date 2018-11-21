@@ -1,4 +1,5 @@
 #pragma include inc/mylly.glinc
+#pragma queue TRANSPARENT
 
 varying vec2 texCoord;
 varying vec4 colour;

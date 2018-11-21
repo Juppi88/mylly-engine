@@ -124,6 +124,23 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 		shader->attributes[i] = attribute;
 	}
 
+	// Resolve the render queue used by the shader.
+	shader->queue = 0;
+
+	for (int i = 0; i < num_lines; ++i) {
+
+		if (lines[i] != NULL && string_starts_with(lines[i], "#pragma queue ", 14)) {
+
+			const char *queue = &lines[i][14];
+
+			if (string_starts_with(queue, "GEOMETRY", 8)) shader->queue = QUEUE_GEOMETRY;
+			else if (string_starts_with(queue, "TRANSPARENT", 11)) shader->queue = QUEUE_TRANSPARENT;
+			else if (string_starts_with(queue, "OVERLAY", 7)) shader->queue = QUEUE_OVERLAY;
+
+			break;
+		}
+	}
+
 	return true;
 }
 

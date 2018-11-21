@@ -1,6 +1,12 @@
 #ifndef MYLLY_GLINC
 #define MYLLY_GLINC
 
+// Render queues
+#define BACKGROUND 0
+#define GEOMETRY 1
+#define TRANSPARENT 2
+#define OVERLAY 3
+
 // Shader constants
 uniform mat4 MatrixModel;
 uniform mat4 MatrixMVP;

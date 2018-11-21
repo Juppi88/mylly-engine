@@ -7,12 +7,12 @@
 
 BEGIN_DECLARATIONS;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 typedef uint32_t shader_object_t;
 typedef uint32_t shader_program_t;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 typedef enum {
 	GLOBAL_MODEL_MATRIX,
@@ -22,7 +22,7 @@ typedef enum {
 	NUM_SHADER_GLOBALS
 } SHADER_GLOBAL;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 typedef enum {
 	ATTR_VERTEX,
@@ -32,14 +32,23 @@ typedef enum {
 	NUM_SHADER_ATTRIBUTES
 } SHADER_ATTRIBUTE;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 typedef enum {
 	SHADER_VERTEX,
 	SHADER_FRAGMENT,
 } SHADER_TYPE;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+typedef enum {
+	QUEUE_BACKGROUND,
+	QUEUE_GEOMETRY,
+	QUEUE_TRANSPARENT,
+	QUEUE_OVERLAY,
+} SHADER_QUEUE;
+
+// -------------------------------------------------------------------------------------------------
 
 typedef struct shader_t {
 
@@ -49,12 +58,13 @@ typedef struct shader_t {
 	shader_object_t fragment; // Fragment shader stage
 	shader_program_t program; // Combined shader program
 
+	int queue; // Render queue used by this shader - see enum SHADER_QUEUE above
 	int globals[NUM_SHADER_GLOBALS]; // List of shader constants used by the program
 	int attributes[NUM_SHADER_ATTRIBUTES]; // List of vertex attributes used by the program
 
 } shader_t;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // NOTE: Should not be used directly. Load resources via the res_* API.
 shader_t * shader_create(const char *name, const char *path);
@@ -62,7 +72,7 @@ void shader_destroy(shader_t *shader);
 
 bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines);
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 #define shader_uses_global(shader, global)\
 	((shader)->globals[(global)] >= 0)
