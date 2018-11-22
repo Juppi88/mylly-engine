@@ -390,8 +390,7 @@ static void rend_begin_draw(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.0f);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glAlphaFunc(GL_GREATER, 1.0f);
+	
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	glEnable(GL_BLEND);
 
@@ -401,9 +400,6 @@ static void rend_begin_draw(void)
 	//glDepthFunc(GL_GEQUAL);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 }
 
 static void rend_end_draw(void)

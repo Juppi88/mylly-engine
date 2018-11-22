@@ -23,4 +23,7 @@ attribute vec2 TexCoord;
 
 #endif
 
+// Utility macros
+#define alphacut(a, cutoff) if ((a) < (cutoff)) { discard; }
+
 #endif
