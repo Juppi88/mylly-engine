@@ -22,8 +22,8 @@ static arr_t(shader_t*) shaders;
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type);
 static void res_load_texture(const char *file_name);
 static void res_load_sprite_sheet(const char *file_name);
-static void res_load_sprite(texture_t *texture, const char *text,
-                            jsmntok_t *tokens, size_t num_tokens, int *idx);
+static void res_load_sprite(texture_t *texture, int pixels_per_unit,
+                            const char *text, jsmntok_t *tokens, size_t num_tokens, int *idx);
 static void res_load_shader(const char *file_name);
 static void res_parse_shader_line(char *line, size_t length, void *context);
 
@@ -241,6 +241,9 @@ static void res_load_sprite_sheet(const char *file_name)
 		return;
 	}
 
+	int pixels_per_unit = 100;
+	bool sprites_defined = false;
+
 	for (int i = 1; i < num_tokens; i++) {
 
 		// Key should always be a string or a primitive!
@@ -258,17 +261,30 @@ static void res_load_sprite_sheet(const char *file_name)
 			// Ignore version checks for now (they're for future proofing).
 			++i;
 		}
+		else if (string_equals(key, "pixels_per_unit") && tokens[i+1].type == JSMN_PRIMITIVE) {
+
+			// Define sheet-wide pixels per unit.
+			pixels_per_unit = res_get_int(&tokens[++i], text);
+
+			if (sprites_defined) {
+				log_warning(
+					"Resources",
+					"pixels_per_unit should be defined before the sprites (%s)",
+				 	file_name);
+			}
+		}
 		else if (string_equals(key, "sprites") && tokens[i+1].type == JSMN_ARRAY) {
 
 			// Skip the start of the array and move right on to the first sprite.
 			i += 2;
 
 			// Loop for as long as there are sprite objects in the array.
-			while (tokens[i++].type == JSMN_OBJECT) {
-				res_load_sprite(texture, text, tokens, num_tokens, &i);
+			while (tokens[i++].type == JSMN_OBJECT && i < num_tokens) {
+				res_load_sprite(texture, pixels_per_unit, text, tokens, num_tokens, &i);
 			}
 
 			--i; // Negate the increment in each iteration.
+			sprites_defined = true;
 		}
 		else {
 			// Unknown field name or type, skip it (unless it's an object of unknown size => abort).
@@ -283,14 +299,13 @@ static void res_load_sprite_sheet(const char *file_name)
 	}
 }
 
-static void res_load_sprite(texture_t *texture, const char *text,
-                            jsmntok_t *tokens, size_t num_tokens, int *idx)
+static void res_load_sprite(texture_t *texture, int pixels_per_unit,
+                            const char *text, jsmntok_t *tokens, size_t num_tokens, int *idx)
 {
 	char name[100];
 	vec2_t position = vec2_zero;
 	vec2_t size = vec2_zero;
 	vec2_t pivot = vec2_zero;
-	int ppu = 100;
 	bool flip_vertical = false;
 	int i = 0;
 
@@ -328,8 +343,8 @@ static void res_load_sprite(texture_t *texture, const char *text,
 		else if (string_equals(key, "pivot_y") && tokens[i+1].type == JSMN_PRIMITIVE) {
 			pivot.y = res_get_int(&tokens[++i], text);
 		}
-		else if (string_equals(key, "ppu") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			ppu = res_get_int(&tokens[++i], text);
+		else if (string_equals(key, "pixels_per_unit") && tokens[i+1].type == JSMN_PRIMITIVE) {
+			pixels_per_unit = res_get_int(&tokens[++i], text);
 		}
 		else if (string_equals(key, "flip_y") && tokens[i+1].type == JSMN_PRIMITIVE) {
 			flip_vertical = res_get_bool(&tokens[++i], text);
@@ -343,7 +358,7 @@ static void res_load_sprite(texture_t *texture, const char *text,
 	// Create a sprite object and store it to the resource list.
 	if (*name) {
 
-		// Flip vertical position if it is measured from the bottom of the sheet.
+		// Flip vertical position if it is measured from the top of the sheet instead of the bottom.
 		if (flip_vertical) {
 			position.y = texture->height - position.y;
 		}
@@ -354,7 +369,7 @@ static void res_load_sprite(texture_t *texture, const char *text,
 
 		// Create a sprite and set its data.
 		sprite_t *sprite = sprite_create(sprite_name);
-		sprite_set(sprite, texture, position, size, pivot, ppu);
+		sprite_set(sprite, texture, position, size, pivot, pixels_per_unit);
 
 		// Add to resource list.
 		sprite->resource.index = arr_last_index(sprites);
