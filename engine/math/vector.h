@@ -29,6 +29,9 @@ vec2_t vec2_add(vec2_t a, vec2_t b);
 vec2_t vec2_subtract(vec2_t a, vec2_t b);
 vec2_t vec2_multiply(vec2_t v, float value);
 
+float vec2_normalize(vec2_t *v);
+vec2_t vec2_normalized(vec2_t v);
+
 extern vec2_t vec2_zero;
 extern vec2_t vec2_one;
 

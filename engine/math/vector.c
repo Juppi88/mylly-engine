@@ -48,6 +48,24 @@ vec2_t vec2_multiply(vec2_t v, float value)
 	return result;
 }
 
+float vec2_normalize(vec2_t *v)
+{
+	float length = sqrtf(v->x * v->x + v->y * v->y);
+
+	if (length != 0) {
+		v->x /= length;
+		v->y /= length;
+	}
+
+	return length;
+}
+
+vec2_t vec2_normalized(vec2_t v)
+{
+	vec2_normalize(&v);
+	return v;
+}
+
 // --------------------------------------------------------------------------------
 
 vec3_t vec3_add(vec3_t a, vec3_t b)

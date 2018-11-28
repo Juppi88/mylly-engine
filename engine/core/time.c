@@ -36,7 +36,6 @@ void time_tick(void)
 	engine_time.delta_time = (time - engine_time.time);
 	engine_time.time = time;
 	engine_time.frame_count++;
-
 	// Update shader time.
 	engine_shader_time.x = time;
 	engine_shader_time.w = engine_time.delta_time;
