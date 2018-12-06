@@ -1,4 +1,5 @@
 #include "resources.h"
+#include "resourceparser.h"
 #include "collections/array.h"
 #include "core/string.h"
 #include "io/file.h"
@@ -7,9 +8,7 @@
 #include "renderer/texture.h"
 #include "renderer/sprite.h"
 #include "renderer/shader.h"
-#include "jsmn/jsmn.h"
 #include "math/math.h"
-#include <stdlib.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -20,18 +19,15 @@ static arr_t(shader_t*) shaders;
 // -------------------------------------------------------------------------------------------------
 
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type);
+
 static void res_load_texture(const char *file_name);
+
 static void res_load_sprite_sheet(const char *file_name);
 static void res_load_sprite(texture_t *texture, int pixels_per_unit,
-                            const char *text, jsmntok_t *tokens, size_t num_tokens, int *idx);
+                            res_parser_t *parser, int *next_token);
+
 static void res_load_shader(const char *file_name);
 static void res_parse_shader_line(char *line, size_t length, void *context);
-
-// JSON formatted resource file parsing.
-static char *res_get_text(jsmntok_t *token, const char *src, char *dst, size_t dst_len);
-static int res_get_int(jsmntok_t *token, const char *src);
-static bool res_get_bool(jsmntok_t *token, const char *src);
-static float res_get_float(jsmntok_t *token, const char *src);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -221,50 +217,36 @@ static void res_load_sprite_sheet(const char *file_name)
 		return;
 	}
 
-	// Initialize a JSON parser object.
-	jsmn_parser parser;
-	jsmn_init(&parser);
-
+	// Initialize a resource parser object.
+	res_parser_t parser;
+	
 	// Parse the text from the file.
-	const int MAX_TOKENS = 256;
-	jsmntok_t tokens[MAX_TOKENS];
+	if (!res_parser_init(&parser, text, length)) {
 
-	int num_tokens = jsmn_parse(&parser, text, length, tokens, MAX_TOKENS);
-
-	// Negative token count indicates an error -> not a valid resource file.
-	if (num_tokens < 0) {
+		// Resource could not be parsed (syntax error or not a JSON resource file).
 		return;
 	}
-
-	// Assume the top-level element is always an object.
-	if (num_tokens == 0 || tokens[0].type != JSMN_OBJECT) {
-		return;
-	}
-
+	
 	int pixels_per_unit = 100;
 	bool sprites_defined = false;
 
-	for (int i = 1; i < num_tokens; i++) {
+	for (int token = 1; token < parser.num_tokens; token++) {
 
 		// Key should always be a string or a primitive!
-		if (tokens[i].type != JSMN_STRING && tokens[i].type != JSMN_PRIMITIVE) {
+		if (!res_parser_is_valid_key_type(&parser, token)) {
 			continue;
 		}
 
-		char key[100];
-		
-		// Get the key (name of the field).
-		res_get_text(&tokens[i], text, key, sizeof(key));
-
-		if (string_equals(key, "version") && tokens[i+1].type == JSMN_PRIMITIVE) {
+		// Process each field based on its name and value type.
+		if (res_parser_field_equals(&parser, token, "version", JSMN_PRIMITIVE)) {
 
 			// Ignore version checks for now (they're for future proofing).
-			++i;
+			++token;
 		}
-		else if (string_equals(key, "pixels_per_unit") && tokens[i+1].type == JSMN_PRIMITIVE) {
+		else if (res_parser_field_equals(&parser, token, "pixels_per_unit", JSMN_PRIMITIVE)) {
 
 			// Define sheet-wide pixels per unit.
-			pixels_per_unit = res_get_int(&tokens[++i], text);
+			pixels_per_unit = res_parser_get_int(&parser, ++token);
 
 			if (sprites_defined) {
 				log_warning(
@@ -273,26 +255,30 @@ static void res_load_sprite_sheet(const char *file_name)
 				 	file_name);
 			}
 		}
-		else if (string_equals(key, "sprites") && tokens[i+1].type == JSMN_ARRAY) {
+		else if (res_parser_field_equals(&parser, token, "sprites", JSMN_ARRAY)) {
 
 			// Skip the start of the array and move right on to the first sprite.
-			i += 2;
+			token += 2;
 
 			// Loop for as long as there are sprite objects in the array.
-			while (tokens[i++].type == JSMN_OBJECT && i < num_tokens) {
-				res_load_sprite(texture, pixels_per_unit, text, tokens, num_tokens, &i);
+			while (res_parser_is_object(&parser, token)) {
+				
+				++token;
+				res_load_sprite(texture, pixels_per_unit, &parser, &token);
 			}
 
-			--i; // Negate the increment in each iteration.
 			sprites_defined = true;
 		}
 		else {
 			// Unknown field name or type, skip it (unless it's an object of unknown size => abort).
+			char key[100];
+			res_parser_get_text(&parser, token, key, sizeof(key));
+
 			log_warning("Resources", "Unknown sprite field '%s' in resource file %s.",
 				key, file_name);
 
-			++i;
-			if (tokens[i].type != JSMN_PRIMITIVE && tokens[i].type != JSMN_STRING) {
+			++token;
+			if (!res_parser_is_valid_key_type(&parser, token)) {
 				return;
 			}
 		}
@@ -300,54 +286,50 @@ static void res_load_sprite_sheet(const char *file_name)
 }
 
 static void res_load_sprite(texture_t *texture, int pixels_per_unit,
-                            const char *text, jsmntok_t *tokens, size_t num_tokens, int *idx)
+                            res_parser_t *parser, int *next_token)
 {
 	char name[100];
 	vec2_t position = vec2_zero;
 	vec2_t size = vec2_zero;
 	vec2_t pivot = vec2_zero;
 	bool flip_vertical = false;
-	int i = 0;
+	int token = 0;
 
-	for (i = *idx; i < num_tokens; ++i) {
+	for (token = *next_token; token < parser->num_tokens; ++token) {
 
 		// Key should always be a string or a primitive! If this is something else,
 		// then likely we've passed the sprite object and should return to the main parser.
-		if (tokens[i].type != JSMN_STRING && tokens[i].type != JSMN_PRIMITIVE) {
+		if (!res_parser_is_valid_key_type(parser, token)) {
 			break;
 		}
 
-		// Get the name of the field.
-		char key[100];
-		res_get_text(&tokens[i], text, key, sizeof(key));
-
-		// Read the value based on the name of the field.
-		if (string_equals(key, "name") && tokens[i+1].type == JSMN_STRING) {
-			res_get_text(&tokens[++i], text, name, sizeof(name));
+		// Read the value based on the name and type of the field.
+		if (res_parser_field_equals(parser, token, "name", JSMN_STRING)) {
+			res_parser_get_text(parser, ++token, name, sizeof(name));
 		}
-		else if (string_equals(key, "pos_x") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			position.x = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "pos_x", JSMN_PRIMITIVE)) {
+			position.x = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "pos_y") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			position.y = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "pos_y", JSMN_PRIMITIVE)) {
+			position.y = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "width") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			size.x = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "width", JSMN_PRIMITIVE)) {
+			size.x = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "height") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			size.y = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "height", JSMN_PRIMITIVE)) {
+			size.y = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "pivot_x") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			pivot.x = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "pivot_x", JSMN_PRIMITIVE)) {
+			pivot.x = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "pivot_y") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			pivot.y = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "pivot_y", JSMN_PRIMITIVE)) {
+			pivot.y = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "pixels_per_unit") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			pixels_per_unit = res_get_int(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "pixels_per_unit", JSMN_PRIMITIVE)) {
+			pixels_per_unit = res_parser_get_int(parser, ++token);
 		}
-		else if (string_equals(key, "flip_y") && tokens[i+1].type == JSMN_PRIMITIVE) {
-			flip_vertical = res_get_bool(&tokens[++i], text);
+		else if (res_parser_field_equals(parser, token, "flip_y", JSMN_PRIMITIVE)) {
+			flip_vertical = res_parser_get_bool(parser, ++token);
 		}
 		else {
 			// Unknown field, return to main parser.
@@ -378,7 +360,7 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 		arr_push(sprites, sprite);
 	}
 
-	*idx = i;
+	*next_token = token;
 }
 
 static void res_load_shader(const char *file_name)
@@ -450,42 +432,4 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 		// Push the line to the list as-is.
 		arr_push(*lines, string_duplicate(line));
 	}
-}
-
-static char *res_get_text(jsmntok_t *token, const char *src, char *dst, size_t dst_len)
-{
-	dst_len = MIN(dst_len, token->end - token->start + 1);
-	string_copy(dst, &src[token->start], dst_len);
-
-	return dst;
-}
-
-static int res_get_int(jsmntok_t *token, const char *src)
-{
-	char tmp[100];
-	size_t length = MIN(sizeof(tmp), token->end - token->start + 1);
-
-	string_copy(tmp, &src[token->start], length);
-
-	return atoi(tmp);
-}
-
-static bool res_get_bool(jsmntok_t *token, const char *src)
-{
-	char tmp[100];
-	size_t length = MIN(sizeof(tmp), token->end - token->start + 1);
-
-	string_copy(tmp, &src[token->start], length);
-
-	return string_equals(tmp, "true");
-}
-
-static float res_get_float(jsmntok_t *token, const char *src)
-{
-	char tmp[100];
-	size_t length = MIN(sizeof(tmp), token->end - token->start + 1);
-
-	string_copy(tmp, &src[token->start], length);
-
-	return atof(tmp);
 }

@@ -4,6 +4,7 @@
 #include "core/memory.h"
 #include "core/string.h"
 #include "math/math.h"
+#include "resources/resources.h"
 
 // -------------------------------------------------------------------------------------------------
 

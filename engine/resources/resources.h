@@ -3,27 +3,9 @@
 #define __RESOURCES_H
 
 #include "core/defines.h"
-#include "core/types.h"
+#include "resources/resource.h"
 
 BEGIN_DECLARATIONS;
-
-// -------------------------------------------------------------------------------------------------
-
-typedef enum {
-	RES_TEXTURE,
-	RES_SPRITE,
-	RES_SHADER,
-} res_type_t;
-
-// -------------------------------------------------------------------------------------------------
-
-typedef struct resource_t {
-	uint32_t index;
-	uint8_t type; // Type of the resource (res_type_t)
-	bool is_loaded; // Indicates whether the resource needs to be loaded separately before use
-	char *name;
-	char *path;
-} resource_t;
 
 // -------------------------------------------------------------------------------------------------
 

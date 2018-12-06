@@ -12,7 +12,7 @@ OBJS = collections/array.o\
        renderer/mesh.o renderer/model.o renderer/rendersystem.o renderer/shader.o renderer/vbcache.o\
        renderer/sprite.o renderer/texture.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
-       resources/resources.o\
+       resources/resourceparser.o resources/resources.o\
        scene/camera.o scene/object.o scene/scene.o
 DEPS =
 

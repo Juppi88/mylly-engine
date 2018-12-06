@@ -3,7 +3,7 @@
 #define __SHADER_H
 
 #include "core/defines.h"
-#include "resources/resources.h"
+#include "resources/resource.h"
 
 BEGIN_DECLARATIONS;
 

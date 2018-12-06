@@ -8,6 +8,9 @@
 #define string_equals(s1, s2)\
 	(strcmp(s1, s2) == 0)
 
+#define string_equals_len(s1, s2, length)\
+	(strncmp(s1, s2, length) == 0)
+
 #define string_starts_with(str, prefix, prefix_len)\
 	(strncmp(prefix, str, prefix_len) == 0)
 

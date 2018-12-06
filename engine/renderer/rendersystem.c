@@ -10,6 +10,7 @@
 #include "scene/scene.h"
 #include "scene/object.h"
 #include "scene/camera.h"
+#include "resources/resources.h"
 #include "io/log.h"
 
 // -------------------------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 #include "core/types.h"
 #include "math/vector.h"
-#include "resources/resources.h"
+#include "resources/resource.h"
 
 BEGIN_DECLARATIONS;
 
