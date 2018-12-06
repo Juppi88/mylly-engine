@@ -33,6 +33,7 @@ typedef struct sprite_anim_t {
 
 sprite_anim_t *sprite_anim_create(const char *name);
 void sprite_anim_destroy(sprite_anim_t *animation);
+
 bool sprite_anim_set_frames(sprite_anim_t *animation,
 	                        keyframe_t *keyframes, uint32_t num_keyframes, uint32_t duration);
 

@@ -9,7 +9,7 @@
 
 BEGIN_DECLARATIONS;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 typedef struct object_t {
 
@@ -41,21 +41,24 @@ typedef struct object_t {
 
 	model_t *model; // 3D render model (collection of meshes)
 	sprite_t *sprite; // A single mesh for a 2D sprite
+	animator_t *animator; // Animator attached to this object
 	camera_t *camera; // Camera attached to the object
 	
 } object_t;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // Create a new object.
 // NOTE: Please do not use this method directly, use scene_create_object() instead.
 object_t *obj_create(scene_t *scene, object_t *parent);
-
 void obj_destroy(object_t *obj);
 
 void obj_set_parent(object_t *obj, object_t *parent);
 
+void obj_process(object_t *obj);
+
 camera_t *obj_add_camera(object_t *object);
+animator_t *obj_add_animator(object_t *object);
 void obj_set_model(object_t *obj, model_t *model);
 void obj_set_sprite(object_t *obj, sprite_t *sprite);
 
@@ -84,7 +87,7 @@ void obj_update_transform(object_t *obj);
 void obj_update_local_transform(object_t *obj);
 void obj_update_rotation(object_t *obj);
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static INLINE const mat_t *obj_get_transform(object_t *obj)
 {
@@ -205,6 +208,8 @@ static INLINE vec3_t obj_get_right_vector(object_t *obj)
 
 	return obj->right;
 }
+
+// -------------------------------------------------------------------------------------------------
 
 END_DECLARATIONS;
 

@@ -19,6 +19,7 @@ typedef struct shader_t shader_t;
 typedef struct texture_t texture_t;
 
 // Scene hierarchy
+typedef struct animator_t animator_t;
 typedef struct camera_t camera_t;
 typedef struct object_t object_t;
 typedef struct scene_t scene_t;

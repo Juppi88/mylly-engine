@@ -7,6 +7,7 @@
 #include "platform/input.h"
 #include "renderer/rendersystem.h"
 #include "resources/resources.h"
+#include "scene/scene.h"
 #include <unistd.h>
 
 // -------------------------------------------------------------------------------------------------
@@ -79,6 +80,9 @@ void mylly_main_loop(on_loop_t callback)
 		rsys_begin_frame();
 
 		if (current_scene != NULL) {
+
+			// Pre-process all objects in the current scene before rendering.
+			scene_process_objects(current_scene);
 			rsys_render_scene(current_scene);
 		}
 

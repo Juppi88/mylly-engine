@@ -34,6 +34,22 @@ void scene_destroy(scene_t *scene)
 	DELETE(scene);
 }
 
+void scene_process_objects(scene_t *scene)
+{
+	if (scene == NULL) {
+		return;
+	}
+
+	// Process all objects added to the scene.
+	object_t *obj;
+	arr_foreach(scene->objects, obj) {
+
+		if (obj != NULL) {
+			obj_process(obj);
+		}
+	}
+}
+
 object_t *scene_create_object(scene_t *scene, object_t *parent)
 {
 	if (scene == NULL) {

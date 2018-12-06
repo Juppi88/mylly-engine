@@ -22,6 +22,8 @@ typedef struct scene_t {
 scene_t *scene_create(void);
 void scene_destroy(scene_t *scene);
 
+void scene_process_objects(scene_t *scene);
+
 object_t *scene_create_object(scene_t *scene, object_t *parent);
 void scene_register_camera(scene_t *scene, object_t *object);
 

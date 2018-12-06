@@ -1,10 +1,11 @@
 #include "object.h"
-#include "camera.h"
 #include "scene.h"
+#include "camera.h"
+#include "animator.h"
 #include "io/log.h"
 #include "math/math.h"
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 object_t *obj_create(scene_t *scene, object_t *parent)
 {
@@ -68,6 +69,9 @@ void obj_destroy(object_t *obj)
 	if (obj->camera != NULL) {
 		camera_destroy(obj->camera);
 	}
+	if (obj->animator != NULL) {
+		animator_destroy(obj->animator);
+	}
 
 	DELETE(obj);
 }
@@ -103,6 +107,18 @@ void obj_set_parent(object_t *obj, object_t *parent)
 	obj_set_dirty(obj);
 }
 
+void obj_process(object_t *obj)
+{
+	if (obj == NULL) {
+		return;
+	}
+
+	// Process animator if the object has one.
+	if (obj->animator != NULL) {
+		animator_process(obj->animator);
+	}
+}
+
 camera_t *obj_add_camera(object_t *obj)
 {
 	// One camera per object.
@@ -118,6 +134,17 @@ camera_t *obj_add_camera(object_t *obj)
 	}
 
 	return obj->camera;
+}
+
+animator_t *obj_add_animator(object_t *obj)
+{
+	// Allow one animator per object.
+	if (obj == NULL || obj->animator != NULL) {
+		return NULL;
+	}
+
+	obj->animator = animator_create(obj);
+	return obj->animator;
 }
 
 void obj_set_model(object_t *obj, model_t *model)
