@@ -6,8 +6,9 @@
 #include "io/log.h"
 #include "renderer/renderer.h"
 #include "renderer/texture.h"
-#include "renderer/sprite.h"
 #include "renderer/shader.h"
+#include "scene/sprite.h"
+#include "scene/spriteanimation.h"
 #include "math/math.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -15,6 +16,9 @@
 static arr_t(texture_t*) textures;
 static arr_t(sprite_t*) sprites;
 static arr_t(shader_t*) shaders;
+static arr_t(sprite_anim_t*) animations;
+
+static const char *parsed_file_name;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -28,6 +32,11 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 
 static void res_load_shader(const char *file_name);
 static void res_parse_shader_line(char *line, size_t length, void *context);
+
+static void res_load_animation_group(const char *file_name);
+static void res_load_animation(res_parser_t *parser, int *next_token, const char *group_name);
+static void res_load_animation_keyframe(res_parser_t *parser, int *next_token,
+                                        sprite_t **sprite, int *frame_count);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -49,6 +58,7 @@ void res_initialize(void)
 	res_load_all_in_directory("./shaders", ".glsl", RES_SHADER);
 	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
+	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
 }
 
 void res_shutdown(void)
@@ -81,6 +91,16 @@ void res_shutdown(void)
 
 			// TODO: Add reference counting to resources.
 			texture_destroy(texture);
+		}
+	}
+
+	sprite_anim_t *animation;
+	arr_foreach(animations, animation) {
+
+		if (animation != NULL) {
+
+			// TODO: Add reference counting to resources.
+			sprite_anim_destroy(animation);
 		}
 	}
 }
@@ -138,6 +158,23 @@ shader_t *res_get_shader(const char *name)
 	return NULL;
 }
 
+sprite_anim_t *res_get_sprite_anim(const char *name)
+{
+	sprite_anim_t *animation;
+	arr_foreach(animations, animation) {
+
+		if (string_equals(animation->resource.name, name)) {
+
+			// TODO: Add reference counting to resources.
+			return animation;
+		}
+	}
+
+	log_warning("Resources", "Could not find a sprite animation named '%s'.", name);
+
+	return NULL;
+}
+
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type)
 {
 	switch (type) {
@@ -153,8 +190,11 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 		case RES_SHADER:
 			file_for_each_in_directory(path, extension, res_load_shader);
 			break;
+
+		case RES_ANIMATION:
+			file_for_each_in_directory(path, extension, res_load_animation_group);
+			break;
 	}
-	
 }
 
 static void res_load_texture(const char *file_name)
@@ -197,9 +237,9 @@ static void res_load_texture(const char *file_name)
 
 static void res_load_sprite_sheet(const char *file_name)
 {
-	char *text;
-	size_t length;
-
+	// Store the name of the file for possible error messages.
+	parsed_file_name = file_name;
+	
 	char name[260];
 	string_get_file_name_without_extension(file_name, name, sizeof(name));
 
@@ -212,7 +252,10 @@ static void res_load_sprite_sheet(const char *file_name)
 		return;
 	}
 
-	// Read the contents of the .sprite file to a buffer the file is JSON formatted data).
+	char *text;
+	size_t length;
+
+	// Read the contents of the .sprite file to a buffer.
 	if (!file_read_all_text(file_name, &text, &length)) {
 		return;
 	}
@@ -224,6 +267,7 @@ static void res_load_sprite_sheet(const char *file_name)
 	if (!res_parser_init(&parser, text, length)) {
 
 		// Resource could not be parsed (syntax error or not a JSON resource file).
+		mem_free(text);
 		return;
 	}
 	
@@ -262,7 +306,7 @@ static void res_load_sprite_sheet(const char *file_name)
 
 			// Loop for as long as there are sprite objects in the array.
 			while (res_parser_is_object(&parser, token)) {
-				
+
 				++token;
 				res_load_sprite(texture, pixels_per_unit, &parser, &token);
 			}
@@ -277,25 +321,27 @@ static void res_load_sprite_sheet(const char *file_name)
 			log_warning("Resources", "Unknown sprite field '%s' in resource file %s.",
 				key, file_name);
 
-			++token;
-			if (!res_parser_is_valid_key_type(&parser, token)) {
-				return;
+			if (!res_parser_is_valid_key_type(&parser, ++token)) {
+				break;
 			}
 		}
 	}
+
+	// Free the temporary file content buffer.
+	mem_free(text);
 }
 
 static void res_load_sprite(texture_t *texture, int pixels_per_unit,
                             res_parser_t *parser, int *next_token)
 {
-	char name[100];
+	char name[100] = { 0 };
 	vec2_t position = vec2_zero;
 	vec2_t size = vec2_zero;
 	vec2_t pivot = vec2_zero;
 	bool flip_vertical = false;
-	int token = 0;
+	int token = *next_token;
 
-	for (token = *next_token; token < parser->num_tokens; ++token) {
+	for (; token < parser->num_tokens; ++token) {
 
 		// Key should always be a string or a primitive! If this is something else,
 		// then likely we've passed the sprite object and should return to the main parser.
@@ -333,6 +379,12 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 		}
 		else {
 			// Unknown field, return to main parser.
+			char key[100];
+			res_parser_get_text(parser, token, key, sizeof(key));
+
+			log_warning("Resources", "Unknown sprite field '%s' in resource file %s.",
+                        key, parsed_file_name);
+
 			break;
 		}
 	}
@@ -432,4 +484,228 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 		// Push the line to the list as-is.
 		arr_push(*lines, string_duplicate(line));
 	}
+}
+
+static void res_load_animation_group(const char *file_name)
+{
+	// Store the name of the file for possible error messages.
+	parsed_file_name = file_name;
+
+
+	// Use the name of the file as the animation group name.
+	// The group name is used as a prefix for all animations.
+	char group_name[260];
+	string_get_file_name_without_extension(file_name, group_name, sizeof(group_name));
+
+	char *text;
+	size_t length;
+
+	// Read the contents of the .anim file to a buffer.
+	if (!file_read_all_text(file_name, &text, &length)) {
+		return;
+	}
+
+	// Initialize a resource parser object.
+	res_parser_t parser;
+	
+	// Parse the text from the file.
+	if (!res_parser_init(&parser, text, length)) {
+
+		// Resource could not be parsed (syntax error or not a JSON resource file).
+		mem_free(text);
+		return;
+	}
+
+	for (int token = 1; token < parser.num_tokens; token++) {
+
+		// Key should always be a string or a primitive!
+		if (!res_parser_is_valid_key_type(&parser, token)) {
+			continue;
+		}
+
+		// Process each field based on its name and value type.
+		if (res_parser_field_equals(&parser, token, "version", JSMN_PRIMITIVE)) {
+
+			// Ignore version checks for now (they're for future proofing).
+			++token;
+		}
+		else if (res_parser_field_equals(&parser, token, "animation", JSMN_OBJECT)) {
+
+			// Skip to the first child field of the token and parse an animation object.
+			token += 2;
+			res_load_animation(&parser, &token, group_name);
+		}
+		else {
+			// Unknown field name or type, skip it (unless it's an object of unknown size => abort).
+			char key[100];
+			res_parser_get_text(&parser, token, key, sizeof(key));
+
+			log_warning("Resources", "Unknown animation group field '%s' in resource file %s.",
+				key, file_name);
+
+			if (!res_parser_is_valid_key_type(&parser, ++token)) {
+				break;
+			}
+		}
+	}
+
+	// Free the temporary file content buffer.
+	mem_free(text);
+}
+
+static void res_load_animation(res_parser_t *parser, int *next_token, const char *group_name)
+{
+	char name[100] = { 0 };
+	int anim_duration = 0;
+	int token = *next_token;
+
+	// Create a temporary container for the keyframes.
+	arr_t(keyframe_t) keyframes;
+	arr_init(keyframes);
+
+	for (; token < parser->num_tokens; ++token) {
+
+		// Key should always be a string or a primitive! If this is something else,
+		// then likely we've passed the sprite object and should return to the main parser.
+		if (!res_parser_is_valid_key_type(parser, token)) {
+			break;
+		}
+
+		// Read the value based on the name and type of the field.
+		if (res_parser_field_equals(parser, token, "name", JSMN_STRING)) {
+			res_parser_get_text(parser, ++token, name, sizeof(name));
+		}
+		else if (res_parser_field_equals(parser, token, "duration", JSMN_PRIMITIVE)) {
+			anim_duration = res_parser_get_int(parser, ++token);
+		}
+		else if (res_parser_field_equals(parser, token, "keyframes", JSMN_ARRAY)) {
+
+			// Skip the start of the array and move right on to the first keyframe.
+			token += 2;
+
+			// Loop for as long as there are keyframe objects in the array.
+			while (res_parser_is_object(parser, token)) {
+
+				++token;
+
+				sprite_t *sprite = NULL;
+				int frames = 0;
+
+				res_load_animation_keyframe(parser, &token, &sprite, &frames);
+
+				// Add the keyframe to the list.
+				if (sprite != NULL) {
+
+					keyframe_t keyframe;
+					keyframe.sprite = sprite;
+					keyframe.duration = frames;
+
+					arr_push(keyframes, keyframe);
+				}
+			}
+		}
+		else if (res_parser_is_object(parser, token + 1)) {
+
+			// The following token is another object (either a keyframe or an animation).
+			// Skip it and decrement the current token index due to the increment in this loop.
+			--token;
+			break;
+		}
+		else {
+			// Unknown field, return to main parser.
+			char key[100];
+			res_parser_get_text(parser, token, key, sizeof(key));
+
+			log_warning("Resources", "Unknown animation field '%s' in resource file %s.",
+                        key, parsed_file_name);
+
+			break;
+		}
+	}
+
+	// Create a sprite object and store it to the resource list.
+	if (*name) {
+
+		if (keyframes.count != 0) {
+
+			// Animations have names formatted as <group name>/<animation name>.
+			char animation_name[200];
+			snprintf(animation_name, sizeof(animation_name), "%s/%s", group_name, name);
+
+			// Create an animation and set its keyframes..
+			sprite_anim_t *animation = sprite_anim_create(animation_name);
+			
+			if (sprite_anim_set_frames(animation, keyframes.items, keyframes.count, anim_duration)) {
+
+				// If the keyframes were set successfully, add the animation to the resource list.
+				animation->resource.index = arr_last_index(animations);
+				animation->resource.is_loaded = true;
+
+				arr_push(animations, animation);
+			}
+			else {
+				// Keyframe setting failed, perform cleanup.
+				sprite_anim_destroy(animation);
+			}
+		}
+		else {
+			log_warning("Resources", "Sprite animation %s in file %s does not define any keyframes.",
+                        name, parsed_file_name);
+		}
+	}
+
+	arr_clear(keyframes);
+
+	*next_token = token;
+}
+
+static void res_load_animation_keyframe(res_parser_t *parser, int *next_token,
+                                        sprite_t **sprite, int *frame_count)
+{
+	char sprite_name[100] = { 0 };
+	int frames = 0;
+	int token = *next_token;
+
+	for (; token < parser->num_tokens; ++token) {
+
+		// Key should always be a string or a primitive! If this is something else,
+		// then likely we've passed the keyframe object and should return to the main parser.
+		if (!res_parser_is_valid_key_type(parser, token)) {
+			break;
+		}
+
+		// Read the value based on the name and type of the field.
+		if (res_parser_field_equals(parser, token, "sprite", JSMN_STRING)) {
+			res_parser_get_text(parser, ++token, sprite_name, sizeof(sprite_name));
+		}
+		else if (res_parser_field_equals(parser, token, "frames", JSMN_PRIMITIVE)) {
+			frames = res_parser_get_int(parser, ++token);
+		}
+		else if (res_parser_is_object(parser, token + 1)) {
+
+			// The following token is another object (either a keyframe or an animation).
+			// Skip it and decrement the current token index due to the increment in this loop.
+			--token;
+			break;
+		}
+		else {
+			// Unknown field, return to main parser.
+			char key[100];
+			res_parser_get_text(parser, token, key, sizeof(key));
+
+			log_warning("Resources", "Unknown animation keyframe field '%s' in resource file %s.",
+                        key, parsed_file_name);
+
+			break;
+		}
+	}
+
+	if (*sprite_name) {
+
+		// Pass the sprite and frame duration back to the caller.
+		*sprite = res_get_sprite(sprite_name);
+		*frame_count = frames;
+	}
+
+	*next_token = token;
 }

@@ -1,6 +1,6 @@
 #include "sprite.h"
-#include "mesh.h"
-#include "texture.h"
+#include "renderer/texture.h"
+#include "renderer/mesh.h"
 #include "core/memory.h"
 #include "core/string.h"
 #include "math/math.h"

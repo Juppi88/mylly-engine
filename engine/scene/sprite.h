@@ -34,7 +34,6 @@ void sprite_destroy(sprite_t *sprite);
 void sprite_set(sprite_t *sprite, texture_t *texture,
                 vec2_t position, vec2_t size, vec2_t pivot, float pixels_per_unit);
 
-
 END_DECLARATIONS;
 
 #endif

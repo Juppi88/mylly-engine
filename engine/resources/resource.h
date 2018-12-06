@@ -10,6 +10,7 @@ typedef enum {
 	RES_TEXTURE,
 	RES_SPRITE,
 	RES_SHADER,
+	RES_ANIMATION,
 } res_type_t;
 
 // -------------------------------------------------------------------------------------------------
