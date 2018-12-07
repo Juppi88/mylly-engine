@@ -40,8 +40,13 @@ bool input_sys_process_messages(void *params)
 			key_event = (XKeyEvent *)event;
 
 			// Store the frame the button is pressed.
-			key_pressed_frames[key_event->keycode] = frame;
-			key_released_frames[key_event->keycode] = 0;
+			if (key_pressed_frames[key_event->keycode] == 0) {
+
+				// Update the frame only when the key is pressed down for the first time.
+				// Other KeyPress events are just character repeats.
+				key_pressed_frames[key_event->keycode] = frame;
+				key_released_frames[key_event->keycode] = 0;
+			}
 
 			// Store modifier flags.
 			modifier_flags = key_event->state;
@@ -70,6 +75,19 @@ bool input_sys_process_messages(void *params)
 
 		case KeyRelease: {
 			key_event = (XKeyEvent *)event;
+
+			// Look up the next event. If it is a KeyPress event for the same key, ignore the
+			// KeyRelease event. This is to ignore X11's BS autorepeat feature.
+			if (XEventsQueued(key_event->display, QueuedAfterReading)) {
+
+				XEvent next;
+				XPeekEvent(key_event->display, &next);
+
+				if (next.type == KeyPress && next.xkey.time == event->xkey.time &&
+                    next.xkey.keycode == event->xkey.keycode) {
+					break;
+				}
+			}
 
 			modifier_flags = key_event->state;
 
