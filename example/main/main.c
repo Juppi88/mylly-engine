@@ -1,7 +1,7 @@
 #include "core/mylly.h"
 #include "core/time.h"
 #include "resources/resources.h"
-#include "renderer/model.h"
+#include "scene/model.h"
 #include "scene/scene.h"
 #include "scene/object.h"
 #include "scene/camera.h"

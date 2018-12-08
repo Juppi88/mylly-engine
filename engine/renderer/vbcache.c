@@ -1,5 +1,6 @@
 #include "vbcache.h"
 #include "renderer.h"
+#include "core/memory.h"
 
 // Number of frames rendered.
 static int frame_count;

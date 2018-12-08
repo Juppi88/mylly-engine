@@ -1,5 +1,6 @@
 #include "shader.h"
 #include "renderer.h"
+#include "core/memory.h"
 #include "core/string.h"
 #include "io/log.h"
 

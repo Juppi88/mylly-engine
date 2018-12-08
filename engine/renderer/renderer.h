@@ -3,7 +3,6 @@
 #define __RENDERER_H
 
 #include "core/defines.h"
-#include "renderer/model.h"
 #include "renderer/renderview.h"
 #include "renderer/shader.h"
 #include "renderer/texture.h"
