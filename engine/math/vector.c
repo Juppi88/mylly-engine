@@ -48,6 +48,16 @@ vec2_t vec2_multiply(vec2_t v, float value)
 	return result;
 }
 
+float vec2_dot(vec2_t a, vec2_t b)
+{
+	return a.x * b.x + a.y * b.y;
+}
+
+float vec2_cross(vec2_t a, vec2_t b)
+{
+	return a.x * b.y + a.y * b.x;
+}
+
 float vec2_normalize(vec2_t *v)
 {
 	float length = sqrtf(v->x * v->x + v->y * v->y);
@@ -64,6 +74,12 @@ vec2_t vec2_normalized(vec2_t v)
 {
 	vec2_normalize(&v);
 	return v;
+}
+
+
+bool vec2_is_zero(vec2_t v)
+{
+	return IS_ZERO(v.x) && IS_ZERO(v.y);
 }
 
 // --------------------------------------------------------------------------------

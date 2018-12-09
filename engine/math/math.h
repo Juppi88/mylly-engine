@@ -22,6 +22,8 @@
 
 #define SIGN(x) ((x) < 0 ? -1 : 1)
 
+#define IS_ZERO(x) (fabs(x) < 0.00000001f)
+
 // --------------------------------------------------------------------------------
 
 static INLINE void math_sincos(float angle, float *s, float *c)
