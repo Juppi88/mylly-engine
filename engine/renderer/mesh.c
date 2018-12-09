@@ -27,6 +27,16 @@ void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertic
 		return;
 	}
 
+	// Remove old vertex data.
+	if (mesh->vertices != NULL) {
+
+		DELETE(mesh->vertices);
+
+		mesh->vertices = NULL;
+		mesh->num_vertices = 0;
+		mesh->vertex_buffer = NULL;
+	}
+
 	NEW_ARRAY(vertex_t, arr, num_vertices);
 
 	for (size_t i = 0; i < num_vertices; ++i) {
@@ -36,12 +46,32 @@ void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertic
 
 	mesh->vertices = arr;
 	mesh->num_vertices = num_vertices;
+	mesh->is_vertex_data_dirty = true;
+}
+
+void mesh_refresh_vertices(mesh_t *mesh)
+{
+	if (mesh == NULL || mesh->vertices == NULL) {
+		return;
+	}
+
+	mesh->is_vertex_data_dirty = true;
 }
 
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 {
 	if (mesh == NULL || indices == NULL) {
 		return;
+	}
+
+	// Remove old index data.
+	if (mesh->indices != NULL) {
+
+		DELETE(mesh->indices);
+
+		mesh->indices = NULL;
+		mesh->num_indices = 0;
+		mesh->index_buffer = NULL;
 	}
 
 	NEW_ARRAY(vindex_t, arr, num_indices);

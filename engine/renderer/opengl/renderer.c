@@ -235,16 +235,13 @@ void rend_destroy_buffer(vbindex_t vbo)
 	}
 }
 
-void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_index_data)
+void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_index, bool is_static)
 {
-	if (is_index_data) {
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
-		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, size, data, GL_STATIC_DRAW_ARB);
-	}
-	else {
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, data, GL_STATIC_DRAW_ARB);
-	}
+	GLenum target = (is_index ? GL_ELEMENT_ARRAY_BUFFER_ARB : GL_ARRAY_BUFFER_ARB);
+	GLenum usage = (is_static ? GL_STATIC_DRAW_ARB : GL_DYNAMIC_DRAW_ARB);
+
+	glBindBufferARB(target, vbo);
+	glBufferDataARB(target, size, data, usage);
 }
 
 shader_object_t rend_create_shader(SHADER_TYPE type, const char **lines, size_t num_lines,

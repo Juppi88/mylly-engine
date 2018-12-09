@@ -2,6 +2,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "animator.h"
+#include "emitter.h"
 #include "io/log.h"
 #include "math/math.h"
 
@@ -72,6 +73,9 @@ void obj_destroy(object_t *obj)
 	if (obj->animator != NULL) {
 		animator_destroy(obj->animator);
 	}
+	if (obj->emitter != NULL) {
+		emitter_destroy(obj->emitter);
+	}
 
 	DELETE(obj);
 }
@@ -117,6 +121,11 @@ void obj_process(object_t *obj)
 	if (obj->animator != NULL) {
 		animator_process(obj->animator);
 	}
+
+	// Process particle emitter.
+	if (obj->emitter != NULL && obj->emitter->is_active) {
+		emitter_process(obj->emitter);
+	}
 }
 
 camera_t *obj_add_camera(object_t *obj)
@@ -145,6 +154,17 @@ animator_t *obj_add_animator(object_t *obj)
 
 	obj->animator = animator_create(obj);
 	return obj->animator;
+}
+
+emitter_t *obj_add_emitter(object_t *obj)
+{
+	// Allow one emitter per object.
+	if (obj == NULL || obj->emitter != NULL) {
+		return NULL;
+	}
+
+	obj->emitter = emitter_create(obj);
+	return obj->emitter;
 }
 
 void obj_set_model(object_t *obj, model_t *model)

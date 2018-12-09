@@ -9,6 +9,7 @@
 #include "scene/object.h"
 #include "scene/model.h"
 #include "scene/sprite.h"
+#include "scene/emitter.h"
 #include "scene/camera.h"
 #include "resources/resources.h"
 #include "io/log.h"
@@ -114,7 +115,8 @@ static void rsys_cull_object(object_t *object)
 
 	// Skip non-visible objects.
 	if (object->model != NULL ||
-		object->sprite != NULL) {
+		object->sprite != NULL ||
+		object->emitter != NULL) {
 
 		// Add the scene object to each of the views as a render object.
 		rview_t *view;
@@ -166,6 +168,11 @@ static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t
 	if (object->sprite != NULL && object->sprite->mesh != NULL) {
 		rsys_add_mesh_to_view(object->sprite->mesh, parent, view);
 	}
+
+	// Particle emitter mesh
+	if (object->emitter != NULL && object->emitter->mesh != NULL) {
+		rsys_add_mesh_to_view(object->emitter->mesh, parent, view);
+	}
 }
 
 static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view)
@@ -177,9 +184,20 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 	if (mesh->vertex_buffer == NULL) {
 
 		vbcache_alloc_buffer(mesh->vertices, mesh->num_vertices,
-							sizeof(vertex_t), &mesh->vertex_buffer, false);
+                             sizeof(vertex_t), &mesh->vertex_buffer, false, true);
+
+		mesh->is_vertex_data_dirty = false;
 	}
 	else {
+		if (mesh->is_vertex_data_dirty) {
+
+			// Reupload vertex data to the GPU.
+			vbcache_upload_buffer(mesh->vertex_buffer, mesh->vertices, mesh->num_vertices,
+                                  sizeof(vertex_t), false, false);
+
+			mesh->is_vertex_data_dirty = false;
+		}
+
 		vbcache_refresh_buffer(mesh->vertex_buffer);
 	}
 
@@ -187,7 +205,7 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 	if (mesh->index_buffer == NULL) { 
 
 		vbcache_alloc_buffer(mesh->indices, mesh->num_indices,
-							sizeof(vindex_t), &mesh->index_buffer, true);
+                             sizeof(vindex_t), &mesh->index_buffer, true, true);
 	}
 	else {
 		vbcache_refresh_buffer(mesh->index_buffer);

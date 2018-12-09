@@ -42,6 +42,7 @@ typedef struct object_t {
 	model_t *model; // 3D render model (collection of meshes)
 	sprite_t *sprite; // A single mesh for a 2D sprite
 	animator_t *animator; // Animator attached to this object
+	emitter_t *emitter; // Particle emitter attached to this object
 	camera_t *camera; // Camera attached to the object
 	
 } object_t;
@@ -59,6 +60,7 @@ void obj_process(object_t *obj);
 
 camera_t *obj_add_camera(object_t *object);
 animator_t *obj_add_animator(object_t *object);
+emitter_t *obj_add_emitter(object_t *object);
 void obj_set_model(object_t *obj, model_t *model);
 void obj_set_sprite(object_t *obj, sprite_t *sprite);
 

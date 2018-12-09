@@ -21,6 +21,7 @@ typedef struct mesh_t {
 
 	vertex_t *vertices; // Array of vertices in this mesh
 	size_t num_vertices;
+	bool is_vertex_data_dirty; // Set to true when the data on the GPU needs refreshing
 
 	vindex_t *indices; // Array of vertex indices
 	size_t num_indices;
@@ -37,8 +38,11 @@ typedef struct mesh_t {
 
 mesh_t *mesh_create(uint32_t index);
 void mesh_destroy(mesh_t *mesh);
+
 void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertices);
+void mesh_refresh_vertices(mesh_t *mesh);
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices);
+
 void mesh_set_material(mesh_t *mesh, shader_t *shader, texture_t *texture);
 
 END_DECLARATIONS;

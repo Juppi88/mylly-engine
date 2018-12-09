@@ -31,7 +31,7 @@ void vbcache_set_current_frame(int frame)
 }
 
 void vbcache_alloc_buffer(void *data, size_t num_elements, size_t elem_size,
-						  vertexbuffer_t **storage, bool is_index_data)
+                          vertexbuffer_t **storage, bool is_index_data, bool is_static_data)
 {
 	vertexbuffer_t *buffer = vbcache_find_free_buffer();
 
@@ -40,7 +40,21 @@ void vbcache_alloc_buffer(void *data, size_t num_elements, size_t elem_size,
 	*storage = buffer;
 
 	// Upload the vertex/index data to the GPU.
-	rend_upload_buffer_data(buffer->vbo, data, num_elements * elem_size, is_index_data);
+	rend_upload_buffer_data(buffer->vbo, data, num_elements * elem_size,
+                            is_index_data, is_static_data);
+
+	// Mark the buffer object as active.
+	vbcache_refresh_buffer(buffer);
+}
+
+void vbcache_upload_buffer(vertexbuffer_t *buffer, void *data, size_t num_elements,
+                          size_t elem_size, bool is_index_data, bool is_static_data)
+{
+	buffer->count = num_elements;
+
+	// Upload the vertex/index data to the GPU.
+	rend_upload_buffer_data(buffer->vbo, data, num_elements * elem_size,
+                            is_index_data, is_static_data);
 
 	// Mark the buffer object as active.
 	vbcache_refresh_buffer(buffer);
