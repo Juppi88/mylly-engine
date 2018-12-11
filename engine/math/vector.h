@@ -15,9 +15,9 @@ typedef union vec2_t {
 	float vec[2];
 } vec2_t;
 
-#define vec2(x, y) { .vec = { x, y } }
-#define vec2_zero() { .vec = { 0, 0 } }
-#define vec2_one() { .vec = { 1, 1 } }
+#define vec2(x, y) (vec2_t){ .vec = { x, y } }
+#define vec2_zero() (vec2_t){ .vec = { 0, 0 } }
+#define vec2_one() (vec2_t){ .vec = { 1, 1 } }
 
 static INLINE vec2_t vector2(float x, float y)
 {
@@ -53,9 +53,9 @@ typedef union vec3_t {
 	float vec[3];
 } vec3_t;
 
-#define vec3(x, y, z) { .vec = { x, y, z } }
-#define vec3_zero() { .vec = { 0, 0, 0 } }
-#define vec3_one() { .vec = { 1, 1, 1 } }
+#define vec3(x, y, z) (vec3_t){ .vec = { x, y, z } }
+#define vec3_zero() (vec3_t){ .vec = { 0, 0, 0 } }
+#define vec3_one() (vec3_t){ .vec = { 1, 1, 1 } }
 
 extern vec3_t vec3_zero;
 extern vec3_t vec3_one;
@@ -96,9 +96,9 @@ typedef union vec4_t {
 	float vec[4];
 } vec4_t;
 
-#define vec4(x, y, z, w) { .vec = { x, y, z, w } }
-#define vec4_zero() { .vec = { 0, 0, 0, 0 } }
-#define vec4_one() { .vec = { 1, 1, 1, 1 } }
+#define vec4(x, y, z, w) (vec4_t){ .vec = { x, y, z, w } }
+#define vec4_zero() (vec4_t){ .vec = { 0, 0, 0, 0 } }
+#define vec4_one() (vec4_t){ .vec = { 1, 1, 1, 1 } }
 
 extern vec4_t vec4_zero;
 extern vec4_t vec4_one;

@@ -16,6 +16,7 @@ typedef struct colour_t {
 #define col_a(r, g, b, a) (colour_t){ r, g, b, a }
 
 // Pre-defined colours
+#define COL_TRANSPARENT (colour_t){ 0, 0, 0, 0 }
 #define COL_WHITE (colour_t){ 255, 255, 255, 255 }
 #define COL_BLACK (colour_t){ 0, 0, 0, 255 }
 #define COL_RED (colour_t){ 255, 0, 0, 255 }
