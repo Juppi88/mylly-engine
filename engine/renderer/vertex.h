@@ -12,6 +12,14 @@ typedef uint16_t vindex_t;
 
 // -------------------------------------------------------------------------------------------------
 
+// Specify the type of vertex to be used
+typedef enum {
+	VERTEX_NORMAL, // Regular 3D vertices with normals
+	VERTEX_PARTICLE // Particle vertices
+} vertex_type_t;
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct vertex_t {
 	vec4_t pos;
 	vec3_t normal;
@@ -22,8 +30,22 @@ typedef struct vertex_t {
 #define vertex_empty() \
 	{ .colour = COL_WHITE }
 
-#define vertex(pos, normal, uv, col) \
-	(vertex_t){ pos, normal, uv, col }
+#define vertex(pos, normal, uv, colour) \
+	(vertex_t){ pos, normal, uv, colour }
+
+// -------------------------------------------------------------------------------------------------
+
+// Vertex definition for particles. These have particle specific attricutes which replace normals.
+typedef struct vertex_particle_t {
+	vec4_t pos; // Position of the vertex
+	vec3_t centre; // Centre of the particle
+	vec2_t uv; // Texture coordinates for the particle texture
+	colour_t colour; // Colour of the particle
+	float size; // Size of the particle quad
+} vertex_particle_t;
+
+#define vertex_particle(pos, centre, uv, colour, size) \
+	(vertex_particle_t){ pos, centre, uv, colour, size }
 
 // -------------------------------------------------------------------------------------------------
 

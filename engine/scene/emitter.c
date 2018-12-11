@@ -83,7 +83,7 @@ void emitter_create_mesh(emitter_t *emitter)
 	}
 
 	// Create the vertices and indices for the mesh.
-	vertex_t *vertices = mem_alloc_fast(emitter->max_particles * 4 * sizeof(vertex_t));
+	vertex_particle_t *vertices = mem_alloc_fast(emitter->max_particles * 4 * sizeof(vertex_particle_t));
 	vindex_t *indices = mem_alloc_fast(emitter->max_particles * 6 * sizeof(vindex_t));
 
 	float width = 0.5f;
@@ -91,32 +91,36 @@ void emitter_create_mesh(emitter_t *emitter)
 
 	for (int i = 0; i < emitter->max_particles; i++) {
 
-		vertices[0 + 4 * i] = vertex(
+		vertices[0 + 4 * i] = vertex_particle(
 			vec4(-width, -height, 0, 1),
 			vec3_zero,
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv1.y),
-			COL_WHITE
+			COL_WHITE,
+			1
 		);
 
-		vertices[1 + 4 * i] = vertex(
+		vertices[1 + 4 * i] = vertex_particle(
 			vec4(width, -height, 0, 1),
 			vec3_zero,
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv1.y),
-			COL_WHITE
+			COL_WHITE,
+			1
 		);
 
-		vertices[2 + 4 * i] = vertex(
+		vertices[2 + 4 * i] = vertex_particle(
 			vec4(-width, height, 0, 1),
 			vec3_zero,
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv2.y),
-			COL_WHITE
+			COL_WHITE,
+			1
 		);
 
-		vertices[3 + 4 * i] = vertex(
+		vertices[3 + 4 * i] = vertex_particle(
 			vec4(width, height, 0, 1),
 			vec3_zero,
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv2.y),
-			COL_WHITE
+			COL_WHITE,
+			1
 		);
 
 		indices[0 + 6 * i] = 0 + 4 * i;
@@ -130,7 +134,7 @@ void emitter_create_mesh(emitter_t *emitter)
 	// Create a mesh with the generated vertex data.
 	emitter->mesh = mesh_create(0);
 
-	mesh_set_vertices(emitter->mesh, vertices, 4 * emitter->max_particles);
+	mesh_set_particle_vertices(emitter->mesh, vertices, 4 * emitter->max_particles);
 	mesh_set_indices(emitter->mesh, indices, 6 * emitter->max_particles);
 
 	mesh_set_material(emitter->mesh, res_get_shader("default-particle"), emitter->sprite->texture);
@@ -139,10 +143,10 @@ void emitter_create_mesh(emitter_t *emitter)
 	// This way updating the vertices directly will be faster and easier.
 	for (int i = 0; i < emitter->max_particles; i++) {
 
-		emitter->particles[i].vertices[0] = &emitter->mesh->vertices[0 + 4 * i];
-		emitter->particles[i].vertices[1] = &emitter->mesh->vertices[1 + 4 * i];
-		emitter->particles[i].vertices[2] = &emitter->mesh->vertices[2 + 4 * i];
-		emitter->particles[i].vertices[3] = &emitter->mesh->vertices[3 + 4 * i];
+		emitter->particles[i].vertices[0] = &emitter->mesh->part_vertices[0 + 4 * i];
+		emitter->particles[i].vertices[1] = &emitter->mesh->part_vertices[1 + 4 * i];
+		emitter->particles[i].vertices[2] = &emitter->mesh->part_vertices[2 + 4 * i];
+		emitter->particles[i].vertices[3] = &emitter->mesh->part_vertices[3 + 4 * i];
 	}
 
 	// Delete temporary data.
@@ -164,7 +168,7 @@ void emitter_update_particle(emitter_t *emitter, particle_t *particle)
 
 	// Update vertex data.
 	for (int i = 0; i < 4; i++) {
-		particle->vertices[i]->normal = particle->position;
+		particle->vertices[i]->centre = particle->position;
 		particle->vertices[i]->colour = particle->colour;
 	}
 }

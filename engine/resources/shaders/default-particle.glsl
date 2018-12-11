@@ -8,17 +8,14 @@ varying vec4 colour;
 
 void main()
 {
-	vec4 position = Vertex;
-	position *= 0.1;
-	position.w = 1;
-	position += vec4(Normal, 0);
+	vec3 position = Vertex.xyz;
+	position *= ParticleSize;
+	position += ParticleCentre;
 
-	gl_Position = MatrixMVP * position;
+	gl_Position = MatrixMVP * vec4(position, 1);
 	
 	texCoord = TexCoord;
 	colour = Colour;
-
-	//colour = vec4(Normal.x / 10, Normal.y / 10, 0, 1);
 }
 
 #elif defined(FRAGMENT_SHADER)

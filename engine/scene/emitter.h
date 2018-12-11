@@ -16,7 +16,7 @@ typedef struct particle_t {
 	vec3_t acceleration;
 	colour_t colour;
 	bool is_active;
-	vertex_t *vertices[4];
+	vertex_particle_t *vertices[4];
 
 } particle_t;
 

@@ -183,8 +183,8 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 	// Vertex data
 	if (mesh->vertex_buffer == NULL) {
 
-		vbcache_alloc_buffer(mesh->vertices, mesh->num_vertices,
-                             sizeof(vertex_t), &mesh->vertex_buffer, false, true);
+		vbcache_alloc_buffer(mesh->vertices, mesh->num_vertices, mesh->vertex_size,
+                             &mesh->vertex_buffer, false, true);
 
 		mesh->is_vertex_data_dirty = false;
 	}
@@ -193,7 +193,7 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 
 			// Reupload vertex data to the GPU.
 			vbcache_upload_buffer(mesh->vertex_buffer, mesh->vertices, mesh->num_vertices,
-                                  sizeof(vertex_t), false, false);
+                                  mesh->vertex_size, false, false);
 
 			mesh->is_vertex_data_dirty = false;
 		}
@@ -215,6 +215,7 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 	NEW(rmesh_t, rmesh);
 
 	rmesh->parent = parent;
+	rmesh->vertex_type = mesh->vertex_type;
 	rmesh->vertices = mesh->vertex_buffer;
 	rmesh->indices = mesh->index_buffer;
 

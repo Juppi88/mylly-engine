@@ -5,6 +5,7 @@
 #include "collections/list.h"
 #include "math/matrix.h"
 #include "renderer/shader.h"
+#include "renderer/vertex.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -34,6 +35,7 @@ typedef struct rmesh_t {
 	list_entry(rmesh_t);
 
 	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrices
+	vertex_type_t vertex_type; // The type of vertex used by the mesh
 	vertexbuffer_t *vertices; // Vertex buffer containing the vertices of this mesh
 	vertexbuffer_t *indices; // Vertex buffer containing the indices of this mesh
 	shader_t *shader; // The shader used for rendering this mesh

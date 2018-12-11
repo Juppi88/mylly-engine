@@ -47,6 +47,8 @@ static const char *default_shader_source =
 static void rend_draw_mesh(rmesh_t *mesh);
 static void rend_begin_draw(void);
 static void rend_end_draw(void);
+static void rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
+                                       GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 
 // --------------------------------------------------------------------------------
 
@@ -143,41 +145,39 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
 
 	// Set pointers to vertex attributes.
-	if (shader_uses_attribute(mesh->shader, ATTR_VERTEX)) {
+	if (mesh->vertex_type == VERTEX_NORMAL) {
 
-		int attribute = shader_get_attribute(mesh->shader, ATTR_VERTEX);
+		// Normal vertex attributes.
+		rend_bind_shader_attribute(mesh->shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
 
-		glEnableVertexAttribArray(attribute);
-		glVertexAttribPointer(attribute, 4, GL_FLOAT, GL_FALSE,
-			sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
+		rend_bind_shader_attribute(mesh->shader, ATTR_NORMAL, 3, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
+	}
+	else {
+		// Particle vertex attributes.
+		rend_bind_shader_attribute(mesh->shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, pos));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_CENTRE, 3, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, centre));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, uv));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, colour));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_SIZE, 1, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, size));
 	}
 
-	if (shader_uses_attribute(mesh->shader, ATTR_NORMAL)) {
-
-		int attribute = shader_get_attribute(mesh->shader, ATTR_NORMAL);
-
-		glEnableVertexAttribArray(attribute);
-		glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE,
-			sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
-	}
-
-	if (shader_uses_attribute(mesh->shader, ATTR_TEXCOORD)) {
-
-		int attribute = shader_get_attribute(mesh->shader, ATTR_TEXCOORD);
-
-		glEnableVertexAttribArray(attribute);
-		glVertexAttribPointer(attribute, 2, GL_FLOAT, GL_FALSE,
-			sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
-	}
-
-	if (shader_uses_attribute(mesh->shader, ATTR_COLOUR)) {
-
-		int attribute = shader_get_attribute(mesh->shader, ATTR_COLOUR);
-
-		glEnableVertexAttribArray(attribute);
-		glVertexAttribPointer(attribute, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-			sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
-	}
 
 	// Set per-draw shader globals.
 	if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MATRIX)) {
@@ -218,6 +218,24 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	// Draw the triangles of the mesh.
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
 	glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
+
+	// Disable vertex attributes to avoid using them when there is no such data available.
+	for (int i = 0; i < NUM_SHADER_ATTRIBUTES; i++) {
+		glDisableVertexAttribArray(i);
+	}
+}
+
+static void rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
+                                       GLboolean normalized, GLsizei stride, const GLvoid *pointer)
+{
+	if (!shader_uses_attribute(shader, attr_type)) {
+		return;
+	}
+
+	int attribute = shader_get_attribute(shader, attr_type);
+
+	glEnableVertexAttribArray(attribute);
+	glVertexAttribPointer(attribute, size, type, normalized, stride, pointer);
 }
 
 vbindex_t rend_generate_buffer(void)

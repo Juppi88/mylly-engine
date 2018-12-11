@@ -16,10 +16,15 @@ uniform vec4 Time; // time, cosTime, sinTime, deltaTime
 // Vertex attributes
 #if defined(VERTEX_SHADER)
 
+// Attributes for normal vertices
 attribute vec4 Vertex;
 attribute vec3 Normal;
 attribute vec4 Colour;
 attribute vec2 TexCoord;
+
+// Attributes for particles
+attribute vec3 ParticleCentre;
+attribute float ParticleSize;
 
 #endif
 

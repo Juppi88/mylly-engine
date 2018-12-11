@@ -23,7 +23,9 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 	"Vertex",
 	"Normal",
 	"TexCoord",
-	"Colour"
+	"Colour",
+	"ParticleCentre",
+	"ParticleSize"
 };
 
 // -------------------------------------------------------------------------------------------------
