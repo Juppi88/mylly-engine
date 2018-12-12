@@ -14,6 +14,7 @@
 static void emitter_initialize_particles(emitter_t *emitter);
 static void emitter_create_mesh(emitter_t *emitter);
 static void emitter_emit(emitter_t *emitter, uint16_t count);
+static vec3_t emitter_randomize_position(emitter_t *emitter);
 static void emitter_update_particle(emitter_t *emitter, particle_t *particle);
 
 // -------------------------------------------------------------------------------------------------
@@ -23,6 +24,8 @@ emitter_t *emitter_create(object_t *parent)
 	NEW(emitter_t, emitter);
 
 	emitter->parent = parent;
+	emitter->shape_type = SHAPE_POINT;
+	emitter->shape = shape_point(vec3_zero);
 	emitter->life.min = 1;
 	emitter->life.max = 1;
 	emitter->start_colour.min = COL_WHITE;
@@ -125,11 +128,11 @@ void emitter_start(emitter_t *emitter,
 	emitter_emit(emitter, burst);
 }
 
-void emitter_set_particle_life_time(emitter_t *emitter, float min, float max)
+void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const emit_shape_t shape)
 {
 	if (emitter != NULL) {
-		emitter->life.min = min;
-		emitter->life.max = max;
+		emitter->shape_type = type;
+		emitter->shape = shape;
 	}
 }
 
@@ -137,6 +140,14 @@ void emitter_set_particle_sprite(emitter_t *emitter, sprite_t *sprite)
 {
 	if (emitter != NULL && sprite != NULL) {
 		emitter->sprite = sprite;
+	}
+}
+
+void emitter_set_particle_life_time(emitter_t *emitter, float min, float max)
+{
+	if (emitter != NULL) {
+		emitter->life.min = min;
+		emitter->life.max = max;
 	}
 }
 
@@ -313,24 +324,59 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			// Randomize particle details.
 			emitter->particles[i].life = randomf(emitter->life.min, emitter->life.max);
 
-			emitter->particles[i].position = vec3_zero;
+			emitter->particles[i].position = emitter_randomize_position(emitter);
+
 			emitter->particles[i].velocity = randomv(emitter->velocity.min,
 	                                                 emitter->velocity.max);
+
 			emitter->particles[i].acceleration = randomv(emitter->acceleration.min,
 				                                         emitter->acceleration.max);
 
 			emitter->particles[i].start_colour = randomc(emitter->start_colour.min,
 	                                                     emitter->start_colour.max);
 			emitter->particles[i].end_colour = randomc(emitter->end_colour.min,
+
 	                                                   emitter->end_colour.max);
 
 			emitter->particles[i].start_size = randomf(emitter->start_size.min,
 	                                                   emitter->start_size.max);
+			
 			emitter->particles[i].end_size = randomf(emitter->end_size.min,
 	                                                 emitter->end_size.max);
 
 			emitted++;
 		}
+	}
+}
+
+static vec3_t emitter_randomize_position(emitter_t *emitter)
+{
+	float r, t;
+
+	switch (emitter->shape_type) {
+
+		case SHAPE_POINT:
+			return emitter->shape.point.centre;
+
+		case SHAPE_CIRCLE:
+			r = randomf(0, emitter->shape.circle.radius); // Randomize a distance from the centre
+			t = randomf(0, 2 * PI); // Randomize an angle
+
+			return vector3(
+				emitter->shape.circle.centre.x + r * cosf(t),
+				emitter->shape.circle.centre.y + r * sinf(t),
+				emitter->shape.circle.centre.z
+			);
+
+		case SHAPE_BOX:
+			return vector3(
+				randomf(emitter->shape.box.min.x, emitter->shape.box.max.x),
+				randomf(emitter->shape.box.min.y, emitter->shape.box.max.y),
+				randomf(emitter->shape.box.min.z, emitter->shape.box.max.z)
+			);
+
+		default:
+			return vec3_zero;
 	}
 }
 

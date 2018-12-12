@@ -25,6 +25,27 @@ typedef struct particle_t {
 
 // -------------------------------------------------------------------------------------------------
 
+// Type of shape to emit particles from
+typedef enum {
+	SHAPE_POINT,
+	SHAPE_CIRCLE,
+	SHAPE_BOX
+} emit_shape_type_t;
+
+// Emitter shape data
+typedef union emit_shape_t {
+	struct { vec3_t centre; } point;
+	struct { vec3_t centre; float radius; } circle;
+	struct { vec3_t min, max; } box;
+} emit_shape_t;
+
+// Macros to initialize the shape struct above
+#define shape_point(c) (emit_shape_t){ .point = { .centre = c } }
+#define shape_circle(c, r) (emit_shape_t){ .circle = { .centre = c, .radius = r } }
+#define shape_box(low, high) (emit_shape_t){ .box = { .min = low, .max = high } }
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct emitter_t {
 
 	object_t *parent; // The object this animator is attached to
@@ -43,6 +64,10 @@ typedef struct emitter_t {
 	float time_emitting; // Number of seconds the emitter has been emitting particles
 	float time_since_emit; // Time elapsed since a particle was emitted the last time
 
+	// The shape of the particle emitter.
+	emit_shape_type_t shape_type;
+	emit_shape_t shape;
+
 	// Particle system data
 	struct { float min, max; } life; // Particle life time in seconds
 	struct { vec3_t min, max; } velocity; // Limits for particle start velocity
@@ -60,7 +85,11 @@ emitter_t *emitter_create(object_t *parent);
 void emitter_destroy(emitter_t *emitter);
 void emitter_process(emitter_t *emitter);
 
-void emitter_start(emitter_t *emitter, uint16_t max_particles, uint16_t burst, float emit_rate, float emit_duration);
+void emitter_start(emitter_t *emitter,
+                   uint16_t max_particles, uint16_t burst,
+                   float emit_rate, float emit_duration);
+
+void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const emit_shape_t shape);
 
 void emitter_set_particle_sprite(emitter_t *emitter, sprite_t *sprite);
 void emitter_set_particle_life_time(emitter_t *emitter, float min, float max);

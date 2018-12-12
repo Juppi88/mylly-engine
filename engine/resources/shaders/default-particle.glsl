@@ -13,6 +13,8 @@ void main()
 	position += ParticleCentre;
 
 	gl_Position = MatrixMVP * vec4(position, 1);
+
+	// TODO: Orient towards the camera!
 	
 	texCoord = TexCoord;
 	colour = Colour;
