@@ -44,6 +44,7 @@ typedef struct object_t {
 	animator_t *animator; // Animator attached to this object
 	emitter_t *emitter; // Particle emitter attached to this object
 	camera_t *camera; // Camera attached to the object
+	ai_t *ai; // An AI attached to this object, executing a behaviour tree
 	
 } object_t;
 
@@ -61,6 +62,7 @@ void obj_process(object_t *obj);
 camera_t *obj_add_camera(object_t *object);
 animator_t *obj_add_animator(object_t *object);
 emitter_t *obj_add_emitter(object_t *object);
+ai_t *obj_add_ai(object_t *object);
 void obj_set_model(object_t *obj, model_t *model);
 void obj_set_sprite(object_t *obj, sprite_t *sprite);
 

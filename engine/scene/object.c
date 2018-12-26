@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "animator.h"
 #include "emitter.h"
+#include "ai/ai.h"
 #include "io/log.h"
 #include "math/math.h"
 
@@ -76,6 +77,9 @@ void obj_destroy(object_t *obj)
 	if (obj->emitter != NULL) {
 		emitter_destroy(obj->emitter);
 	}
+	if (obj->ai != NULL) {
+		ai_destroy(obj->ai);
+	}
 
 	DELETE(obj);
 }
@@ -123,21 +127,34 @@ void obj_process(object_t *obj)
 	}
 
 	// Process particle emitter.
-	if (obj->emitter != NULL && obj->emitter->is_active) {
+	if (obj->emitter != NULL) {
 		emitter_process(obj->emitter);
+	}
+
+	// Process AI and behaviour tree.
+	if (obj->ai != NULL) {
+		ai_process(obj->ai);
 	}
 }
 
 camera_t *obj_add_camera(object_t *obj)
 {
-	// One camera per object.
-	if (obj == NULL || obj->camera != NULL) {
+	if (obj == NULL) {
 		return NULL;
 	}
 
+	// Allow only one camera per object.
+	if (obj->camera != NULL) {
+
+		log_warning("Scene", "Object already has a camera attached to it.");
+		return obj->camera;
+	}
+
+	// Create a new camera component.
 	obj->camera = camera_create(obj);
 
-	// Register the new camera to the object's parent scene.
+	// All active cameras must be registered to the object's parent scene in order to render
+	// per-camera views.
 	if (obj->scene != NULL) {
 		scene_register_camera(obj->scene, obj);
 	}
@@ -147,9 +164,15 @@ camera_t *obj_add_camera(object_t *obj)
 
 animator_t *obj_add_animator(object_t *obj)
 {
-	// Allow one animator per object.
-	if (obj == NULL || obj->animator != NULL) {
+	if (obj == NULL) {
 		return NULL;
+	}
+
+	// Allow only one animator per object.
+	if (obj->animator != NULL) {
+
+		log_warning("Scene", "Object already has an animator attached to it.");
+		return obj->animator;
 	}
 
 	obj->animator = animator_create(obj);
@@ -158,13 +181,36 @@ animator_t *obj_add_animator(object_t *obj)
 
 emitter_t *obj_add_emitter(object_t *obj)
 {
-	// Allow one emitter per object.
-	if (obj == NULL || obj->emitter != NULL) {
+	if (obj == NULL) {
 		return NULL;
+	}
+
+	// Allow only one particle emitter per object.
+	if (obj->emitter != NULL) {
+
+		log_warning("Scene", "Object already has an emitter attached to it.");
+		return obj->emitter;
 	}
 
 	obj->emitter = emitter_create(obj);
 	return obj->emitter;
+}
+
+ai_t *obj_add_ai(object_t *obj)
+{
+	if (obj == NULL) {
+		return NULL;
+	}
+
+	// Allow only one AI per object.
+	if (obj->ai != NULL) {
+
+		log_warning("Scene", "Object already has an AI attached to it.");
+		return obj->ai;
+	}
+
+	obj->ai = ai_create(obj);
+	return obj->ai;
 }
 
 void obj_set_model(object_t *obj, model_t *model)
@@ -173,6 +219,8 @@ void obj_set_model(object_t *obj, model_t *model)
 		return;
 	}
 
+	// Set the model of the object. Models are shared between different scene objects.
+	// TODO: Add reference counting to shared resources!
 	obj->model = model;
 }
 
@@ -182,6 +230,8 @@ void obj_set_sprite(object_t *obj, sprite_t *sprite)
 		return;
 	}
 
+	// Set the sprite of the object. Sprites are shared between different scene objects.
+	// TODO: Add reference counting to shared resources!
 	obj->sprite = sprite;
 }
 

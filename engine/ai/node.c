@@ -100,8 +100,8 @@ static ai_state_t ai_node_process_flow(ai_node_t *node)
 
 	switch (node->flow.type) {
 
-		// Process all child nodes in order until the first one fails. When it fails, return failure.
-		// If all child nodes succeed, return success.
+		// Process all child nodes in order until the first one fails or is still running.
+		// Returns success if all of the child nodes succeed.
 		case AIFLOW_SEQUENCE:
 		default:
 
@@ -126,8 +126,8 @@ static ai_state_t ai_node_process_flow(ai_node_t *node)
 			}
 			break;
 
-		// Process all child nodes in sequence until one of them succeeds. Returns failure if all of the
-		// child nodes fail, true when one of them succeeds.
+		// Process all child nodes in sequence until one of them succeeds. Returns failure if
+		// all of the child nodes fail, true when one of them succeeds.
 		case AIFLOW_SELECTOR:
 
 			arr_foreach(node->children, child) {

@@ -16,6 +16,10 @@ typedef struct ai_t {
 
 // -------------------------------------------------------------------------------------------------
 
+ai_t *ai_create(object_t *parent);
+void ai_destroy(ai_t *ai);
+void ai_process(ai_t *ai);
+
 END_DECLARATIONS;
 
 #endif
