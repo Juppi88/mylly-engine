@@ -3,7 +3,8 @@
 CC = clang-6.0
 CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external
 
-OBJS = collections/array.o\
+OBJS = ai/ai.o ai/node.o ai/profile.o\
+       collections/array.o\
        core/mylly.o core/memory.o core/string.o core/time.o\
        input/input.o\
        io/config.o io/console.o io/file.o io/log.o\
@@ -19,6 +20,7 @@ DEPS =
 
 builddirs:
 	mkdir -p build/objs
+	mkdir -p build/objs/ai
 	mkdir -p build/objs/collections
 	mkdir -p build/objs/core
 	mkdir -p build/objs/input

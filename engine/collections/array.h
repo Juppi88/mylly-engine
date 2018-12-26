@@ -52,6 +52,8 @@
 #define arr_foreach_reverse(arr, var)\
 	for (size_t __i = (arr).count; __i > 0 && ((var) = (arr).items[__i - 1], 1); --__i)
 
+#define arr_foreach_index() (__i)
+
 #define arr_find(arr, val, idx) {\
 	for ((idx) = 0; (idx) < (arr).count; ++(idx)) {\
 		if ((arr).items[(idx)] == (val)) break;\
