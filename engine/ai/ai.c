@@ -1,4 +1,5 @@
 #include "ai.h"
+#include "behaviour.h"
 #include "core/memory.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -18,6 +19,11 @@ void ai_destroy(ai_t *ai)
 		return;
 	}
 
+	// Destroy assigned behaviour tree.
+	if (ai->behaviour != NULL) {
+		ai_behaviour_destroy(ai->behaviour);
+	}
+
 	DELETE(ai);
 }
 
@@ -27,5 +33,8 @@ void ai_process(ai_t *ai)
 		return;
 	}
 
-	// TODO: Process behaviour tree
+	// Process behaviour tree.
+	if (ai->behaviour != NULL) {
+		ai_behaviour_process(ai->behaviour);
+	}
 }

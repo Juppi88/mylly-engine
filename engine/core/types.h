@@ -29,6 +29,7 @@ typedef struct sprite_anim_t sprite_anim_t;
 
 // AI types
 typedef struct ai_t ai_t;
+typedef struct ai_behaviour_t ai_behaviour_t;
 typedef struct ai_node_t ai_node_t;
 
 #endif

@@ -11,6 +11,7 @@ BEGIN_DECLARATIONS;
 typedef struct ai_t {
 
 	object_t *parent; // Parent scene object for the AI
+	ai_behaviour_t *behaviour; // Behaviour tree run by the AI
 
 } ai_t;
 

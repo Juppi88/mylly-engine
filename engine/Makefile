@@ -3,7 +3,7 @@
 CC = clang-6.0
 CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external
 
-OBJS = ai/ai.o ai/node.o ai/profile.o\
+OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        collections/array.o\
        core/mylly.o core/memory.o core/string.o core/time.o\
        input/input.o\
