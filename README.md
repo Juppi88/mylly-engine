@@ -2,6 +2,8 @@
 
 Mylly Game Engine is a light-weight and minimalistic game engine written entirely in C.
 
+At its current state, Mylly is a 3D rendering framework with a collection of utilities for game development (e.g. AI). Currently Mylly does not handle physics, nor is there a plan to add an extensive physics component into the engine (other than perhaps some ray tracing or similar utilities).
+
 ## Features
 
 Mylly engine is developed a few core principles in mind:
@@ -63,3 +65,8 @@ The engine uses OpenGL for rendering by default, so OpenGL development libraries
 * [cglm](https://github.com/recp/cglm.git) is a C99 compatible 3D graphics math library
 * [JSMN](https://github.com/zserge/jsmn.git) is a minimalistic JSON parser
 * [MinUnit](https://github.com/siu/minunit.git) is a minimal unit testing framework
+
+Dependencies installed separately:
+
+* OpenGL
+* [libpng](http://www.libpng.org/pub/png/libpng.html) for loading PNG encoded textures
