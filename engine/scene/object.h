@@ -165,7 +165,7 @@ static INLINE void obj_set_position(object_t *obj, const vec3_t position)
 	}
 
 	// Set the world position by updating the local position.
-	obj_set_local_position(obj, position);
+	obj_set_local_position(obj, local);
 }
 
 static INLINE void obj_set_local_position(object_t *obj, const vec3_t position)

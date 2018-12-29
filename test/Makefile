@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean
-CC = clang-6.0
+CC = clang
 CFLAGS = -Wall -g -I../engine -I../external/minunit
 LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng -lrt
 

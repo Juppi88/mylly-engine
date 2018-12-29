@@ -42,9 +42,9 @@
 
 #define list_remove(list, item)\
 	if ((item) == (list).first)\
-		(list).first == (item)->__entry.next;\
+		(list).first = (item)->__entry.next;\
 	if ((item) == (list).last)\
-		(list).last == (item)->__entry.previous;\
+		(list).last = (item)->__entry.previous;\
 	if ((item)->__entry.previous)\
 		(item)->__entry.previous->__entry.next = (item)->__entry.next;\
 	if ((item)->__entry.next)\

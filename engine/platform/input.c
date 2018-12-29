@@ -55,15 +55,15 @@ bool input_sys_process_messages(void *params)
 			XLookupString(key_event, buffer, sizeof(buffer), &sym, NULL);
 			code = (uint32_t)sym;
 
-			// Handle key down event and related binds.
-			if (!input_handle_keyboard_event(INPUT_KEY_DOWN, code)) {
-				return false;
-			}
-
 			// A fix to make Windows and Linux hooks compatible:
 			// Convert lowercase characters to upper case before processing hooks.
 			if (code >= 'a' && code <= 'z') {
 				code -= ('a' - 'A');
+			}
+
+			// Handle key down event and related binds.
+			if (!input_handle_keyboard_event(INPUT_KEY_DOWN, code)) {
+				return false;
 			}
 
 			// Handle character event and related bindings.

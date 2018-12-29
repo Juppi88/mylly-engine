@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
-.PHONY: all clean
-CC = clang-6.0
+.PHONY: all clean analysis
+CC = clang
 CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external
 
 OBJS = ai/ai.o ai/behaviour.o ai/node.o\
@@ -41,6 +41,9 @@ libmylly.a: $(OBJS)
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)
+
+analysis:
+	scan-build --view --show-description --keep-going --use-cc=/usb/bin/clang make
 
 all:
 	make builddirs
