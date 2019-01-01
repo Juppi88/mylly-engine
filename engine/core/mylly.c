@@ -8,7 +8,12 @@
 #include "renderer/rendersystem.h"
 #include "resources/resources.h"
 #include "scene/scene.h"
+
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <Windows.h>
+#endif
 
 // -------------------------------------------------------------------------------------------------
 
@@ -121,6 +126,8 @@ static void mylly_set_working_directory(void)
 {
 	// TODO: Move this to platform specific code!
 
+#ifndef _WIN32
+
 	// Get the full path for the executable.
 	char path[260];
 	size_t read = readlink("/proc/self/exe", path, sizeof(path));
@@ -137,4 +144,28 @@ static void mylly_set_working_directory(void)
 
 	// Set working directory to the path of the executable.
 	UNUSED_RETURN(chdir(path));
+
+#else
+
+	// Get the full path for the executable.
+	HMODULE executable = GetModuleHandleW(NULL);
+	WCHAR path[MAX_PATH];
+
+	DWORD read = GetModuleFileNameW(executable, path, MAX_PATH);
+
+	// Null terminate the path and remove the name of the binary from it.
+	path[read] = 0;
+
+	for (DWORD i = read; i > 0; i--) {
+
+		if (path[i] == '/') {
+			path[i] = 0;
+			break;
+		}
+	}
+
+	// Set working directory to the path of the executable.
+	SetCurrentDirectoryW(path);
+
+#endif
 }

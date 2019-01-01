@@ -75,7 +75,7 @@ char *res_parser_get_text(res_parser_t *parser, int token, char *dst, size_t dst
 		return dst;
 	}
 
-	dst_len = MIN(dst_len, parser->tokens[token].end - parser->tokens[token].start + 1);
+	dst_len = MIN(dst_len, (size_t)(parser->tokens[token].end - parser->tokens[token].start + 1));
 	string_copy(dst, &parser->text[parser->tokens[token].start], dst_len);
 
 	return dst;
