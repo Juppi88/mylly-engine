@@ -122,6 +122,7 @@ void model_set_material(model_t *model, int mesh, shader_t *shader, texture_t *t
 		return;
 	}
 
+
 	if (mesh < 0) {
 
 		// Set the material for every submesh of the model.
@@ -131,7 +132,7 @@ void model_set_material(model_t *model, int mesh, shader_t *shader, texture_t *t
 			mesh_set_material(submesh, shader, texture);
 		}
 	}
-	else if (mesh >= 0 && mesh < model->meshes.count) {
+	else if (mesh >= 0 && (size_t)mesh < model->meshes.count) {
 
 		// Set the material of a specific submesh.
 		mesh_t *submesh = model->meshes.items[mesh];

@@ -131,7 +131,7 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 	// the geometry queue by default.
 	shader->queue = QUEUE_GEOMETRY;
 
-	for (int i = 0; i < num_lines; ++i) {
+	for (uint32_t i = 0; i < num_lines; ++i) {
 
 		if (lines[i] != NULL && string_starts_with(lines[i], "#pragma queue ", 14)) {
 

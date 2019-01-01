@@ -2,7 +2,7 @@
 #include "memory.h"
 #include <string.h>
 
-void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size)
+void arr_resize(char **arr, size_t *count, size_t *capacity, size_t data_size)
 {
 	if (*capacity >= data_size * ((*count) + 1)) {
 
@@ -26,7 +26,7 @@ void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size)
 	*capacity = new_capacity;
 }
 
-void arr_splice(void **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items)
+void arr_splice(char **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items)
 {
 	memmove(*arr + start * data_size, *arr + (start + items) * data_size,
 			(*count - start - items) * data_size);

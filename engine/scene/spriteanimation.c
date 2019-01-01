@@ -50,7 +50,7 @@ bool sprite_anim_set_frames(sprite_anim_t *animation,
 	bool has_zero_length_keyframes = false;
 	bool has_missing_sprites = false;
 
-	for (int i = 0; i < num_keyframes; i++) {
+	for (uint32_t i = 0; i < num_keyframes; i++) {
 
 		if (keyframes[i].duration != 0) {
 

@@ -39,7 +39,7 @@
 
 #define arr_push(arr, item) {\
 	if ((arr).count == (arr).capacity)\
-		arr_resize((void **)&(arr).items, &(arr).count, &(arr).capacity, sizeof((arr).items[0]));\
+		arr_resize((char **)&(arr).items, &(arr).count, &(arr).capacity, sizeof((arr).items[0]));\
 	(arr).items[(arr).count++] = item;\
 }
 
@@ -55,7 +55,7 @@
 #define arr_foreach_index() (__i)
 
 #define arr_find(arr, val, idx) {\
-	for ((idx) = 0; (idx) < (arr).count; ++(idx)) {\
+	for ((idx) = 0; (idx) < (int)(arr).count; ++(idx)) {\
 		if ((arr).items[(idx)] == (val)) break;\
 	}\
 	if ((idx) == (arr).count) (idx) = -1;\
@@ -65,7 +65,7 @@
 	int __idx;\
 	arr_find(arr, val, __idx);\
 	if (__idx != -1) {\
-		arr_splice((void **)&(arr).items, &(arr).count, &(arr).capacity,\
+		arr_splice((char **)&(arr).items, &(arr).count, &(arr).capacity,\
 			sizeof((arr).items[0]), __idx, 1);\
 	}\
 }
@@ -87,8 +87,8 @@
 
 BEGIN_DECLARATIONS;
 
-void arr_resize(void **arr, size_t *count, size_t *capacity, size_t data_size);
-void arr_splice(void **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items);
+void arr_resize(char **arr, size_t *count, size_t *capacity, size_t data_size);
+void arr_splice(char **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items);
 
 END_DECLARATIONS;
 

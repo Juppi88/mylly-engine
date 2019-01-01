@@ -38,7 +38,7 @@ static INLINE void math_sincos(float angle, float *s, float *c)
 
 static INLINE float math_sqrt(float value)
 {
-	return sqrt(value);
+	return sqrtf(value);
 }
 
 static INLINE float math_sanitize_angle(float angle)

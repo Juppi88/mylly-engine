@@ -14,7 +14,7 @@ typedef struct animator_t {
 
 	float frame_time; // Animation frame time. Default is 1/60
 
-	int current_frame; // Current keyframe index
+	uint32_t current_frame; // Current keyframe index
 	float frame_elapsed; // Time in seconds how long this frame has played
 	float frame_duration; // Duration of the current frame in seconds
 

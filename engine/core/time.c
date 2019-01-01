@@ -8,7 +8,7 @@
 engine_time_t engine_time = { 0, 0, 1 };
 
 // Time, CosTime, SinTime, DeltaTime
-vec4_t engine_shader_time = vec4(0, 1, 0, 0);
+vec4_t engine_shader_time = { .vec = { 0, 1, 0, 0 } };
 
 // The tick count for when the engine is initialized.
 static uint64_t start;
