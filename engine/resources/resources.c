@@ -224,7 +224,7 @@ static void res_load_texture(const char *file_name)
 			// Create a sprite and set its data.
 			sprite_t *sprite = sprite_create(name);
 			sprite_set(sprite, texture,
-				vec2_zero, vector2(texture->width, texture->height), vec2_zero, 100);
+				vec2_zero(), vector2(texture->width, texture->height), vec2_zero(), 100);
 
 			// Add to resource list.
 			sprite->resource.index = arr_last_index(sprites);
@@ -335,9 +335,9 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
                             res_parser_t *parser, int *next_token)
 {
 	char name[100] = { 0 };
-	vec2_t position = vec2_zero;
-	vec2_t size = vec2_zero;
-	vec2_t pivot = vec2_zero;
+	vec2_t position = vec2_zero();
+	vec2_t size = vec2_zero();
+	vec2_t pivot = vec2_zero();
 	bool flip_vertical = false;
 	int token = *next_token;
 

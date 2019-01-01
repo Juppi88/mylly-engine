@@ -11,10 +11,8 @@ BEGIN_DECLARATIONS;
 
 typedef vec4_t quat_t;
 
-#define quat(x, y, z, w) { .vec = { x, y, z, w } }
-#define quat_identity() { .vec = { 0, 0, 0, 1 } }
-
-extern quat_t quat_identity;
+#define quat(x, y, z, w) (quat_t){ .vec = { x, y, z, w } }
+#define quat_identity() (quat_t){ .vec = { 0, 0, 0, 1 } }
 
 // --------------------------------------------------------------------------------
 

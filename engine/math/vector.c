@@ -4,20 +4,6 @@
 
 // --------------------------------------------------------------------------------
 
-vec2_t vec2_zero = vec2_zero();
-vec2_t vec2_one = vec2_one();
-
-vec3_t vec3_zero = vec3_zero();
-vec3_t vec3_one = vec3_one();
-vec3_t vec3_right = vec3(1, 0, 0);
-vec3_t vec3_up = vec3(0, 1, 0);
-vec3_t vec3_forward = vec3(0, 0, 1);
-
-vec4_t vec4_zero = vec4_zero();
-vec4_t vec4_one = vec4_one();
-
-// --------------------------------------------------------------------------------
-
 vec2_t vec2_add(vec2_t a, vec2_t b)
 {
 	vec2_t result = vec2(

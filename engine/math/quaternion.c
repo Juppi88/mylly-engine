@@ -2,9 +2,6 @@
 #include "math.h"
 #include <cglm/cglm.h>
 
-// Identity quaternion (zero rotation)
-quat_t quat_identity = quat_identity();
-
 // --------------------------------------------------------------------------------
 
 quat_t quat_from_euler(float x, float y, float z)

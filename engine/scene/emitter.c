@@ -25,7 +25,7 @@ emitter_t *emitter_create(object_t *parent)
 
 	emitter->parent = parent;
 	emitter->shape_type = SHAPE_POINT;
-	emitter->shape = shape_point(vec3_zero);
+	emitter->shape = shape_point(vec3_zero());
 	emitter->life.min = 1;
 	emitter->life.max = 1;
 	emitter->start_colour.min = COL_WHITE;
@@ -211,7 +211,7 @@ static void emitter_initialize_particles(emitter_t *emitter)
 	for (int i = 0; i < emitter->max_particles; i++) {
 
 		emitter->particles[i].is_active = false;
-		emitter->particles[i].position = vec3_zero;
+		emitter->particles[i].position = vec3_zero();
 		emitter->particles[i].start_colour = COL_TRANSPARENT;
 		emitter->particles[i].end_colour = COL_TRANSPARENT;
 	}
@@ -237,7 +237,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 		vertices[0 + 4 * i] = vertex_particle(
 
 			vec4(-0.5f, -0.5f, 0, 1),
-			vec3_zero,
+			vec3_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
 			0
@@ -246,7 +246,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 		vertices[1 + 4 * i] = vertex_particle(
 
 			vec4(0.5f, -0.5f, 0, 1),
-			vec3_zero,
+			vec3_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
 			0
@@ -255,7 +255,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 		vertices[2 + 4 * i] = vertex_particle(
 
 			vec4(-0.5f, 0.5f, 0, 1),
-			vec3_zero,
+			vec3_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
 			0
@@ -264,7 +264,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 		vertices[3 + 4 * i] = vertex_particle(
 
 			vec4(0.5f, 0.5f, 0, 1),
-			vec3_zero,
+			vec3_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
 			0
@@ -376,7 +376,7 @@ static vec3_t emitter_randomize_position(emitter_t *emitter)
 			);
 
 		default:
-			return vec3_zero;
+			return vec3_zero();
 	}
 }
 

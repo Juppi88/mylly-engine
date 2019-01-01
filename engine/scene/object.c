@@ -25,9 +25,9 @@ object_t *obj_create(scene_t *scene, object_t *parent)
 	obj->scene_index = INVALID_INDEX;
 
 	// Move the object to the world origin.
-	obj->local_position = vec3_zero;
-	obj->local_scale = vec3_one;
-	obj->local_rotation = quat_identity;
+	obj->local_position = vec3_zero();
+	obj->local_scale = vec3_one();
+	obj->local_rotation = quat_identity();
 
 	obj->is_transform_dirty = true;
 	obj->is_local_transform_dirty = true;

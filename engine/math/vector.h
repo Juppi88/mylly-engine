@@ -37,9 +37,6 @@ vec2_t vec2_normalized(vec2_t v);
 
 bool vec2_is_zero(vec2_t v);
 
-extern vec2_t vec2_zero;
-extern vec2_t vec2_one;
-
 static INLINE void vec2_print(vec2_t vec)
 {
 	printf("%.2f  %.2f\n", vec.x, vec.y);
@@ -56,12 +53,9 @@ typedef union vec3_t {
 #define vec3(x, y, z) (vec3_t){ .vec = { x, y, z } }
 #define vec3_zero() (vec3_t){ .vec = { 0, 0, 0 } }
 #define vec3_one() (vec3_t){ .vec = { 1, 1, 1 } }
-
-extern vec3_t vec3_zero;
-extern vec3_t vec3_one;
-extern vec3_t vec3_right;
-extern vec3_t vec3_up;
-extern vec3_t vec3_forward;
+#define vec3_right() (vec3_t){ .vec = { 1, 0, 0 } }
+#define vec3_up() (vec3_t){ .vec = { 0, 1, 0 } }
+#define vec3_forward() (vec3_t){ .vec = { 0, 0, 1 } }
 
 static INLINE vec3_t vector3(float x, float y, float z)
 {
@@ -100,9 +94,6 @@ typedef union vec4_t {
 #define vec4p(x, y, z) (vec4_t){ .vec = { x, y, z, 1 } }
 #define vec4_zero() (vec4_t){ .vec = { 0, 0, 0, 0 } }
 #define vec4_one() (vec4_t){ .vec = { 1, 1, 1, 1 } }
-
-extern vec4_t vec4_zero;
-extern vec4_t vec4_one;
 
 static INLINE vec4_t vector4(float x, float y, float z, float w)
 {
