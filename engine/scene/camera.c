@@ -31,7 +31,7 @@ void camera_destroy(camera_t *camera)
 		return;
 	}
 
-	DELETE(camera);
+	DESTROY(camera);
 }
 
 void camera_set_orthographic_projection(camera_t *camera, float size, float near, float far)

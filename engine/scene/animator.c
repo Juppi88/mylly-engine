@@ -23,7 +23,7 @@ void animator_destroy(animator_t *animator)
 		return;
 	}
 
-	DELETE(animator);
+	DESTROY(animator);
 }
 
 void animator_process(animator_t *animator)

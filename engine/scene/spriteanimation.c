@@ -22,10 +22,10 @@ void sprite_anim_destroy(sprite_anim_t *animation)
 		return;
 	}
 
-	DELETE(animation->resource.name);
-	DELETE(animation->resource.path);
-	DELETE(animation->keyframes);
-	DELETE(animation);
+	DESTROY(animation->resource.name);
+	DESTROY(animation->resource.path);
+	DESTROY(animation->keyframes);
+	DESTROY(animation);
 }
 
 bool sprite_anim_set_frames(sprite_anim_t *animation,
@@ -38,7 +38,7 @@ bool sprite_anim_set_frames(sprite_anim_t *animation,
 
 	// Delete previous keyframes.
 	if (animation->keyframes != NULL) {
-		DELETE(animation->keyframes);
+		DESTROY(animation->keyframes);
 	}
 
 	// Create a new array for the keyframes.

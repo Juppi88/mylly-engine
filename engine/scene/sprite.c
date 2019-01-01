@@ -31,10 +31,10 @@ void sprite_destroy(sprite_t *sprite)
 
 	mesh_destroy(sprite->mesh);
 
-	DELETE(sprite->resource.name);
-	DELETE(sprite->resource.path);
+	DESTROY(sprite->resource.name);
+	DESTROY(sprite->resource.path);
 
-	DELETE(sprite);
+	DESTROY(sprite);
 }
 
 void sprite_set(sprite_t *sprite, texture_t *texture,

@@ -16,9 +16,9 @@ void mesh_destroy(mesh_t *mesh)
 		return;
 	}
 
-	DELETE(mesh->vertices);
-	DELETE(mesh->indices);
-	DELETE(mesh);
+	DESTROY(mesh->vertices);
+	DESTROY(mesh->indices);
+	DESTROY(mesh);
 }
 
 void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertices)
@@ -30,7 +30,7 @@ void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertic
 	// Remove old vertex data.
 	if (mesh->vertices != NULL) {
 
-		DELETE(mesh->vertices);
+		DESTROY(mesh->vertices);
 
 		mesh->vertices = NULL;
 		mesh->num_vertices = 0;
@@ -60,7 +60,7 @@ void mesh_set_particle_vertices(mesh_t *mesh, const vertex_particle_t *vertices,
 	// Remove old vertex data.
 	if (mesh->part_vertices != NULL) {
 
-		DELETE(mesh->part_vertices);
+		DESTROY(mesh->part_vertices);
 
 		mesh->part_vertices = NULL;
 		mesh->num_vertices = 0;
@@ -99,7 +99,7 @@ void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 	// Remove old index data.
 	if (mesh->indices != NULL) {
 
-		DELETE(mesh->indices);
+		DESTROY(mesh->indices);
 
 		mesh->indices = NULL;
 		mesh->num_indices = 0;

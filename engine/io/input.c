@@ -40,7 +40,7 @@ void input_shutdown(void)
 	keybind_t *bind, *tmp;
 
 	list_foreach_safe(keybinds, bind, tmp) {
-		DELETE(bind);
+		DESTROY(bind);
 	}
 }
 
@@ -115,7 +115,7 @@ void input_unbind_key(uint32_t key_symbol, keybind_handler_t method)
 			bind->handler == method) {
 
 			list_remove(keybinds, bind);
-			DELETE(bind);
+			DESTROY(bind);
 		}
 	}
 }

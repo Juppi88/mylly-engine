@@ -20,7 +20,7 @@ void arr_resize(char **arr, size_t *count, size_t *capacity, size_t data_size)
 	}
 
 	// Delete the old array.
-	DELETE(*arr);
+	DESTROY(*arr);
 
 	*arr = new_arr;
 	*capacity = new_capacity;

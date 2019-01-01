@@ -45,10 +45,10 @@ void texture_destroy(texture_t *texture)
 	// Release GPU resources.
 	rend_delete_texture(texture->gpu_texture);
 
-	DELETE(texture->resource.name);
-	DELETE(texture->resource.path);
-	DELETE(texture->data);
-	DELETE(texture);
+	DESTROY(texture->resource.name);
+	DESTROY(texture->resource.path);
+	DESTROY(texture->data);
+	DESTROY(texture);
 }
 
 bool texture_load_png(texture_t *texture, void *data, size_t data_length)
@@ -95,7 +95,7 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 	}
 
 	// Remove old texture data.
-	DELETE(texture->data);
+	DESTROY(texture->data);
 
 	// Create a temporary read struct for reading the PNG from an in-memory block instead of a file.
 	png_file_t file = {

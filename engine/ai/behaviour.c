@@ -27,7 +27,7 @@ void ai_behaviour_destroy(ai_behaviour_t *tree)
 		ai_node_destroy(tree->root);
 	}
 
-	DELETE(tree);
+	DESTROY(tree);
 }
 
 void ai_behaviour_process(ai_behaviour_t *tree)

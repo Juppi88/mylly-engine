@@ -31,7 +31,7 @@ void scene_destroy(scene_t *scene)
 	}
 
 	// Destroy the scene.
-	DELETE(scene);
+	DESTROY(scene);
 }
 
 void scene_process_objects(scene_t *scene)

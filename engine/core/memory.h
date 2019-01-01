@@ -8,7 +8,7 @@
 
 #define NEW_ARRAY(type, name, count) type *name = (type *)mem_alloc_fast(sizeof(type) * count)
 
-#define DELETE(var) {\
+#define DESTROY(var) {\
 	mem_free((void *)(var));\
 	(var) = NULL;\
 }

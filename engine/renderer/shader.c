@@ -56,9 +56,9 @@ void shader_destroy(shader_t *shader)
 	// Destroy the GPU objects.
 	shader_destroy_program(shader);
 
-	DELETE(shader->resource.name);
-	DELETE(shader->resource.path);
-	DELETE(shader);
+	DESTROY(shader->resource.name);
+	DESTROY(shader->resource.path);
+	DESTROY(shader);
 }
 
 bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines)

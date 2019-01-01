@@ -81,7 +81,7 @@ void obj_destroy(object_t *obj)
 		ai_destroy(obj->ai);
 	}
 
-	DELETE(obj);
+	DESTROY(obj);
 }
 
 void obj_set_parent(object_t *obj, object_t *parent)

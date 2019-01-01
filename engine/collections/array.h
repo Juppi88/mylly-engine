@@ -32,7 +32,7 @@
 	(arr).capacity = 0;
 
 #define arr_clear(arr) {\
-	DELETE((arr).items);\
+	DESTROY((arr).items);\
 	(arr).count = 0;\
 	(arr).capacity = 0;\
 }

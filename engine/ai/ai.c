@@ -24,7 +24,7 @@ void ai_destroy(ai_t *ai)
 		ai_behaviour_destroy(ai->behaviour);
 	}
 
-	DELETE(ai);
+	DESTROY(ai);
 }
 
 void ai_process(ai_t *ai)

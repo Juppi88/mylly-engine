@@ -76,7 +76,7 @@ void model_destroy(model_t *model)
 	// Remove all sub-meshes first.
 	model_remove_meshes(model);
 
-	DELETE(model);
+	DESTROY(model);
 }
 
 mesh_t *model_add_mesh(

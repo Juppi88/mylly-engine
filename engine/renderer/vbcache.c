@@ -112,7 +112,7 @@ static void vbcache_destroy_all_buffers(void)
 			rend_destroy_buffer(buffer->vbo);
 		}
 
-		DELETE(buffer);
+		DESTROY(buffer);
 	}
 }
 

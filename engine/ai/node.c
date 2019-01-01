@@ -127,7 +127,7 @@ void ai_node_destroy(ai_node_t *node)
 		arr_remove(node->parent->children, node);
 	}
 
-	DELETE(node);
+	DESTROY(node);
 }
 
 ai_state_t ai_node_process(ai_node_t *node)

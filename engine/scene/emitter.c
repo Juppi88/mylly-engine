@@ -50,8 +50,8 @@ void emitter_destroy(emitter_t *emitter)
 		mesh_destroy(emitter->mesh);
 	}
 
-	DELETE(emitter->particles);
-	DELETE(emitter);
+	DESTROY(emitter->particles);
+	DESTROY(emitter);
 }
 
 void emitter_process(emitter_t *emitter)
@@ -297,8 +297,8 @@ static void emitter_create_mesh(emitter_t *emitter)
 	}
 
 	// Delete temporary data.
-	DELETE(vertices);
-	DELETE(indices);
+	DESTROY(vertices);
+	DESTROY(indices);
 }
 
 static void emitter_emit(emitter_t *emitter, uint16_t count)
