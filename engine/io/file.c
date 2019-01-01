@@ -10,6 +10,8 @@
 	#ifndef DT_DIR
 	#define DT_DIR 0x4
 	#endif
+#else
+	#include <Windows.h>
 #endif
 
 // --------------------------------------------------------------------------------
@@ -21,15 +23,50 @@ static size_t file_get_size(FILE *file);
 void file_for_each_in_directory(const char *directory,
 								const char *extension, void (*method)(const char *file))
 {
-#ifdef _WIN32
-	#error "file_for_each_in_directory is not implemented on Windows."
-#else
-
 	if (method == NULL) {
 		return;
 	}
 
-	// Load and parse all config files from the given directory.
+#ifdef _WIN32
+	
+	// Format a search path.
+	char path[MAX_PATH];
+	sprintf(path, "%s/*.%s", directory, extension);
+
+	// Perform a find in the specified path.
+	WIN32_FIND_DATA find_data;
+	HANDLE find = FindFirstFileA(path, &find_data);
+
+	if (find == INVALID_HANDLE_VALUE) {
+		return;
+	}
+
+	// Iterate find results.
+	do {
+		// Find will return the current and parent directories as the first two results.
+		if (string_equals(find_data.cFileName, ".") ||
+			string_equals(find_data.cFileName, "..")) {
+
+			continue;
+		}
+
+		// Skip directories.
+		if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			continue;
+		}
+
+		// Process the file.
+		snprintf(path, sizeof(path), "%s/%s", directory, find_data.cFileName);
+		method(path);
+	}
+	while (FindNextFile(find, &find_data)); 
+
+	// Close the find handle.
+	FindClose(find);
+
+#else
+
+	// Find and iterate all files in the given directory.
 	DIR *dir = opendir(directory);
 
 	if (dir == NULL) {
