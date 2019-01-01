@@ -1,14 +1,20 @@
 #include "model.h"
 
 // -------------------------------------------------------------------------------------------------
+//
 // Vertices and indices for common primitives.
+//
+// All the vector/colour construction macros are unwrapped because Visual Studio does not seem to
+// understand that the data passed to the macros is constant, causing a C2099 'initializer is not
+// a constant' error.
+//
 
 static vertex_t quad_vertices[] = {
 
-	{ .pos = vec4p(-0.5f, -0.5f, 0.0f), .normal = vec3(0, 0, 1),.uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, -0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(-0.5f, 0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, 0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE }
+	{ .pos = { .vec = { -0.5f, -0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, -0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, 0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 1 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, 0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 1 }, .colour = { 255, 255, 255, 255 } }
 	
 };
 
@@ -20,27 +26,27 @@ static vindex_t quad_indices[] = {
 static vertex_t cube_vertices[] = {
 
 	// Side vertices
-	{ .pos = vec4p(-0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(-0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = { .vec = { -0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 1 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 1 }, .colour = { 255, 255, 255, 255 } },
 
-	{ .pos = vec4p(-0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(-0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = { .vec = { -0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 1 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 1 }, .colour = { 255, 255, 255, 255 } },
 
 	// Bottom vertices
-	{ .pos = vec4p(-0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(-0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = { .vec = { -0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 1 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 1 }, .colour = { 255, 255, 255, 255 } },
 
 	// Top vertices
-	{ .pos = vec4p(-0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4p(-0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4p(0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = { .vec = { -0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 0 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 0, 1 }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { 0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { 1, 1 }, .colour = { 255, 255, 255, 255 } },
 
 };
 
