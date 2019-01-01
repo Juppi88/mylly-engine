@@ -3,18 +3,12 @@
 // -------------------------------------------------------------------------------------------------
 // Vertices and indices for common primitives.
 
-// TODO: These vertex definitions generate the 'initializer element is not constant' error when
-// running static code analysis on the library. Fix the error, or alternatively (a better way) move
-// the primitive models to a model file which is loaded in a similar fashion to default shaders.
-
-const float side = 0.5f;
-
 static vertex_t quad_vertices[] = {
 
-	{ .pos = vec4(-side, -side, 0.0f, 1.0f), .normal = vec3(0, 0, 1),.uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4(side, -side, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4(-side, side, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4(side, side, 0.0f, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE }
+	{ .pos = vec4p(-0.5f, -0.5f, 0.0f), .normal = vec3(0, 0, 1),.uv = vec2(0, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, -0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, 0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, 0.5f, 0.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE }
 	
 };
 
@@ -26,27 +20,27 @@ static vindex_t quad_indices[] = {
 static vertex_t cube_vertices[] = {
 
 	// Side vertices
-	{ .pos = vec4(-side, -side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4(side, -side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4(-side, side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4(side, side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
 
-	{ .pos = vec4(-side, -side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4(side, -side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4(-side, side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
-	{ .pos = vec4(side, side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
 
 	// Bottom vertices
-	{ .pos = vec4(-side, -side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4(side, -side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4(-side, -side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4(side, -side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, -0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, -0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
 
 	// Top vertices
-	{ .pos = vec4(-side, side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
-	{ .pos = vec4(side, side, -side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
-	{ .pos = vec4(-side, side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
-	{ .pos = vec4(side, side, side, 1.0f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, 0.5f, -0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 0), .colour = COL_WHITE },
+	{ .pos = vec4p(-0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(0, 1), .colour = COL_WHITE },
+	{ .pos = vec4p(0.5f, 0.5f, 0.5f), .normal = vec3(0, 0, 1), .uv = vec2(1, 1), .colour = COL_WHITE },
 
 };
 

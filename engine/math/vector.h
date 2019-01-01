@@ -97,6 +97,7 @@ typedef union vec4_t {
 } vec4_t;
 
 #define vec4(x, y, z, w) (vec4_t){ .vec = { x, y, z, w } }
+#define vec4p(x, y, z) (vec4_t){ .vec = { x, y, z, 1 } }
 #define vec4_zero() (vec4_t){ .vec = { 0, 0, 0, 0 } }
 #define vec4_one() (vec4_t){ .vec = { 1, 1, 1, 1 } }
 
