@@ -9,8 +9,8 @@ BEGIN_DECLARATIONS;
 #ifdef _WIN32
 	#include <Windows.h>
 	#include <GL/gl.h>
-	#include <GL/glu.h>
 	#include <GL/glext.h>
+	#include <GL/glu.h>
 #else
 	#include <GL/gl.h>
 	#include <GL/glx.h>

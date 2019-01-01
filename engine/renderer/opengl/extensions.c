@@ -118,7 +118,18 @@ static bool glext_is_supported(const char *name)
 }
 
 #ifdef _WIN32
-#error "Missing implementation for OpenGL extensions"
+
+static extension_t glext_get_method(const char *name)
+{
+	extension_t proc = (extension_t)wglGetProcAddress((const GLubyte *)name);
+
+	if (proc == NULL) {
+		log_warning("OpenGL", "Unable to load extension method '%s'", name);
+	}
+
+	return proc;
+}
+
 #else
 
 static extension_t glext_get_method(const char *name)

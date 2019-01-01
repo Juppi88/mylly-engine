@@ -7,12 +7,15 @@
 #include "core/time.h"
 #include <stdio.h>
 
+// Device and OpenGL context
 #ifdef _WIN32
-#error "Missing implementation"
+static HDC context;
+static HGLRC gl_context;
 #else
-static GLXContext context;
+static GLXContext gl_context;
 #endif
 
+// Currently used shader and texture object.
 static GLuint active_shader = -1;
 static GLuint active_texture = -1;
 
@@ -54,18 +57,62 @@ static void rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint si
 
 bool rend_initialize(void)
 {
+	if (gl_context != NULL) {
+		return true;
+	}
+
 	// Create an OpenGL rendering context.	
 #ifdef _WIN32
-#error "Missing implementation"
-#else
-	context = glXCreateContext(window_get_display(), window_get_visual_info(), NULL, GL_TRUE);
- 
-	if (context == NULL) {
+	
+	// Get a handle for the main window and a device context for it.
+	HWND window = (HWND)window_get_handle();
+	context = GetDC(window);
+
+	// Attempt to select and set an appropriate pixel format.
+	PIXELFORMATDESCRIPTOR descriptor;
+
+	descriptor.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	descriptor.nVersion = 1;
+	descriptor.dwFlags = (PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER | PFD_DRAW_TO_WINDOW);
+	descriptor.iPixelType = PFD_TYPE_RGBA;
+	descriptor.cColorBits = 24;
+	descriptor.cDepthBits = 32;
+
+	int format;
+	format = ChoosePixelFormat(context, &descriptor);
+
+	if (format == 0) {
 		log_error("Renderer", "Could not create an OpenGL rendering context");
 		return false;
 	}
 
-	glXMakeCurrent(window_get_display(), window_get_handle(), context);
+	// Set pixel format for the device context.
+	SetPixelFormat(context, format, &descriptor);
+
+	// Create an OpenGL rendering context.
+	gl_context = wglCreateContext(context);
+
+	if (gl_context == NULL) {
+		log_error("Renderer", "Could not create an OpenGL rendering context");
+		return false;
+	}
+
+	// Make the new rendering context the current one for the application.
+	wglMakeCurrent(context, gl_context);
+
+	/*// Get the rendering area rectangle.
+	RECT rect;
+	GetClientRect(window, &rect);
+	*/
+#else
+	gl_context = glXCreateContext(window_get_display(), window_get_visual_info(), NULL, GL_TRUE);
+ 
+	if (gl_context == NULL) {
+		log_error("Renderer", "Could not create an OpenGL rendering context");
+		return false;
+	}
+
+	glXMakeCurrent(window_get_display(), window_get_handle(), gl_context);
 #endif
 
 	if (!glext_initialize()) {
@@ -83,12 +130,16 @@ void rend_shutdown(void)
 {
 	// Destroy the rendering context.
 #ifdef _WIN32
-#error "Missing implementation"
-#else
-	glXMakeCurrent(window_get_display(), None, NULL);
-	glXDestroyContext(window_get_display(), context);
+	wglMakeCurrent(NULL, NULL);
+	wglDeleteContext(gl_context);
 
 	context = NULL;
+	gl_context = NULL;
+#else
+	glXMakeCurrent(window_get_display(), None, NULL);
+	glXDestroyContext(window_get_display(), gl_context);
+
+	gl_context = NULL;
 #endif
 }
 
@@ -420,7 +471,7 @@ static void rend_begin_draw(void)
 static void rend_end_draw(void)
 {
 #ifdef _WIN32
-#error "Missing implementation"
+	SwapBuffers(context);
 #else
 	glXSwapBuffers(window_get_display(), window_get_handle());
 #endif
