@@ -1,5 +1,5 @@
 #include "input.h"
-#include "platform/input.h"
+#include "platform/inputhook.h"
 #include "core/memory.h"
 #include "core/time.h"
 #include "collections/list.h"

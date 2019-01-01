@@ -6,10 +6,9 @@ CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external
 OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        collections/array.o\
        core/mylly.o core/memory.o core/string.o core/time.o\
-       input/input.o\
-       io/config.o io/console.o io/file.o io/log.o\
+       io/config.o io/console.o io/file.o io/input.o io/log.o\
        math/matrix.o math/quaternion.o math/random.o math/vector.o\
-       platform/input.o platform/thread.o platform/timer.o platform/window.o\
+       platform/inputhook.o platform/thread.o platform/timer.o platform/window.o\
        renderer/mesh.o renderer/rendersystem.o renderer/shader.o renderer/vbcache.o\
        renderer/texture.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
@@ -23,7 +22,6 @@ builddirs:
 	mkdir -p build/objs/ai
 	mkdir -p build/objs/collections
 	mkdir -p build/objs/core
-	mkdir -p build/objs/input
 	mkdir -p build/objs/io
 	mkdir -p build/objs/math
 	mkdir -p build/objs/platform

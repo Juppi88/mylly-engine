@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __PLATFORM_INPUT_H
-#define __PLATFORM_INPUT_H
+#ifndef __PLATFORM_INPUTHOOK_H
+#define __PLATFORM_INPUTHOOK_H
 
 #include "core/defines.h"
 

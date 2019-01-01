@@ -34,6 +34,12 @@ Display *window_get_display(void);
 Window window_get_handle(void);
 XVisualInfo *window_get_visual_info(void);
 
+#else
+
+#include <Windows.h>
+
+HWND window_get_handle(void);
+
 #endif
 
 END_DECLARATIONS;

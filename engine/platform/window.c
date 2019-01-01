@@ -9,7 +9,7 @@
 #else
 
 #include "io/log.h"
-#include "input/input.h"
+#include "io/input.h"
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrandr.h>
 #include <GL/gl.h>

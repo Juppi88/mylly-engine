@@ -1,6 +1,6 @@
-#include "input.h"
+#include "inputhook.h"
 #include "window.h"
-#include "input/input.h"
+#include "io/input.h"
 #include "core/time.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

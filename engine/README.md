@@ -11,7 +11,6 @@ engine
 ├── ai
 ├── collections
 ├── core
-├── input
 ├── io
 ├── math
 ├── platform
@@ -35,13 +34,9 @@ Several data type utilities for storing collections of objects.
 
 Engine core functionality. This includes engine initialization and processing, as well as utilities for e.g. memory management and string manipulation. The entry point to the engine is defined here (_mylly.h_).
 
-### input
-
-User input abstraction (currently for mouse and keyboard).
-
 ### io
 
-Non-user I/O, including file operations, console commands and error logging.
+Non-platform specific I/O functionality, e.g. user input abstraction (currently for mouse and keyboard), file operations, console commands and error logging.
 
 ### math
 
@@ -49,7 +44,7 @@ Math utilities and essential data types for 3D graphics math (vector, matrix etc
 
 ### platform
 
-Platform-specific code, including low-level input handling and window creation. Platform-specific renderer code is stored into sub-directories of _renderer_.
+Platform-specific code, including low-level input hook and window creation. Platform-specific renderer code is stored into sub-directories of _renderer_.
 
 ### renderer
 

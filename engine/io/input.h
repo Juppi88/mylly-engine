@@ -3,7 +3,7 @@
 #define __INPUT_H
 
 #include "core/defines.h"
-#include "input/keys.h"
+#include "io/keys.h"
 
 BEGIN_DECLARATIONS;
 
