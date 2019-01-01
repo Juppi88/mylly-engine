@@ -145,7 +145,7 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 	png_bytep *row_pointers = mem_alloc_fast(height * sizeof(png_bytep));
 
     // Store pointers to each texture row (this is because of the 4-byte alignment).
-    for (int i = 0; i < height; i++) {
+    for (uint32_t i = 0; i < height; i++) {
 		row_pointers[height - 1 - i] = tex_data + i * row_bytes;
 	}
 
@@ -169,7 +169,7 @@ static void texture_read_png_data(png_structp ptr, png_bytep data, png_size_t le
 {
 	png_file_t *file = (png_file_t *)png_get_io_ptr(ptr);
 
-	memcpy(data, (const void *)(file->buffer + file->offset), length);
+	memcpy(data, (const void *)((const char *)file->buffer + file->offset), length);
 
 	file->offset += length;
 }
