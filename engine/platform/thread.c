@@ -2,7 +2,6 @@
 
 #ifdef _WIN32
 
-#include <Windows.h>
 #include <process.h>
 
 void thread_create(thread_t method, void *args)
@@ -18,6 +17,26 @@ void thread_create(thread_t method, void *args)
 void thread_sleep(uint32_t ms)
 {
 	Sleep(ms);
+}
+
+void thread_init_lock(lock_t *lock)
+{
+	InitializeCriticalSection(lock);
+}
+
+void thread_lock(lock_t *lock)
+{
+	EnterCriticalSection(lock);
+}
+
+void thread_unlock(lock_t *lock)
+{
+	LeaveCriticalSection(lock);
+}
+
+void thread_destroy_lock(lock_t *lock)
+{
+	DeleteCriticalSection(lock);
 }
 
 #else

@@ -7,8 +7,12 @@
 BEGIN_DECLARATIONS;
 
 #ifdef _WIN32
+	#include <Windows.h>
+
 	typedef uint32_t (__stdcall *thread_t)(void *args);
 	#define THREAD(x) static uint32_t __stdcall x(void *args)
+
+	typedef CRITICAL_SECTION lock_t;
 #else
 	#include <pthread.h>
 
