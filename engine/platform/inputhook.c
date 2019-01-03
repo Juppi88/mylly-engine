@@ -2,10 +2,8 @@
 #include "window.h"
 #include "io/input.h"
 #include "core/time.h"
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 #define KEY_CODES 256 // Number of key codes that a keyboard can have
 
@@ -18,7 +16,38 @@ static uint32_t modifier_flags = 0;
 static uint32_t key_pressed_frames[KEY_CODES];
 static uint32_t key_released_frames[KEY_CODES];
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+#ifdef _WIN32
+
+#include <Windows.h>
+
+bool input_sys_process_messages(void *params)
+{
+	return true;
+}
+
+void input_sys_warp_cursor(int16_t x, int16_t y)
+{
+
+}
+
+uint32_t input_sys_get_key_pressed_frame(uint32_t key_symbol)
+{
+	return 0;
+}
+
+uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
+{
+	return 0;
+}
+
+#else
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+// -------------------------------------------------------------------------------------------------
 
 bool input_sys_process_messages(void *params)
 {
@@ -251,3 +280,5 @@ uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
 
 	return 0;
 }
+
+#endif
