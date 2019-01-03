@@ -31,7 +31,7 @@ void file_for_each_in_directory(const char *directory,
 	
 	// Format a search path.
 	char path[MAX_PATH];
-	sprintf(path, "%s/*.%s", directory, extension);
+	sprintf(path, "%s/*%s", directory, extension);
 
 	// Perform a find in the specified path.
 	WIN32_FIND_DATA find_data;

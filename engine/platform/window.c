@@ -111,11 +111,8 @@ void window_process_events(input_hook_t handler)
 
 bool window_get_monitor_info(int monitor_id, monitor_info_t *info_dest)
 {
-	// Get the first monitor.
-	// TODO: Figure out how to do this with the instance, because the window handle
-	// doesn't exist yet!
-	POINT point = { 0, 0 };
-	HMONITOR monitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
+	// Get the monitor the window is on.
+	HMONITOR monitor = MonitorFromWindow(window_handle, MONITOR_DEFAULTTONEAREST);
 
 	// Retrieve information about the monitor.
 	MONITORINFO info;

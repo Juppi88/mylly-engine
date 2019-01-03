@@ -27,11 +27,13 @@ typedef struct vertex_t {
 	colour_t colour;
 } vertex_t;
 
-#define vertex_empty() \
-	{ .colour = COL_WHITE }
-
-#define vertex(pos, normal, uv, colour) \
-	(vertex_t){ pos, normal, uv, colour }
+#ifndef __cplusplus
+#define vertex_empty() { .colour = COL_WHITE }
+#define vertex(pos, normal, uv, colour) (vertex_t){ pos, normal, uv, colour }
+#else
+#define vertex_empty() { vec4p(0, 0, 0, 1), vec3_zero(), vec2_zero(), COL_WHITE }
+#define vertex(pos, normal, uv, colour) { pos, normal, uv, colour }
+#endif
 
 // -------------------------------------------------------------------------------------------------
 

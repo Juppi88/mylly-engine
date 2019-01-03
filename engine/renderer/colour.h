@@ -12,6 +12,8 @@ typedef struct colour_t {
 } colour_t;
 
 // Constructor macros
+#ifndef __cplusplus
+
 #define col(r, g, b) (colour_t){ r, g, b, 255 }
 #define col_a(r, g, b, a) (colour_t){ r, g, b, a }
 
@@ -23,5 +25,11 @@ typedef struct colour_t {
 #define COL_GREEN (colour_t){ 0, 255, 0, 255 }
 #define COL_BLUE (colour_t){ 0, 0, 255, 255 }
 #define COL_YELLOW (colour_t){ 255, 255, 0, 255 }
+#else
+
+#define col(r, g, b) { r, g, b, 255 }
+#define col_a(r, g, b, a) { r, g, b, a }
+
+#endif
 
 #endif

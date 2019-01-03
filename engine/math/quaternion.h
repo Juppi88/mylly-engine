@@ -11,8 +11,13 @@ BEGIN_DECLARATIONS;
 
 typedef vec4_t quat_t;
 
+#ifndef __cplusplus
 #define quat(x, y, z, w) (quat_t){ .vec = { x, y, z, w } }
 #define quat_identity() (quat_t){ .vec = { 0, 0, 0, 1 } }
+#else
+#define quat(x, y, z, w) { x, y, z, w }
+#define quat_identity() { 0, 0, 0, 1 }
+#endif
 
 // --------------------------------------------------------------------------------
 
