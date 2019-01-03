@@ -28,7 +28,7 @@ bool window_create(bool fullscreen, int monitor, int x, int y, int width, int he
 	memset(&window_class, 0, sizeof(window_class));
 
 	window_class.style = 0;
-	window_class.lpfnWndProc = NULL;
+	window_class.lpfnWndProc = DefWindowProc;
 	window_class.cbClsExtra = 0;
 	window_class.cbWndExtra = 0;
 	window_class.hInstance = instance;
@@ -111,12 +111,11 @@ void window_process_events(input_hook_t handler)
 
 bool window_get_monitor_info(int monitor_id, monitor_info_t *info_dest)
 {
-	if (window_handle == NULL) {
-		return false;
-	}
-
-	// Get the monitor the engine window is on.
-	HMONITOR monitor = MonitorFromWindow(window_handle, MONITOR_DEFAULTTONEAREST);
+	// Get the first monitor.
+	// TODO: Figure out how to do this with the instance, because the window handle
+	// doesn't exist yet!
+	POINT point = { 0, 0 };
+	HMONITOR monitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
 
 	// Retrieve information about the monitor.
 	MONITORINFO info;
