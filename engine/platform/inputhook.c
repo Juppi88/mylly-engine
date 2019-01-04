@@ -21,24 +21,136 @@ static uint32_t key_released_frames[KEY_CODES];
 #ifdef _WIN32
 
 #include <Windows.h>
+#include <Windowsx.h>
 
 bool input_sys_process_messages(void *params)
 {
+	uint32_t frame = get_time().frame_count;
+	uint32_t keycode = 0;
+	int16_t mouse_x, mouse_y;
+	MSG *msg = (MSG *)params;
+
+	switch (msg->message) {
+
+	case WM_KEYDOWN:
+		keycode = (uint32_t)msg->wParam;
+
+		if (keycode >= KEY_CODES) {
+			return true;
+		}
+
+		// Store the frame the button is pressed.
+		if (key_pressed_frames[keycode] == 0) {
+
+			// Update the frame only when the key is pressed down for the first time.
+			// Other KeyPress events are just character repeats.
+			key_pressed_frames[keycode] = frame;
+			key_released_frames[keycode] = 0;
+		}
+
+		// Handle key down event and related binds.
+		return input_handle_keyboard_event(INPUT_KEY_DOWN, keycode);
+
+	case WM_KEYUP:
+		keycode = (uint32_t)msg->wParam;
+
+		if (keycode >= KEY_CODES) {
+			return true;
+		}
+
+		// Key is released, update frame counts.
+		key_pressed_frames[keycode] = 0;
+		key_released_frames[keycode] = frame;
+
+		// Handle key up event and related binds.
+		return input_handle_keyboard_event(INPUT_KEY_UP, keycode);
+
+	case WM_CHAR:
+		keycode = (uint32_t)msg->wParam;
+		return input_handle_keyboard_event(INPUT_CHARACTER, keycode);
+
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+
+		switch (msg->message) {
+			case WM_LBUTTONDOWN: keycode = MOUSE_LEFT; break;
+			case WM_RBUTTONDOWN: keycode = MOUSE_RIGHT; break;
+			case WM_MBUTTONDOWN: keycode = MOUSE_MIDDLE; break;
+		}
+
+		key_pressed_frames[keycode] = frame;
+		key_released_frames[keycode] = 0;
+
+		mouse_x = GET_X_LPARAM(msg->lParam);
+		mouse_y = GET_Y_LPARAM(msg->lParam);
+
+		// Handle mouse button event and related binds.
+		return input_handle_mouse_event(INPUT_MOUSE_BUTTON_DOWN, mouse_x, mouse_y,
+			keycode, MWHEEL_STATIONARY);
+
+	case WM_LBUTTONUP:
+
+		switch (msg->message) {
+			case WM_LBUTTONUP: keycode = MOUSE_LEFT; break;
+			case WM_RBUTTONUP: keycode = MOUSE_RIGHT; break;
+			case WM_MBUTTONUP: keycode = MOUSE_MIDDLE; break;
+		}
+
+		key_pressed_frames[keycode] = 0;
+		key_released_frames[keycode] = frame;
+
+		mouse_x = GET_X_LPARAM(msg->lParam);
+		mouse_y = GET_Y_LPARAM(msg->lParam);
+
+		// Handle mouse button event and related binds.
+		return input_handle_mouse_event(INPUT_MOUSE_BUTTON_UP, mouse_x, mouse_y,
+			keycode, MWHEEL_STATIONARY);
+
+	case WM_MOUSEMOVE:
+
+		mouse_x = GET_X_LPARAM(msg->lParam);
+		mouse_y = GET_Y_LPARAM(msg->lParam);
+
+		return input_handle_mouse_event(INPUT_MOUSE_MOVE, mouse_x, mouse_y,
+			MOUSE_NONE, MWHEEL_STATIONARY);
+
+	case WM_MOUSEWHEEL:
+
+		mouse_x = GET_X_LPARAM(msg->lParam);
+		mouse_y = GET_Y_LPARAM(msg->lParam);
+		keycode = GET_WHEEL_DELTA_WPARAM(msg->wParam) > 0 ? MWHEEL_UP : MWHEEL_DOWN;
+
+		return input_handle_mouse_event(INPUT_MOUSE_WHEEL, mouse_x, mouse_y,
+			MOUSE_NONE, keycode);
+	}
+
 	return true;
 }
 
 void input_sys_warp_cursor(int16_t x, int16_t y)
 {
+	POINT point = { x, y };
 
+	ClientToScreen(window_get_handle(), &point);
+	SetCursorPos(point.x, point.y);
 }
 
 uint32_t input_sys_get_key_pressed_frame(uint32_t key_symbol)
 {
+	if (key_symbol < KEY_CODES) {
+		return key_pressed_frames[key_symbol];
+	}
+
 	return 0;
 }
 
 uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
 {
+	if (key_symbol < KEY_CODES) {
+		return key_released_frames[key_symbol];
+	}
+
 	return 0;
 }
 
@@ -175,7 +287,7 @@ bool input_sys_process_messages(void *params)
 												MOUSE_NONE, MWHEEL_UP);
 
 			case Button5:
-				// Mouse wheel scroll up
+				// Mouse wheel scroll down
 				return input_handle_mouse_event(INPUT_MOUSE_WHEEL, mouse_x, mouse_y,
 												MOUSE_NONE, MWHEEL_DOWN);
 			}
