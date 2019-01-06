@@ -21,6 +21,8 @@ ai_t *ai_create(object_t *parent);
 void ai_destroy(ai_t *ai);
 void ai_process(ai_t *ai);
 
+void ai_set_behaviour(ai_t *ai, ai_behaviour_t *behaviour);
+
 END_DECLARATIONS;
 
 #endif

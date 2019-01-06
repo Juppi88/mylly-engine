@@ -38,3 +38,12 @@ void ai_process(ai_t *ai)
 		ai_behaviour_process(ai->behaviour);
 	}
 }
+
+void ai_set_behaviour(ai_t *ai, ai_behaviour_t *behaviour)
+{
+	if (ai == NULL) {
+		return;
+	}
+
+	ai->behaviour = behaviour;
+}
