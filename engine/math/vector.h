@@ -15,14 +15,14 @@ typedef union vec2_t {
 	float vec[2];
 } vec2_t;
 
-#ifndef __cplusplus
-#define vec2(x, y) (vec2_t){ .vec = { x, y } }
-#define vec2_zero() (vec2_t){ .vec = { 0, 0 } }
-#define vec2_one() (vec2_t){ .vec = { 1, 1 } }
+#if !defined(__cplusplus) || !defined(_MSC_VER)
+	#define vec2(x, y) (vec2_t){ .vec = { x, y } }
+	#define vec2_zero() (vec2_t){ .vec = { 0, 0 } }
+	#define vec2_one() (vec2_t){ .vec = { 1, 1 } }
 #else
-#define vec2(x, y) { x, y }
-#define vec2_zero() { 0, 0 }
-#define vec2_one() { 1, 1 }
+	#define vec2(x, y) { x, y }
+	#define vec2_zero() { 0, 0 }
+	#define vec2_one() { 1, 1 }
 #endif
 
 static INLINE vec2_t vector2(float x, float y)
@@ -56,20 +56,20 @@ typedef union vec3_t {
 	float vec[3];
 } vec3_t;
 
-#ifndef __cplusplus
-#define vec3(x, y, z) (vec3_t){ .vec = { x, y, z } }
-#define vec3_zero() (vec3_t){ .vec = { 0, 0, 0 } }
-#define vec3_one() (vec3_t){ .vec = { 1, 1, 1 } }
-#define vec3_right() (vec3_t){ .vec = { 1, 0, 0 } }
-#define vec3_up() (vec3_t){ .vec = { 0, 1, 0 } }
-#define vec3_forward() (vec3_t){ .vec = { 0, 0, 1 } }
+#if !defined(__cplusplus) || !defined(_MSC_VER)
+	#define vec3(x, y, z) (vec3_t){ .vec = { x, y, z } }
+	#define vec3_zero() (vec3_t){ .vec = { 0, 0, 0 } }
+	#define vec3_one() (vec3_t){ .vec = { 1, 1, 1 } }
+	#define vec3_right() (vec3_t){ .vec = { 1, 0, 0 } }
+	#define vec3_up() (vec3_t){ .vec = { 0, 1, 0 } }
+	#define vec3_forward() (vec3_t){ .vec = { 0, 0, 1 } }
 #else
-#define vec3(x, y, z) { x, y, z }
-#define vec3_zero() { 0, 0, 0 }
-#define vec3_one() { 1, 1, 1 }
-#define vec3_right() { 1, 0, 0 }
-#define vec3_up() { 0, 1, 0 }
-#define vec3_forward() { 0, 0, 1 }
+	#define vec3(x, y, z) { x, y, z }
+	#define vec3_zero() { 0, 0, 0 }
+	#define vec3_one() { 1, 1, 1 }
+	#define vec3_right() { 1, 0, 0 }
+	#define vec3_up() { 0, 1, 0 }
+	#define vec3_forward() { 0, 0, 1 }
 #endif
 
 static INLINE vec3_t vector3(float x, float y, float z)
@@ -105,16 +105,16 @@ typedef union vec4_t {
 	float vec[4];
 } vec4_t;
 
-#ifndef __cplusplus
-#define vec4(x, y, z, w) (vec4_t){ .vec = { x, y, z, w } }
-#define vec4p(x, y, z) (vec4_t){ .vec = { x, y, z, 1 } }
-#define vec4_zero() (vec4_t){ .vec = { 0, 0, 0, 0 } }
-#define vec4_one() (vec4_t){ .vec = { 1, 1, 1, 1 } }
+#if !defined(__cplusplus) || !defined(_MSC_VER)
+	#define vec4(x, y, z, w) (vec4_t){ .vec = { x, y, z, w } }
+	#define vec4p(x, y, z) (vec4_t){ .vec = { x, y, z, 1 } }
+	#define vec4_zero() (vec4_t){ .vec = { 0, 0, 0, 0 } }
+	#define vec4_one() (vec4_t){ .vec = { 1, 1, 1, 1 } }
 #else
-#define vec4(x, y, z, w) { x, y, z, w }
-#define vec4p(x, y, z) { x, y, z, 1 }
-#define vec4_zero() { 0, 0, 0, 0 }
-#define vec4_one() { 1, 1, 1, 1 }
+	#define vec4(x, y, z, w) { x, y, z, w }
+	#define vec4p(x, y, z) { x, y, z, 1 }
+	#define vec4_zero() { 0, 0, 0, 0 }
+	#define vec4_one() { 1, 1, 1, 1 }
 #endif
 
 static INLINE vec4_t vector4(float x, float y, float z, float w)
