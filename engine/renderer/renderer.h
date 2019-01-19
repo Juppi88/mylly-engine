@@ -26,8 +26,12 @@ vbindex_t rend_generate_buffer(void);
 // Destroy a generated vertex buffer object. Should only be called on renderer shutdown.
 void rend_destroy_buffer(vbindex_t vbo);
 
-// Upload vertex/index data to the GPU. Size of the buffer is the number of elements.
+// Upload vertex/index data to the GPU. Size of the buffer is the number of bytes to be uploaded.
 void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_index, bool is_static);
+
+// Update vertex/index data in a vertex buffer object.
+void rend_update_buffer_subdata(vbindex_t vbo, const void *data, size_t offset, size_t size,
+	                            bool is_index);
 
 //
 // Shaders/shader programs

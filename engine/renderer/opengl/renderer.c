@@ -313,6 +313,15 @@ void rend_upload_buffer_data(vbindex_t vbo, void *data, size_t size, bool is_ind
 	glBufferDataARB(target, size, data, usage);
 }
 
+void rend_update_buffer_subdata(vbindex_t vbo, const void *data, size_t offset, size_t size,
+	                            bool is_index)
+{
+	GLenum target = (is_index ? GL_ELEMENT_ARRAY_BUFFER_ARB : GL_ARRAY_BUFFER_ARB);
+
+	glBindBufferARB(target, vbo);
+	glBufferSubDataARB(target, offset, size, data);
+}
+
 shader_object_t rend_create_shader(SHADER_TYPE type, const char **lines, size_t num_lines,
 								   const char **compiler_log)
 {

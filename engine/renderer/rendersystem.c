@@ -34,12 +34,14 @@ void rsys_initialize(void)
 	// Initialize renderer backend.
 	rend_initialize();
 	vbcache_initialize();
+	bufcache_initialize();
 
 	log_message("RenderSystem", "Rendering system initialized.");
 }
 
 void rsys_shutdown(void)
 {
+	bufcache_shutdown();
 	vbcache_shutdown();
 	rend_shutdown();
 }
