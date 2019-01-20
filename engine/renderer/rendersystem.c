@@ -5,6 +5,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "vertexbuffer.h"
+#include "buffercache.h"
 #include "scene/scene.h"
 #include "scene/object.h"
 #include "scene/model.h"

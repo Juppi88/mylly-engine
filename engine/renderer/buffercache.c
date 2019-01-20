@@ -12,7 +12,13 @@ void bufcache_initialize(void)
 	// Initialize buffer objects.
 	for (int i = 0; i < NUM_BUF_INDICES; i++) {
 
-		uint32_t vertex_size = (i == BUFIDX_PARTICLE ? sizeof(vertex_particle_t) : sizeof(vertex_t));
+		uint32_t vertex_size;
+
+		switch (i) {
+			 case BUFIDX_PARTICLE: vertex_size = sizeof(vertex_particle_t);
+			 case BUFIDX_UI: vertex_size = sizeof(vertex_ui_t);
+			 default: vertex_size = sizeof(vertex_t);
+		}
 
 		buffer_init(&buffers[i].index_buffer, BUFFER_INDEX, i, MAX_VERTICES * sizeof(vindex_t));
 		buffer_init(&buffers[i].vertex_buffer, BUFFER_VERTEX, i, MAX_VERTICES * vertex_size);
@@ -64,5 +70,19 @@ void bufcache_update(buffer_handle_t handle, const void *data)
 	}
 	else {
 		buffer_update(&buffers[index].vertex_buffer, handle, data);
+	}
+}
+
+void bufcache_clear_all_vertices(buffer_index_t index)
+{
+	if (index < NUM_BUF_INDICES) {
+		buffer_clear(&buffers[index].vertex_buffer);
+	}
+}
+
+void bufcache_clear_all_indices(buffer_index_t index)
+{
+	if (index < NUM_BUF_INDICES) {
+		buffer_clear(&buffers[index].index_buffer);
 	}
 }

@@ -20,9 +20,11 @@
 #define list_entry(type) struct {\
 	struct type *next;\
 	struct type *previous;\
+	void *list_reference;\
 } __entry
 
 #define list_init() { NULL, NULL }
+#define list_entry_init() { NULL, NULL, NULL }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -38,17 +40,21 @@
 		(item)->__entry.previous = (list).last;\
 		(item)->__entry.next = NULL;\
 		(list).last = (item);\
-	}
+	}\
+	(item)->__entry.list_reference = &(list);
 
 #define list_remove(list, item)\
-	if ((item) == (list).first)\
-		(list).first = (item)->__entry.next;\
-	if ((item) == (list).last)\
-		(list).last = (item)->__entry.previous;\
-	if ((item)->__entry.previous)\
-		(item)->__entry.previous->__entry.next = (item)->__entry.next;\
-	if ((item)->__entry.next)\
-		(item)->__entry.next->__entry.previous = (item)->__entry.previous;
+	if (list_contains((list), (item))) {\
+		if ((item) == (list).first)\
+			(list).first = (item)->__entry.next;\
+		if ((item) == (list).last)\
+			(list).last = (item)->__entry.previous;\
+		if ((item)->__entry.previous)\
+			(item)->__entry.previous->__entry.next = (item)->__entry.next;\
+		if ((item)->__entry.next)\
+			(item)->__entry.next->__entry.previous = (item)->__entry.previous;\
+		(item)->__entry.list_reference = NULL;\
+	}
 
 #define list_foreach(list, var)\
 	for ((var) = (list).first; (var); (var) = (var)->__entry.next)
@@ -62,5 +68,8 @@
 #define list_clear(list)\
 	list.first = NULL;\
 	list.last = NULL;
+
+#define list_contains(list, item)\
+	((item)->__entry.list_reference == &(list))
 
 #endif

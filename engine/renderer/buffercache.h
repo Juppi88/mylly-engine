@@ -48,6 +48,10 @@ buffer_handle_t bufcache_alloc_indices(buffer_index_t index, const void *data,
 // Update buffer data. The size of the buffer must be the same as the one allocated initially.
 void bufcache_update(buffer_handle_t handle, const void *data);
 
+// Clear all dynamically built vertices or indices for rebuilding.
+void bufcache_clear_all_vertices(buffer_index_t index);
+void bufcache_clear_all_indices(buffer_index_t index);
+
 END_DECLARATIONS;
 
 #endif

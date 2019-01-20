@@ -8,6 +8,7 @@
 #include "renderer/rendersystem.h"
 #include "resources/resources.h"
 #include "scene/scene.h"
+#include "mgui/mgui.h"
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -55,11 +56,22 @@ bool mylly_initialize(int argc, char **argv)
 	// Load resources from files.
 	res_initialize();
 
+	// Initialize MGUI.
+	mgui_parameters_t params = {
+		monitor.width,
+		monitor.height,
+	};
+
+	mgui_initialize(params);
+
 	return true;
 }
 
 static void mylly_shutdown(void)
 {
+	// Destroy UI.
+	mgui_shutdown();
+
 	// Unload all loaded resources.
 	res_shutdown();
 	
@@ -90,6 +102,9 @@ void mylly_main_loop(on_loop_t callback)
 			scene_process_objects(current_scene);
 			rsys_render_scene(current_scene);
 		}
+
+		// Update the UI.
+		mgui_process();
 
 		rsys_end_frame();
 

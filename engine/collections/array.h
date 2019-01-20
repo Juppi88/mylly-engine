@@ -47,10 +47,10 @@
 	(arr).items[(idx)] = (val)
 
 #define arr_foreach(arr, var)\
-	for (size_t __i = 0; __i < (arr).count && ((var) = (arr).items[__i], 1); ++__i)
+	for (int __i = 0; __i < (arr).count && ((var) = (arr).items[__i], 1); ++__i)
 
 #define arr_foreach_reverse(arr, var)\
-	for (size_t __i = (arr).count; __i > 0 && ((var) = (arr).items[__i - 1], 1); --__i)
+	for (int __i = (arr).count; __i > 0 && ((var) = (arr).items[__i - 1], 1); --__i)
 
 #define arr_foreach_index() (__i)
 
