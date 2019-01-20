@@ -2,6 +2,7 @@
 #include "extensions.h"
 #include "renderer/vertex.h"
 #include "renderer/texture.h"
+#include "renderer/buffercache.h"
 #include "io/log.h"
 #include "platform/window.h"
 #include "core/time.h"
@@ -48,10 +49,9 @@ static const char *default_shader_source =
 // --------------------------------------------------------------------------------
 
 static void rend_draw_mesh(rmesh_t *mesh);
-static void rend_begin_draw(void);
-static void rend_end_draw(void);
-static void rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
+static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
+static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent);
 
 // --------------------------------------------------------------------------------
 
@@ -143,12 +143,40 @@ void rend_shutdown(void)
 #endif
 }
 
-void rend_draw_views(rview_t *first_view)
+void rend_begin_draw(void)
 {
-	rend_begin_draw();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0, 0, 0, 1);
+	glClearDepth(1.0f);
+	
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+	glEnable(GL_BLEND);
+
+	glEnable(GL_DEPTH_TEST);
+
+	//glDisable(GL_CULL_FACE);
+
+	//glClearDepth(0);
+	//glDepthFunc(GL_GEQUAL);
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
+}
 
+void rend_end_draw(void)
+{
+#ifdef _WIN32
+	SwapBuffers(context);
+#else
+	glXSwapBuffers(window_get_display(), window_get_handle());
+#endif
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void rend_draw_views(rview_t *first_view)
+{
 	// Create a temporary list from which to render the views.
 	list_t(rview_t) views = list_init();
 	views.first = first_view;
@@ -166,10 +194,58 @@ void rend_draw_views(rview_t *first_view)
 			}
 		}
 	}
+}
 
-	glDisableClientState(GL_VERTEX_ARRAY);
+void rend_draw_ui_view(rview_ui_t *view)
+{
+	// Disable depth testing for UI.
+	glDisable(GL_DEPTH_TEST);
 
-	rend_end_draw();
+	rmesh_ui_t *mesh;
+
+	// Bind UI buffers.
+	bufcache_t *ui_buffer = bufcache_get(BUFIDX_UI);
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, ui_buffer->vertex_buffer.object);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ui_buffer->index_buffer.object);
+
+	shader_t *shader = NULL;
+	texture_t *texture = NULL;
+	robject_t *parent = NULL;
+	uint32_t offset = 0;
+	uint32_t length = 0;
+
+	list_foreach(view->meshes, mesh) {
+		
+		// Check whether we need a new draw call.
+		if (shader != mesh->shader ||
+			texture != mesh->texture ||
+			parent != mesh->parent) {
+
+			// Flush indices.
+			if (length != 0) {
+				glDrawRangeElements(GL_TRIANGLES, offset, offset + length, length,
+                                    GL_UNSIGNED_SHORT, 0);
+
+				offset += length;
+				length = 0;
+			}
+
+			shader = mesh->shader;
+			texture = mesh->texture;
+			parent = mesh->parent;
+
+			rend_set_active_material(shader, texture, parent);
+		}
+
+		// Continue until we need to use a different shader or a texture.
+		length += BUFFER_GET_SIZE(mesh->handle_indices) / sizeof(vindex_t);
+	}
+
+	// Draw remaining elements.
+	if (length != 0) {
+		glDrawRangeElements(GL_TRIANGLES, offset, offset + length, length, GL_UNSIGNED_SHORT, 0);
+	}
 }
 
 static void rend_draw_mesh(rmesh_t *mesh)
@@ -276,17 +352,92 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	}
 }
 
-static void rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
+static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer)
 {
 	if (!shader_uses_attribute(shader, attr_type)) {
-		return;
+		return false;
 	}
 
 	int attribute = shader_get_attribute(shader, attr_type);
 
 	glEnableVertexAttribArray(attribute);
 	glVertexAttribPointer(attribute, size, type, normalized, stride, pointer);
+
+	return true;
+}
+
+
+static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent)
+{
+	// Select the active shader.
+	GLuint shader_id = shader->program;
+
+	if (shader_id != active_shader) {
+
+		glUseProgram(shader_id);
+		active_shader = shader_id;
+	}
+
+	// Select the active texture.
+	GLuint texture_id = (texture != NULL ? texture->gpu_texture : -1);
+
+	if (texture_id != active_texture) {
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		active_texture = texture_id;
+	}
+
+	// Disable vertex attributes to avoid using them when there is no such data available.
+	for (int i = 0; i < NUM_SHADER_ATTRIBUTES; i++) {
+		glDisableVertexAttribArray(i);
+	}
+
+	// Bind vertex attributes.
+	rend_bind_shader_attribute(shader, ATTR_VERTEX, 2, GL_FLOAT, GL_FALSE,
+                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, pos));
+
+	rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, uv));
+
+	rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, colour));
+
+	// Set per-draw shader globals.
+	if (shader_uses_global(shader, GLOBAL_MODEL_MATRIX)) {
+
+		glUniformMatrix4fv(
+			shader_get_global_position(shader, GLOBAL_MODEL_MATRIX),
+			1, GL_FALSE, mat_as_ptr(parent->matrix)
+		);
+	}
+
+	if (shader_uses_global(shader, GLOBAL_MVP_MATRIX)) {
+
+		glUniformMatrix4fv(
+			shader_get_global_position(shader, GLOBAL_MVP_MATRIX),
+			1, GL_FALSE, mat_as_ptr(parent->mvp)
+		);
+	}
+
+	if (shader_uses_global(shader, GLOBAL_TEXTURE)) {
+
+		glUniform1i(
+			shader_get_global_position(shader, GLOBAL_TEXTURE),
+			0
+		);
+	}
+
+	if (shader_uses_global(shader, GLOBAL_TIME)) {
+
+		vec4_t time = get_shader_time();
+
+		glUniform4fv(
+			shader_get_global_position(shader, GLOBAL_TIME),
+			1,
+			(const GLfloat *)&time
+		);
+	}
 }
 
 vbindex_t rend_generate_buffer(void)
@@ -458,30 +609,4 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height)
 void rend_delete_texture(texture_name_t texture)
 {
 	glDeleteTextures(1, &texture);
-}
-
-static void rend_begin_draw(void)
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0, 0, 0, 1);
-	glClearDepth(1.0f);
-	
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-	glEnable(GL_BLEND);
-
-	//glDisable(GL_CULL_FACE);
-
-	//glClearDepth(0);
-	//glDepthFunc(GL_GEQUAL);
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-}
-
-static void rend_end_draw(void)
-{
-#ifdef _WIN32
-	SwapBuffers(context);
-#else
-	glXSwapBuffers(window_get_display(), window_get_handle());
-#endif
 }

@@ -13,7 +13,11 @@ BEGIN_DECLARATIONS;
 bool rend_initialize(void);
 void rend_shutdown(void);
 
+void rend_begin_draw(void);
+void rend_end_draw(void);
+
 void rend_draw_views(rview_t *first_view);
+void rend_draw_ui_view(rview_ui_t *view);
 
 //
 // Vertex buffer objects

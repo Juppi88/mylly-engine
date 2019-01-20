@@ -37,6 +37,8 @@ typedef struct bufcache_t {
 void bufcache_initialize(void);
 void bufcache_shutdown(void);
 
+bufcache_t *bufcache_get(buffer_index_t index);
+
 // Allocate a buffer handle for a vertex array.
 buffer_handle_t bufcache_alloc_vertices(buffer_index_t index, const void *data,
                                         uint32_t vertex_size, uint32_t num_elements);

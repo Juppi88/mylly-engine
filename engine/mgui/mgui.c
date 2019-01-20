@@ -5,14 +5,14 @@
 
 // -------------------------------------------------------------------------------------------------
 
-static mgui_parameters_t parameters;
+mgui_parameters_t mgui_parameters;
 static list_t(widget_t) widgets;
 
 // -------------------------------------------------------------------------------------------------
 
 void mgui_initialize(const mgui_parameters_t config)
 {
-	parameters = config;
+	mgui_parameters = config;
 }
 
 void mgui_shutdown(void)
@@ -27,19 +27,14 @@ void mgui_shutdown(void)
 
 void mgui_process(void)
 {
-	// Clear the UI index buffer for rebuilding.
 	// TODO: If widgets have been destroyed, the vertex buffer should also be rebuilt eventually
 	// to avoid running out of vertices.
-	bufcache_clear_all_indices(BUFIDX_UI);
-
 	widget_t *widget;
 
-	// Process widgets and add visible ones to the index buffer for rendering.
+	// Process widgets and report visible ones to the render system for rendering.
 	// This is a recursive call and will process all child widgets automatically.
 	list_foreach(widgets, widget) {
-
 		widget_process(widget);
-		widget_render(widget);
 	}
 }
 

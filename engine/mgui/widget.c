@@ -1,11 +1,13 @@
 #include "widget.h"
 #include "core/memory.h"
-#include "renderer/buffercache.h"
+#include "renderer/mesh.h"
+#include "renderer/rendersystem.h"
+#include "resources/resources.h"
 
 // -------------------------------------------------------------------------------------------------
 
-static void widget_allocate_vertices(widget_t *widget);
-static void widget_refresh_vertices(widget_t *widget);
+static void widget_create_mesh(widget_t *widget);
+static void widget_refresh_mesh(widget_t *widget);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -29,10 +31,7 @@ widget_t *widget_create(void)
 	mgui_add_widget_layer(widget);
 
 	// Allocate the vertices for this widget on the GPU.
-	widget->handle_vertices = 0;
-	widget->handle_indices = 0;
-
-	widget_allocate_vertices(widget);
+	widget_create_mesh(widget);
 
 	return widget;
 }
@@ -51,7 +50,9 @@ void widget_destroy(widget_t *widget)
 	}
 
 	// Release used memory.
+	mesh_destroy(widget->mesh);
 	arr_clear(widget->children);
+
 	DESTROY(widget);
 }
 
@@ -71,8 +72,12 @@ void widget_process(widget_t *widget)
 
 	// Keep vertices up to date if changes in the shape or position of the widget occur.
 	if (widget->has_moved || widget->has_resized || widget->has_colour_changed) {
-		widget_refresh_vertices(widget);
+		widget_refresh_mesh(widget);
 	}
+
+	// Actual rendering is done in the render system - just report that this mesh needs to be
+	// rendered during this frame.
+	rsys_render_ui_mesh(widget->mesh);
 
 	// Process children.
 	widget_t *child;
@@ -87,65 +92,45 @@ void widget_process(widget_t *widget)
 	widget->has_colour_changed = false;
 }
 
-void widget_render(widget_t *widget)
+static void widget_create_mesh(widget_t *widget)
 {
-	if (widget == NULL) {
-		return;
-	}
+	// Create a new mesh to store the widgets vertices into.
+	widget->mesh = mesh_create();
 
-	// Actual rendering is done in the render system.
-	// Here we just move the widget indices to the GPU.
-	widget->handle_indices = bufcache_alloc_indices(BUFIDX_UI, &widget->indices,
-		                                            NUM_WIDGET_INDICES);
+	// Preallocate the vertices. This creates a local copy and a GPU buffer.
+	mesh_prealloc_vertices(widget->mesh, VERTEX_UI, NUM_WIDGET_VERTICES);
 
-	// Render children as well.
-	widget_t *child;
+	// Set initial vertex values.
+	widget_refresh_mesh(widget);
 
-	arr_foreach(widget->children, child) {
-		widget_process(child);
-	}
+	// Set widget vertex indices. This takes into consideration the offset caused by using a shared
+	// vertex buffer.
+	vindex_t indices[NUM_WIDGET_INDICES] = { 0, 1, 2, 2, 1, 3 };
+	mesh_set_indices(widget->mesh, indices, NUM_WIDGET_INDICES);
+
+	// Use a default material.
+	mesh_set_material(widget->mesh, res_get_shader("default-ui"), res_get_texture("tiles"));
 }
 
-static void widget_allocate_vertices(widget_t *widget)
-{
-	// Refresh the local copy of vertices.
-	widget_refresh_vertices(widget);
-
-	// Allocate a GPU buffer for the vertices.
-	widget->handle_vertices = bufcache_alloc_vertices(BUFIDX_UI, &widget->vertices,
-		                                              sizeof(vertex_ui_t), NUM_WIDGET_VERTICES);
-
-	// Calculate indices.
-	// GPU allocation of indices is done when rendering the widget.
-	uint16_t index_offset = BUFFER_GET_START_INDEX(widget->handle_vertices, sizeof(vertex_ui_t));
-
-	widget->indices[0] = index_offset + 0;
-	widget->indices[1] = index_offset + 1;
-	widget->indices[2] = index_offset + 2;
-	widget->indices[3] = index_offset + 2;
-	widget->indices[4] = index_offset + 1;
-	widget->indices[5] = index_offset + 3;
-}
-
-static void widget_refresh_vertices(widget_t *widget)
+static void widget_refresh_mesh(widget_t *widget)
 {
 	// Refresh child widgets.
 	widget_t *child;
 
 	arr_foreach(widget->children, child) {
-		widget_refresh_vertices(child);
+		widget_refresh_mesh(child);
 	}
 
-	vec2i_t p = widget->world_position;
-	vec2i_t s = widget->size;
+	vec2_t p = vec2(widget->world_position.x, widget->world_position.y);
+	vec2_t s = vec2(widget->size.x, widget->size.y);
+	float o = mgui_parameters.height;
 
-	widget->vertices[0] = vertex_ui(vec2(p.x, p.y), vec2(0, 0), widget->colour);
-	widget->vertices[1] = vertex_ui(vec2(p.x + s.x, p.y), vec2(1, 0), widget->colour);
-	widget->vertices[2] = vertex_ui(vec2(p.x, p.y - s.y), vec2(0, 1), widget->colour);
-	widget->vertices[3] = vertex_ui(vec2(p.x + s.x, p.y - s.y), vec2(1, 1), widget->colour);
+	widget->mesh->ui_vertices[0] = vertex_ui(vec2(p.x, o - p.y), vec2(0, 0), widget->colour);
+	widget->mesh->ui_vertices[1] = vertex_ui(vec2(p.x + s.x, o - p.y), vec2(1, 0), widget->colour);
+	widget->mesh->ui_vertices[2] = vertex_ui(vec2(p.x, o - (p.y + s.y)), vec2(0, 1), widget->colour);
+	widget->mesh->ui_vertices[3] = vertex_ui(vec2(p.x + s.x, o - (p.y + s.y)), vec2(1, 1), widget->colour);
 
-	// Update the GPU object if it has been allocated.
-	bufcache_update(widget->handle_vertices, &widget->vertices);
+	widget->mesh->is_vertex_data_dirty = true;
 }
 
 void widget_set_position(widget_t *widget, vec2i_t position)
@@ -158,7 +143,12 @@ void widget_set_position(widget_t *widget, vec2i_t position)
 	widget->has_moved = true;
 
 	// Recalculate world position.
-	widget->world_position = vec2i_add(widget->parent->world_position, widget->position);
+	if (widget->parent != NULL) {
+		widget->world_position = vec2i_add(widget->parent->world_position, widget->position);
+	}
+	else {
+		widget->world_position = widget->position;
+	}
 }
 
 void widget_set_size(widget_t *widget, vec2i_t size)

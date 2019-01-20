@@ -17,8 +17,8 @@ typedef struct mat_t {
 	float col[4][4]; // Column vectors
 } mat_t;
 
-#define mat_zero() { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }
-#define mat_identity() { { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 1 } } }
+#define mat_zero() (mat_t){ { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } } }
+#define mat_identity() (mat_t){ { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 1 } } }
 
 extern mat_t mat_identity;
 

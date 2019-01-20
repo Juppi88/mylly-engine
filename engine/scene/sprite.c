@@ -121,7 +121,7 @@ static void sprite_create_mesh(sprite_t *sprite)
 	};
 
 	// Create a mesh with the quad vertex data.
-	sprite->mesh = mesh_create(0);
+	sprite->mesh = mesh_create();
 
 	mesh_set_vertices(sprite->mesh, vertices, LENGTH(vertices));
 	mesh_set_indices(sprite->mesh, indices, LENGTH(indices));

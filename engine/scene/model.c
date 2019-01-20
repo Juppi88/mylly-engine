@@ -89,7 +89,7 @@ mesh_t *model_add_mesh(
 	}
 
 	// Create a new mesh and set its vertices.
-	mesh_t *mesh = mesh_create(model->meshes.count);
+	mesh_t *mesh = mesh_create();
 
 	mesh_set_vertices(mesh, vertices, num_vertices);
 	mesh_set_indices(mesh, indices, num_indices);
@@ -157,7 +157,7 @@ void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type)
 
 	switch (type) {
 		case PRIMITIVE_QUAD:
-			mesh = mesh_create(0);
+			mesh = mesh_create();
 			
 			mesh_set_vertices(mesh, quad_vertices, LENGTH(quad_vertices));
 			mesh_set_indices(mesh, quad_indices, LENGTH(quad_indices));
@@ -166,7 +166,7 @@ void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type)
 			break;
 
 		case PRIMITIVE_CUBE:
-			mesh = mesh_create(0);
+			mesh = mesh_create();
 			
 			mesh_set_vertices(mesh, cube_vertices, LENGTH(cube_vertices));
 			mesh_set_indices(mesh, cube_indices, LENGTH(cube_indices));

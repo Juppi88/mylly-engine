@@ -279,7 +279,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 	}
 
 	// Create a mesh with the generated vertex data.
-	emitter->mesh = mesh_create(0);
+	emitter->mesh = mesh_create();
 
 	mesh_set_particle_vertices(emitter->mesh, vertices, 4 * emitter->max_particles);
 	mesh_set_indices(emitter->mesh, indices, 6 * emitter->max_particles);

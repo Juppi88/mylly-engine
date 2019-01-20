@@ -18,8 +18,12 @@
 // -------------------------------------------------------------------------------------------------
 
 static int frames_rendered; // Number of frames rendered so far
-static list_t(rview_t) views; // List of views to be rendered this frame
 static shader_t *default_shader; // Default shader used for rendering when a mesh has no shader
+
+static list_t(rview_t) views; // List of views to be rendered this frame
+
+static robject_t ui_parent; // A virtual object to be used as the UI parent
+static rview_ui_t ui_view; // Meshes to be rendered for the UI.
 
 // -------------------------------------------------------------------------------------------------
 
@@ -36,6 +40,10 @@ void rsys_initialize(void)
 	rend_initialize();
 	vbcache_initialize();
 	bufcache_initialize();
+
+	// Initialize UI parent object.
+	ui_parent.matrix = mat_identity();
+	ui_parent.mvp = mat_identity();
 
 	log_message("RenderSystem", "Rendering system initialized.");
 }
@@ -55,12 +63,16 @@ void rsys_begin_frame(void)
 	}
 
 	vbcache_set_current_frame(frames_rendered);
+
+	rend_begin_draw();
 }
 
 void rsys_end_frame(void)
 {
 	// Issue the actual draw calls here.
 	rend_draw_views(views.first);
+	rend_draw_ui_view(&ui_view);
+	rend_end_draw();
 
 	// Release all temporary data.
 	rsys_free_frame_data();
@@ -108,6 +120,40 @@ void rsys_render_scene(scene_t *scene)
 	arr_foreach(scene->objects, object) {
 		rsys_cull_object(object);
 	}
+}
+
+void rsys_render_ui_mesh(mesh_t *mesh)
+{
+	if (mesh == NULL) {
+		return;
+	}
+
+	// Upload changed vertex data to the GPU.
+	if (mesh->is_vertex_data_dirty &&
+		mesh->handle_vertices != 0) {
+
+		bufcache_update(mesh->handle_vertices, mesh->ui_vertices);
+		mesh->is_vertex_data_dirty = false;
+	}
+
+	// Create a new temporary UI mesh for the renderer.
+	NEW(rmesh_ui_t, rmesh);
+
+	rmesh->parent = &ui_parent;
+	rmesh->vertex_type = mesh->vertex_type;
+	rmesh->handle_vertices = mesh->handle_vertices;
+
+	// Here we just move the widget indices to the GPU.
+	rmesh->handle_indices = bufcache_alloc_indices(BUFIDX_UI, mesh->indices,
+		                                           mesh->num_indices);
+	
+	// Use default shader unless others are available.
+	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
+	rmesh->texture = mesh->texture;
+
+	// Add the mesh to the view. UI meshes ignore the render queue and are always rendered after
+	// everything else.
+	list_push(ui_view.meshes, rmesh);
 }
 
 static void rsys_cull_object(object_t *object)
@@ -232,6 +278,7 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 
 static void rsys_free_frame_data(void)
 {
+	// Remove all regular render views.
 	rview_t *view, *tmp_view;
 
 	list_foreach_safe(views, view, tmp_view) {
@@ -258,4 +305,16 @@ static void rsys_free_frame_data(void)
 	}
 
 	list_clear(views);
+
+	// Clear UI view.
+	rmesh_ui_t *ui_mesh, *tmp_ui_mesh;
+
+	list_foreach_safe(ui_view.meshes, ui_mesh, tmp_ui_mesh) {
+		mem_free(ui_mesh);
+	}
+
+	list_clear(ui_view.meshes);
+
+	// Clear the UI index buffer for rebuilding during the next frame.
+	bufcache_clear_all_indices(BUFIDX_UI);
 }

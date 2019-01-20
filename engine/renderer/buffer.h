@@ -32,7 +32,7 @@ typedef uint64_t buffer_handle_t;
 #define BUFFER_GET_OFFSET(h) ((h) & BUFFER_SIZE_MASK)
 #define BUFFER_GET_SIZE(h) (((h) >> BUFFER_SIZE_SHIFT) & BUFFER_SIZE_MASK)
 #define BUFFER_GET_INDEX(h) (((h) >> BUFFER_INDEX_SHIFT) & BUFFER_INDEX_MASK)
-#define BUFFER_IS_INDEX(h) (((h) >> BUFFER_INDEX_SHIFT) & BUFFER_INDEX_MASK)
+#define BUFFER_IS_INDEX(h) (((h) >> BUFFER_TYPE_SHIFT) & 1)
 
 #define BUFFER_GET_START_INDEX(h, vertsize) BUFFER_GET_OFFSET(h) / (vertsize)
 

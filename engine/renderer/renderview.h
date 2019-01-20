@@ -6,6 +6,7 @@
 #include "math/matrix.h"
 #include "renderer/shader.h"
 #include "renderer/vertex.h"
+#include "renderer/buffer.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -62,6 +63,35 @@ typedef struct rview_t {
 	list_t(rmesh_t) meshes[NUM_QUEUES];
 
 } rview_t;
+
+// -------------------------------------------------------------------------------------------------
+// rmesh_ui_t is a structure which contains the vertices and indices of a UI mesh which are stored
+// into a shared buffer object.
+// -------------------------------------------------------------------------------------------------
+typedef struct rmesh_ui_t {
+
+	list_entry(rmesh_ui_t);
+
+	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrices
+	vertex_type_t vertex_type; // The type of vertex used by the mesh
+	buffer_handle_t handle_vertices; // Handle to vertex data
+	buffer_handle_t handle_indices; // Handle to index data
+	shader_t *shader; // Shader used for rendering this mesh
+	texture_t *texture; // Texture on this mesh
+
+} rmesh_ui_t;
+
+// -------------------------------------------------------------------------------------------------
+// rview_ui_t is a view without a projection matrix for the meshes above.
+// -------------------------------------------------------------------------------------------------
+typedef struct rview_ui_t {
+
+	list_entry(rview_ui_t);
+
+	// List of all the shared buffer meshes to be rendered in the view.
+	list_t(rmesh_ui_t) meshes;
+
+} rview_ui_t;
 
 // -------------------------------------------------------------------------------------------------
 

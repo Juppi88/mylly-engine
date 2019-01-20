@@ -103,9 +103,10 @@ void mylly_main_loop(on_loop_t callback)
 			rsys_render_scene(current_scene);
 		}
 
-		// Update the UI.
+		// Update and render the UI.
 		mgui_process();
 
+		// Ending the frame will issue the actual draw calls.
 		rsys_end_frame();
 
 		time_tick();

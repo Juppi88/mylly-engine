@@ -18,6 +18,10 @@ typedef struct mgui_parameters_t {
 
 // -------------------------------------------------------------------------------------------------
 
+extern mgui_parameters_t mgui_parameters;
+
+// -------------------------------------------------------------------------------------------------
+
 BEGIN_DECLARATIONS;
 
 void mgui_initialize(const mgui_parameters_t config);

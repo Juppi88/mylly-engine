@@ -42,13 +42,8 @@ typedef struct widget_t {
 	bool has_resized;
 	bool has_colour_changed;
 
-	// Local copy of UI widget vertices.
-	vertex_ui_t vertices[NUM_WIDGET_VERTICES];
-	vindex_t indices[NUM_WIDGET_INDICES];
-
-	// Handles to GPU copy of vertices.
-	buffer_handle_t handle_vertices;
-	buffer_handle_t handle_indices;
+	// Widget mesh and material info.
+	mesh_t *mesh;
 
 } widget_t;
 
@@ -59,8 +54,6 @@ BEGIN_DECLARATIONS;
 widget_t *widget_create(void);
 void widget_destroy(widget_t *widget);
 void widget_process(widget_t *widget);
-
-void widget_render(widget_t *widget);
 
 void widget_set_position(widget_t *widget, vec2i_t position);
 void widget_set_size(widget_t *widget, vec2i_t size);
