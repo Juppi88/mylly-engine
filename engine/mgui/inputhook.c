@@ -1,5 +1,10 @@
 #include "inputhook.h"
 #include "mgui.h"
+#include "widget.h"
+
+// -------------------------------------------------------------------------------------------------
+
+static vec2i_t cursor_position;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -13,15 +18,40 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 {
 	if (type == INPUT_MOUSE_BUTTON_DOWN) {
 
+		cursor_position = vec2i(x, y);
+
 		// User clicked somewhere. Find out whether there's a widget under the cursor and if so,
 		// move focus to said widget.
-		widget_t *widget = mgui_get_widget_at_position(vec2i(x, y));
+		widget_t *widget = mgui_get_widget_at_position(cursor_position);
 
 		if (widget != NULL) {
-			
+
 			mgui_set_focused_widget(widget);
+			mgui_set_dragged_widget(widget);
+
 			return false;
 		}
+	}
+	else if (type == INPUT_MOUSE_BUTTON_UP) {
+
+		mgui_set_dragged_widget(NULL);
+	}
+	else if (type == INPUT_MOUSE_MOVE) {
+
+		widget_t *dragged = mgui_get_dragged_widget();
+
+		if (dragged != NULL) {
+
+			int16_t dx = x - cursor_position.x;
+			int16_t dy = y - cursor_position.y;
+
+			// TODO: CLEAN UP
+			vec2i_t position = vec2i(dragged->position.x + dx, dragged->position.y + dy);
+			widget_set_position(dragged, position);
+		}
+
+		// Update cursor position.
+		cursor_position = vec2i(x, y);
 	}
 
 	return true;

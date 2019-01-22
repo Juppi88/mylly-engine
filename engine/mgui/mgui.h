@@ -39,6 +39,9 @@ widget_t *mgui_get_widget_at_position(vec2i_t point);
 widget_t *mgui_get_focused_widget(void);
 void mgui_set_focused_widget(widget_t *widget);
 
+widget_t *mgui_get_dragged_widget(void);
+void mgui_set_dragged_widget(widget_t *widget);
+
 END_DECLARATIONS;
 
 #endif

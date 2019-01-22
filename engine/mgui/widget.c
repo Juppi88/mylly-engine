@@ -46,6 +46,9 @@ void widget_destroy(widget_t *widget)
 	if (widget == mgui_get_focused_widget()) {
 		mgui_set_focused_widget(NULL);
 	}
+	if (widget == mgui_get_dragged_widget()) {
+		mgui_set_dragged_widget(NULL);
+	}
 
 	// Destroy child widgets.
 	widget_t *child, *tmp;

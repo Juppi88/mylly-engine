@@ -9,6 +9,7 @@ mgui_parameters_t mgui_parameters;
 
 static list_t(widget_t) widgets;
 static widget_t *focused_widget;
+static widget_t *dragged_widget;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -90,13 +91,31 @@ void mgui_set_focused_widget(widget_t *widget)
 	// TODO: Callback
 
 	// Move the new focused widget (or its grandparent) to the top (i.e. last of the widgets list).
-	widget_t *layer_widget = widget_get_grandparent(focused_widget);
+	widget_t *layer = widget_get_grandparent(focused_widget);
 
-	if (layer_widget != NULL &&
-		list_contains(widgets, layer_widget)) {
+	if (layer != NULL &&
+		list_contains(widgets, layer)) {
 
-		list_remove(widgets, layer_widget);
-		list_push(widgets, layer_widget);
+		list_remove(widgets, layer);
+		list_push(widgets, layer);
+	}
+}
+
+widget_t *mgui_get_dragged_widget(void)
+{
+	return dragged_widget;
+}
+
+void mgui_set_dragged_widget(widget_t *widget)
+{
+	if (widget == dragged_widget) {
+		return;
 	}
 
+	dragged_widget = widget;
+
+	// Drag the parent widget.
+	if (dragged_widget != NULL) {
+		dragged_widget = widget_get_grandparent(dragged_widget);
+	}
 }
