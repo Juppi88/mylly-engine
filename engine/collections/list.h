@@ -23,8 +23,18 @@
 	void *list_reference;\
 } __entry
 
-#define list_init() { NULL, NULL }
-#define list_entry_init() { NULL, NULL, NULL }
+// -------------------------------------------------------------------------------------------------
+
+#define list_init(list) {\
+	(list).first = NULL;\
+	(list).last = NULL;\
+}
+
+#define list_entry_init(entry) {\
+	(entry)->__entry.next = NULL;\
+	(entry)->__entry.previous = NULL;\
+	(entry)->__entry.list_reference = NULL;\
+}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -58,6 +68,9 @@
 
 #define list_foreach(list, var)\
 	for ((var) = (list).first; (var); (var) = (var)->__entry.next)
+
+#define list_foreach_reverse(list, var)\
+	for ((var) = (list).last; (var); (var) = (var)->__entry.previous)
 
 #define list_foreach_safe(list, var, tmp)\
 	for (\

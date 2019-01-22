@@ -8,7 +8,7 @@ OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        core/mylly.o core/memory.o core/string.o core/time.o\
        io/config.o io/console.o io/file.o io/input.o io/log.o\
        math/matrix.o math/quaternion.o math/random.o math/vector.o\
-       mgui/mgui.o mgui/vector.o mgui/widget.o\
+       mgui/inputhook.o mgui/mgui.o mgui/vector.o mgui/widget.o\
        platform/inputhook.o platform/thread.o platform/timer.o platform/window.o\
        renderer/buffer.o renderer/buffercache.o renderer/colour.o renderer/mesh.o\
        renderer/rendersystem.o renderer/shader.o renderer/texture.o renderer/vbcache.o\

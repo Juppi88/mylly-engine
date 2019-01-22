@@ -3,6 +3,7 @@
 #define __MGUI_H
 
 #include "core/defines.h"
+#include "mgui/vector.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -32,6 +33,11 @@ void mgui_process(void);
 // and create an independent layer for it.
 void mgui_add_widget_layer(widget_t *widget);
 void mgui_remove_widget_layer(widget_t *widget);
+
+widget_t *mgui_get_widget_at_position(vec2i_t point);
+
+widget_t *mgui_get_focused_widget(void);
+void mgui_set_focused_widget(widget_t *widget);
 
 END_DECLARATIONS;
 

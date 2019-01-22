@@ -6,7 +6,9 @@
 // -------------------------------------------------------------------------------------------------
 
 mgui_parameters_t mgui_parameters;
+
 static list_t(widget_t) widgets;
+static widget_t *focused_widget;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -47,4 +49,54 @@ void mgui_add_widget_layer(widget_t *widget)
 void mgui_remove_widget_layer(widget_t *widget)
 {
 	list_remove(widgets, widget);
+}
+
+widget_t *mgui_get_widget_at_position(vec2i_t point)
+{
+	widget_t *widget, *hit;
+
+	list_foreach_reverse(widgets, widget) {
+
+		hit = widget_get_child_at_position(widget, point);
+		if (hit != NULL) {
+			return hit;
+		}
+	}
+
+	return NULL;
+}
+
+widget_t *mgui_get_focused_widget(void)
+{
+	return focused_widget;
+}
+
+void mgui_set_focused_widget(widget_t *widget)
+{
+	if (widget == focused_widget) {
+		return;
+	}
+
+	// Remove focus from previous widget.
+	// TODO: Callback
+
+	focused_widget = widget;
+
+	if (focused_widget == NULL) {
+		return;
+	}
+
+	// Change focus to the new widget.
+	// TODO: Callback
+
+	// Move the new focused widget (or its grandparent) to the top (i.e. last of the widgets list).
+	widget_t *layer_widget = widget_get_grandparent(focused_widget);
+
+	if (layer_widget != NULL &&
+		list_contains(widgets, layer_widget)) {
+
+		list_remove(widgets, layer_widget);
+		list_push(widgets, layer_widget);
+	}
+
 }

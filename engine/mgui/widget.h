@@ -4,7 +4,6 @@
 
 #include "mgui/mgui.h"
 #include "mgui/vector.h"
-#include "collections/array.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"
@@ -31,7 +30,7 @@ typedef struct widget_t {
 
 	list_entry(widget_t);
 	struct widget_t *parent;
-	arr_t(struct widget_t*) children;
+	list_t(widget_t) children;
 
 	vec2i_t position;
 	vec2i_t world_position;
@@ -58,6 +57,11 @@ void widget_process(widget_t *widget);
 void widget_set_position(widget_t *widget, vec2i_t position);
 void widget_set_size(widget_t *widget, vec2i_t size);
 void widget_set_colour(widget_t *widget, colour_t colour);
+
+bool widget_is_point_inside(widget_t *widget, vec2i_t point);
+widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);
+
+widget_t *widget_get_grandparent(widget_t *widget);
 
 END_DECLARATIONS;
 

@@ -3,6 +3,7 @@
 #include "core/memory.h"
 #include "core/time.h"
 #include "collections/list.h"
+#include "mgui/inputhook.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -140,6 +141,12 @@ void input_set_cursor_position(uint16_t x, uint16_t y)
 
 bool input_handle_keyboard_event(input_event_t type, uint32_t key)
 {
+	// Call MGUI's input hook.
+	if (!mgui_handle_keyboard_event(type, key)) {
+		return false;
+	}
+
+	// Process keybinds unless MGUI blocks them.
 	if (type == INPUT_KEY_UP ||
 		type == INPUT_KEY_DOWN) {
 
@@ -156,6 +163,10 @@ bool input_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 {
 	mouse_x = x;
 	mouse_y = y;
+
+	if (!mgui_handle_mouse_event(type, x, y, button, wheel)) {
+		return false;
+	}
 
 	if (type == INPUT_MOUSE_BUTTON_UP ||
 		type == INPUT_MOUSE_BUTTON_DOWN) {

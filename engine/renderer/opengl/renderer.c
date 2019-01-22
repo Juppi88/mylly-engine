@@ -178,7 +178,9 @@ void rend_end_draw(void)
 void rend_draw_views(rview_t *first_view)
 {
 	// Create a temporary list from which to render the views.
-	list_t(rview_t) views = list_init();
+	list_t(rview_t) views;
+	list_init(views);
+	
 	views.first = first_view;
 
 	rview_t *view;

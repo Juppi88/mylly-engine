@@ -26,7 +26,7 @@ widget_t *widget_create(void)
 
 	// Create a new layer for the widget.
 	widget->parent = NULL;
-	arr_init(widget->children);
+	list_init(widget->children);
 
 	mgui_add_widget_layer(widget);
 
@@ -42,16 +42,20 @@ void widget_destroy(widget_t *widget)
 		return;
 	}
 
-	// Destroy child widgets.
-	widget_t *child;
+	// Remove references to widget.
+	if (widget == mgui_get_focused_widget()) {
+		mgui_set_focused_widget(NULL);
+	}
 
-	arr_foreach_reverse(widget->children, child) {
+	// Destroy child widgets.
+	widget_t *child, *tmp;
+
+	list_foreach_safe(widget->children, child, tmp) {
 		widget_destroy(child);
 	}
 
 	// Release used memory.
 	mesh_destroy(widget->mesh);
-	arr_clear(widget->children);
 
 	DESTROY(widget);
 }
@@ -82,7 +86,7 @@ void widget_process(widget_t *widget)
 	// Process children.
 	widget_t *child;
 
-	arr_foreach(widget->children, child) {
+	list_foreach(widget->children, child) {
 		widget_process(child);
 	}
 
@@ -117,7 +121,7 @@ static void widget_refresh_mesh(widget_t *widget)
 	// Refresh child widgets.
 	widget_t *child;
 
-	arr_foreach(widget->children, child) {
+	list_foreach(widget->children, child) {
 		widget_refresh_mesh(child);
 	}
 
@@ -169,4 +173,57 @@ void widget_set_colour(widget_t *widget, colour_t colour)
 
 	widget->colour = colour;
 	widget->has_colour_changed = true;
+}
+
+bool widget_is_point_inside(widget_t *widget, vec2i_t point)
+{
+	if (widget == NULL) {
+		return false;
+	}
+
+	return (
+		point.x >= widget->position.x &&
+		point.x <= widget->position.x + widget->size.x &&
+		point.y >= widget->position.y &&
+		point.y <= widget->position.y + widget->size.y
+	);
+}
+
+widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point)
+{
+	if (widget == NULL) {
+		return NULL;
+	}
+
+	// Test self first.
+	if (!widget_is_point_inside(widget, point)) {
+		return NULL;
+	}
+
+	// Test each child recursively.
+	widget_t *child, *hit;
+
+	list_foreach_reverse(widget->children, child) {
+		
+		hit = widget_get_child_at_position(child, point);
+
+		if (hit != NULL) {
+			return hit;
+		}
+	}
+	
+	return widget;
+}
+
+widget_t *widget_get_grandparent(widget_t *widget)
+{
+	if (widget == NULL) {
+		return NULL;
+	}
+
+	while (widget->parent != NULL) {
+		widget = widget->parent;
+	}
+
+	return widget;
 }
