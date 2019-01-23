@@ -13,6 +13,7 @@ engine
 ├── core
 ├── io
 ├── math
+├── mgui
 ├── platform
 ├── renderer
 │   └── opengl
@@ -41,6 +42,10 @@ Non-platform specific I/O functionality, e.g. user input abstraction (currently 
 ### math
 
 Math utilities and essential data types for 3D graphics math (vector, matrix etc.)
+
+### mgui
+
+Mylly GUI, the UI library specifically designed for Mylly Engine.
 
 ### platform
 
