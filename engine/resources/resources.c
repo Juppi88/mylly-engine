@@ -337,8 +337,11 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 	char name[100] = { 0 };
 	vec2_t position = vec2_zero();
 	vec2_t size = vec2_zero();
+	vec2_t slice_position = vec2_zero();
+	vec2_t slice_size = vec2_zero();
 	vec2_t pivot = vec2_zero();
 	bool flip_vertical = false;
+	bool is_nine_sliced = false;
 	int token = *next_token;
 
 	for (; token < parser->num_tokens; ++token) {
@@ -364,6 +367,26 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 		}
 		else if (res_parser_field_equals(parser, token, "height", JSMN_PRIMITIVE)) {
 			size.y = res_parser_get_int(parser, ++token);
+		}
+		else if (res_parser_field_equals(parser, token, "slice_pos_x", JSMN_PRIMITIVE)) {
+
+			slice_position.x = res_parser_get_int(parser, ++token);
+			is_nine_sliced = true;
+		}
+		else if (res_parser_field_equals(parser, token, "slice_pos_y", JSMN_PRIMITIVE)) {
+
+			slice_position.y = res_parser_get_int(parser, ++token);
+			is_nine_sliced = true;
+		}
+		else if (res_parser_field_equals(parser, token, "slice_width", JSMN_PRIMITIVE)) {
+
+			slice_size.x = res_parser_get_int(parser, ++token);
+			is_nine_sliced = true;
+		}
+		else if (res_parser_field_equals(parser, token, "slice_height", JSMN_PRIMITIVE)) {
+
+			slice_size.y = res_parser_get_int(parser, ++token);
+			is_nine_sliced = true;
 		}
 		else if (res_parser_field_equals(parser, token, "pivot_x", JSMN_PRIMITIVE)) {
 			pivot.x = res_parser_get_int(parser, ++token);
@@ -394,7 +417,9 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 
 		// Flip vertical position if it is measured from the top of the sheet instead of the bottom.
 		if (flip_vertical) {
+			
 			position.y = texture->height - position.y;
+			slice_position.y = texture->height - slice_position.y;
 		}
 
 		// Sprites have formatted names such as <sheet name>/<sprite name>.
@@ -404,6 +429,10 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 		// Create a sprite and set its data.
 		sprite_t *sprite = sprite_create(sprite_name);
 		sprite_set(sprite, texture, position, size, pivot, pixels_per_unit);
+
+		if (is_nine_sliced) {
+			sprite_set_nine_slice(sprite, slice_position, slice_size);
+		}
 
 		// Add to resource list.
 		sprite->resource.index = arr_last_index(sprites);

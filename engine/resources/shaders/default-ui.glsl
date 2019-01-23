@@ -25,10 +25,7 @@ void main()
 
 void main()
 {
-	gl_FragColor = colour;// * texture(Texture, texCoord.st);
-
-	// Alpha cutoff
-	//alphacut(gl_FragColor.a, 0.01);
+	gl_FragColor = colour * texture(Texture, texCoord.st);
 }
 
 #endif

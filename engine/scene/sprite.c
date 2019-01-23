@@ -75,6 +75,32 @@ void sprite_set(sprite_t *sprite, texture_t *texture,
 	mesh_set_material(sprite->mesh, res_get_shader("default-sprite"), texture);
 }
 
+void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice_size)
+{
+	if (sprite == NULL || sprite->texture == NULL) {
+		return;
+	}
+
+	texture_t *texture = sprite->texture;
+
+	// Sanitize slice coordinates.
+	sprite->slice_position.x = CLAMP(slice_position.x, 0, texture->width);
+	sprite->slice_position.y = CLAMP(slice_position.y, 0, texture->height);
+	sprite->slice_size.x = MIN(slice_size.x, texture->width - slice_position.x);
+	sprite->slice_size.y = MIN(slice_size.y, texture->height - slice_position.y);
+
+	// Calculate texture coordinates.
+	sprite->slice_uv1 = vector2(
+		sprite->slice_position.x / texture->width,
+		sprite->slice_position.y / texture->height
+	);
+
+	sprite->slice_uv2 = vector2(
+		(sprite->slice_position.x + sprite->slice_size.x) / texture->width,
+		(sprite->slice_position.y + sprite->slice_size.y) / texture->height
+	);
+}
+
 static void sprite_create_mesh(sprite_t *sprite)
 {
 	if (sprite == NULL) {

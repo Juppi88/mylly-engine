@@ -3,6 +3,7 @@
 #include "renderer/mesh.h"
 #include "renderer/rendersystem.h"
 #include "resources/resources.h"
+#include "scene/sprite.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -84,7 +85,9 @@ void widget_process(widget_t *widget)
 
 	// Actual rendering is done in the render system - just report that this mesh needs to be
 	// rendered during this frame.
-	rsys_render_ui_mesh(widget->mesh);
+	if (widget->sprite != NULL) {
+		rsys_render_ui_mesh(widget->mesh);
+	}
 
 	// Process children.
 	widget_t *child;
@@ -110,13 +113,25 @@ static void widget_create_mesh(widget_t *widget)
 	// Set initial vertex values.
 	widget_refresh_mesh(widget);
 
+	// Create the indices for a nine-sliced sprite.
+	vindex_t indices[NUM_WIDGET_INDICES] = {
+		4, 5, 6, 6, 5, 7, // Centre
+		0, 8, 15, 15, 8, 4, // Bottom left
+		8, 9, 4, 4, 9, 5, // Left
+		9, 1, 5, 5, 1, 10, // Top left
+		5, 10, 7, 7, 10, 11, // Top
+		7, 11, 12, 12, 11, 3, // Top right
+		6, 7, 13, 13, 7, 12, // Right
+		14, 6, 2, 2, 6, 13, // Bottom right
+		15, 4, 14, 14, 4, 6 // Bottom
+	};
+
 	// Set widget vertex indices. This takes into consideration the offset caused by using a shared
 	// vertex buffer.
-	vindex_t indices[NUM_WIDGET_INDICES] = { 0, 1, 2, 2, 1, 3 };
 	mesh_set_indices(widget->mesh, indices, NUM_WIDGET_INDICES);
 
 	// Use a default material.
-	mesh_set_material(widget->mesh, res_get_shader("default-ui"), res_get_texture("tiles"));
+	mesh_set_material(widget->mesh, res_get_shader("default-ui"), res_get_texture("ui-blue"));
 }
 
 static void widget_refresh_mesh(widget_t *widget)
@@ -128,14 +143,45 @@ static void widget_refresh_mesh(widget_t *widget)
 		widget_refresh_mesh(child);
 	}
 
-	vec2_t p = vec2(widget->world_position.x, widget->world_position.y);
-	vec2_t s = vec2(widget->size.x, widget->size.y);
-	float o = mgui_parameters.height;
+	if (widget->sprite == NULL) {
+		return;
+	}
 
-	widget->mesh->ui_vertices[0] = vertex_ui(vec2(p.x, o - p.y), vec2(0, 0), widget->colour);
-	widget->mesh->ui_vertices[1] = vertex_ui(vec2(p.x + s.x, o - p.y), vec2(1, 0), widget->colour);
-	widget->mesh->ui_vertices[2] = vertex_ui(vec2(p.x, o - (p.y + s.y)), vec2(0, 1), widget->colour);
-	widget->mesh->ui_vertices[3] = vertex_ui(vec2(p.x + s.x, o - (p.y + s.y)), vec2(1, 1), widget->colour);
+	sprite_t *sprite = widget->sprite;
+
+	vec2_t uv1 = sprite->uv1;
+	vec2_t uv2 = sprite->uv2;
+	vec2_t suv1 = sprite->slice_uv1;
+	vec2_t suv2 = sprite->slice_uv2;
+	vec2_t p = vec2(widget->world_position.x, widget->world_position.y);
+
+	float bottom = mgui_parameters.height;
+	float w = widget->size.x;
+	float w1 = sprite->slice_position.x - sprite->position.x; // Width offset from left
+	float w2 = sprite->size.x - w1 - sprite->slice_size.x; // Width offset from right
+	float h = widget->size.y;
+	float h1 = sprite->slice_position.y - sprite->position.y; // Height offset from bottom
+	float h2 = sprite->size.y - h1 - sprite->slice_size.y; // Height offset from top
+
+	widget->mesh->ui_vertices[0]  = vertex_ui(vec2(p.x, bottom - p.y),                     vec2(uv1.x, uv1.y), widget->colour);
+	widget->mesh->ui_vertices[1]  = vertex_ui(vec2(p.x, bottom - (p.y + h)),               vec2(uv1.x, uv2.y), widget->colour);
+	widget->mesh->ui_vertices[2]  = vertex_ui(vec2(p.x + w, bottom - p.y),                 vec2(uv2.x, uv1.y), widget->colour);
+	widget->mesh->ui_vertices[3]  = vertex_ui(vec2(p.x + w, bottom - (p.y + h)),           vec2(uv2.x, uv2.y), widget->colour);
+
+	widget->mesh->ui_vertices[4]  = vertex_ui(vec2(p.x + w1, bottom - (p.y + h1)),         vec2(suv1.x, suv1.y), widget->colour);
+	widget->mesh->ui_vertices[5]  = vertex_ui(vec2(p.x + w1, bottom - (p.y + h - h2)),     vec2(suv1.x, suv2.y), widget->colour);
+	widget->mesh->ui_vertices[6]  = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h1)),     vec2(suv2.x, suv1.y), widget->colour);
+	widget->mesh->ui_vertices[7]  = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h - h2)), vec2(suv2.x, suv2.y), widget->colour);
+
+	widget->mesh->ui_vertices[8]  = vertex_ui(vec2(p.x, bottom - (p.y + h1)),              vec2(uv1.x, suv1.y), widget->colour);
+	widget->mesh->ui_vertices[9]  = vertex_ui(vec2(p.x, bottom - (p.y + h - h2)),          vec2(uv1.x, suv2.y), widget->colour);
+	widget->mesh->ui_vertices[10] = vertex_ui(vec2(p.x + w1, bottom - (p.y + h)),          vec2(suv1.x, uv2.y), widget->colour);
+	widget->mesh->ui_vertices[11] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h)),      vec2(suv2.x, uv2.y), widget->colour);
+
+	widget->mesh->ui_vertices[12] = vertex_ui(vec2(p.x + w, bottom - (p.y + h - h2)),      vec2(uv2.x, suv2.y), widget->colour);
+	widget->mesh->ui_vertices[13] = vertex_ui(vec2(p.x + w, bottom - (p.y + h1)),          vec2(uv2.x, suv1.y), widget->colour);
+	widget->mesh->ui_vertices[14] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y)),          vec2(suv2.x, uv1.y), widget->colour);
+	widget->mesh->ui_vertices[15] = vertex_ui(vec2(p.x + w1, bottom - (p.y)),              vec2(suv1.x, uv1.y), widget->colour);
 
 	widget->mesh->is_vertex_data_dirty = true;
 }
@@ -175,6 +221,16 @@ void widget_set_colour(widget_t *widget, colour_t colour)
 	}
 
 	widget->colour = colour;
+	widget->has_colour_changed = true;
+}
+
+void widget_set_sprite(widget_t *widget, sprite_t *sprite)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	widget->sprite = sprite;
 	widget->has_colour_changed = true;
 }
 

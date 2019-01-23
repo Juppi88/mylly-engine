@@ -24,6 +24,12 @@ typedef struct sprite_t {
 	vec2_t pivot; // Offset of pivot from the centre of the sprite (in pixels)
 	float pixels_per_unit; // Number of pixels matching one world unit
 
+	bool is_nine_slice; // Set to true if the sprite is 9-sliced
+	vec2_t slice_position; // The position of the bottom-left corner of the inner rectangle
+	vec2_t slice_size; // The size of the inner rectangle
+	vec2_t slice_uv1; // Texture coordinates of the bottom-left corner of the inner rectangle
+	vec2_t slice_uv2; // Texture coordinates of the top-right corner of the inner rectangle
+
 } sprite_t;
 
 // -------------------------------------------------------------------------------------------------
@@ -33,6 +39,8 @@ void sprite_destroy(sprite_t *sprite);
 
 void sprite_set(sprite_t *sprite, texture_t *texture,
                 vec2_t position, vec2_t size, vec2_t pivot, float pixels_per_unit);
+
+void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice_size);
 
 END_DECLARATIONS;
 

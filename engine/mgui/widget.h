@@ -10,8 +10,8 @@
 
 // -------------------------------------------------------------------------------------------------
 
-#define NUM_WIDGET_VERTICES 4
-#define NUM_WIDGET_INDICES 6
+#define NUM_WIDGET_VERTICES 16
+#define NUM_WIDGET_INDICES 54
 
 // -------------------------------------------------------------------------------------------------
 
@@ -41,6 +41,8 @@ typedef struct widget_t {
 	bool has_resized;
 	bool has_colour_changed;
 
+	sprite_t *sprite;
+
 	// Widget mesh and material info.
 	mesh_t *mesh;
 
@@ -57,6 +59,7 @@ void widget_process(widget_t *widget);
 void widget_set_position(widget_t *widget, vec2i_t position);
 void widget_set_size(widget_t *widget, vec2i_t size);
 void widget_set_colour(widget_t *widget, colour_t colour);
+void widget_set_sprite(widget_t *widget, sprite_t *sprite);
 
 bool widget_is_point_inside(widget_t *widget, vec2i_t point);
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);
