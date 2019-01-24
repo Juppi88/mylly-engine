@@ -67,6 +67,8 @@ void mesh_refresh_vertices(mesh_t *mesh);
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices);
 
 void mesh_set_material(mesh_t *mesh, shader_t *shader, texture_t *texture);
+void mesh_set_shader(mesh_t *mesh, shader_t *shader);
+void mesh_set_texture(mesh_t *mesh, texture_t *texture);
 
 // -------------------------------------------------------------------------------------------------
 

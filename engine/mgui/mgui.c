@@ -43,7 +43,11 @@ void mgui_process(void)
 
 void mgui_add_widget_layer(widget_t *widget)
 {
-	// TODO: REMOVE FROM PARENT BEFORE THIS
+	// Remove the widget from its parent and push to layer list.
+	if (widget->parent != NULL) {
+		widget_remove_from_parent(widget);
+	}
+	
 	list_push(widgets, widget);
 }
 

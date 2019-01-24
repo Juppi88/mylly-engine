@@ -22,6 +22,8 @@ typedef struct vec2i_t {
 	#define vec2i_zero() { 0, 0 }
 #endif
 
+#define vec2i_to_vec2(v) vec2((v).x, (v).y)
+
 // -------------------------------------------------------------------------------------------------
 
 vec2i_t vec2i_add(vec2i_t a, vec2i_t b);

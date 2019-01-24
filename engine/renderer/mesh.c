@@ -215,3 +215,21 @@ void mesh_set_material(mesh_t *mesh, shader_t *shader, texture_t *texture)
 	mesh->texture = texture;
 	mesh->shader = shader;
 }
+
+void mesh_set_shader(mesh_t *mesh, shader_t *shader)
+{
+	if (mesh == NULL) {
+		return;
+	}
+
+	mesh->shader = shader;
+}
+
+void mesh_set_texture(mesh_t *mesh, texture_t *texture)
+{
+	if (mesh == NULL) {
+		return;
+	}
+
+	mesh->texture = texture;
+}

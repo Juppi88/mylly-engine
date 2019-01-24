@@ -56,6 +56,9 @@ widget_t *widget_create(void);
 void widget_destroy(widget_t *widget);
 void widget_process(widget_t *widget);
 
+void widget_add_child(widget_t *widget, widget_t *child);
+void widget_remove_from_parent(widget_t *widget);
+
 void widget_set_position(widget_t *widget, vec2i_t position);
 void widget_set_size(widget_t *widget, vec2i_t size);
 void widget_set_colour(widget_t *widget, colour_t colour);
