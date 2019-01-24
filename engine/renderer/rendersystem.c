@@ -13,6 +13,7 @@
 #include "scene/emitter.h"
 #include "scene/camera.h"
 #include "resources/resources.h"
+#include "core/mylly.h"
 #include "io/log.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -43,7 +44,18 @@ void rsys_initialize(void)
 
 	// Initialize UI parent object.
 	ui_parent.matrix = mat_identity();
-	ui_parent.mvp = mat_identity();
+
+	// Calculate an MVP matrix for the UI based on screen resolution.
+	// TODO: Update this if resolution changes!
+	uint16_t screen_width, screen_height;
+	mylly_get_resolution(&screen_width, &screen_height);
+
+	mat_set(&ui_parent.mvp,
+		2.0f / screen_width, 0, 0, 0,
+		0, 2.0f / screen_height, 0, 0,
+		0, 0, 1, 0,
+		-1, -1, 0, 1
+	);
 
 	log_message("RenderSystem", "Rendering system initialized.");
 }

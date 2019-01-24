@@ -1,4 +1,5 @@
 uniform sampler2D Texture;
+uniform mat4 MatrixMVP;
 
 varying vec2 texCoord;
 varying vec4 colour;
@@ -12,10 +13,7 @@ attribute vec2 TexCoord;
 
 void main()
 {
-	// TODO: Move to uniform
-	vec2 viewport = vec2(2560, 1440);
-
-	gl_Position = vec4(2 * Vertex / viewport - 1, 0, 1);
+	gl_Position = MatrixMVP * vec4(Vertex, 0, 1);
 	
 	texCoord = TexCoord;
 	colour = Colour;
