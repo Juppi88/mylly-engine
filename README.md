@@ -70,3 +70,4 @@ Dependencies installed separately:
 
 * OpenGL
 * [libpng](http://www.libpng.org/pub/png/libpng.html) for loading PNG encoded textures
+* [FreeType](https://www.freetype.org/) for rendering fonts
