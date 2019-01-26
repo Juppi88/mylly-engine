@@ -16,6 +16,7 @@ texture_t *res_get_texture(const char *name);
 sprite_t *res_get_sprite(const char *name);
 shader_t *res_get_shader(const char *name);
 sprite_anim_t *res_get_sprite_anim(const char *name);
+font_t *res_get_font(const char *name);
 
 END_DECLARATIONS;
 

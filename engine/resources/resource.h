@@ -11,6 +11,7 @@ typedef enum {
 	RES_SPRITE,
 	RES_SHADER,
 	RES_ANIMATION,
+	RES_FONT,
 } res_type_t;
 
 // -------------------------------------------------------------------------------------------------

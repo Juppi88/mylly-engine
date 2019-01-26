@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean analysis
 CC = clang
-CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external
+CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external -I/usr/include/freetype2
 
 OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        collections/array.o\
@@ -10,7 +10,7 @@ OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        math/matrix.o math/quaternion.o math/random.o math/vector.o\
        mgui/inputhook.o mgui/mgui.o mgui/vector.o mgui/widget.o\
        platform/inputhook.o platform/thread.o platform/timer.o platform/window.o\
-       renderer/buffer.o renderer/buffercache.o renderer/colour.o renderer/mesh.o\
+       renderer/buffer.o renderer/buffercache.o renderer/colour.o renderer/font.o renderer/mesh.o\
        renderer/rendersystem.o renderer/shader.o renderer/texture.o renderer/vbcache.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
        resources/resourceparser.o resources/resources.o\

@@ -7,9 +7,12 @@
 #include "renderer/renderer.h"
 #include "renderer/texture.h"
 #include "renderer/shader.h"
+#include "renderer/font.h"
 #include "scene/sprite.h"
 #include "scene/spriteanimation.h"
 #include "math/math.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 // -------------------------------------------------------------------------------------------------
 
@@ -17,6 +20,7 @@ static arr_t(texture_t*) textures;
 static arr_t(sprite_t*) sprites;
 static arr_t(shader_t*) shaders;
 static arr_t(sprite_anim_t*) animations;
+static arr_t(font_t*) fonts;
 
 static const char *parsed_file_name;
 
@@ -37,6 +41,11 @@ static void res_load_animation_group(const char *file_name);
 static void res_load_animation(res_parser_t *parser, int *next_token, const char *group_name);
 static void res_load_animation_keyframe(res_parser_t *parser, int *next_token,
                                         sprite_t **sprite, int *frame_count);
+
+static void res_load_font_list(FT_Library freetype);
+static void res_parse_font_entry(char *line, size_t length, void *context);
+static void res_load_font(FT_Library freetype, const char *file_name,
+                          uint8_t font_size, uint32_t first_glyph, uint32_t last_glyph);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -59,6 +68,20 @@ void res_initialize(void)
 	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
+	
+	// Initialize FreeType.
+	FT_Library freetype;
+
+	if (FT_Init_FreeType(&freetype)) {
+		log_error("Resources", "Could not initialize FreeType library.");
+	}
+	else {
+		// Load fonts listed in fonts.txt.
+		res_load_font_list(freetype);
+
+		// Destroy FreeType instance.
+		FT_Done_FreeType(freetype);
+	}
 }
 
 void res_shutdown(void)
@@ -103,6 +126,22 @@ void res_shutdown(void)
 			sprite_anim_destroy(animation);
 		}
 	}
+
+	font_t *font;
+	arr_foreach(fonts, font) {
+
+		if (font != NULL) {
+
+			// TODO: Add reference counting to resources.
+			font_destroy(font);
+		}
+	}
+
+	arr_clear(shaders);
+	arr_clear(sprites);
+	arr_clear(textures);
+	arr_clear(animations);
+	arr_clear(fonts);
 }
 
 // TODO: Load unloaded resources when requested.
@@ -175,6 +214,23 @@ sprite_anim_t *res_get_sprite_anim(const char *name)
 	return NULL;
 }
 
+font_t *res_get_font(const char *name)
+{
+	font_t *font;
+	arr_foreach(fonts, font) {
+
+		if (string_equals(font->resource.name, name)) {
+
+			// TODO: Add reference counting to resources.
+			return font;
+		}
+	}
+
+	log_warning("Resources", "Could not find a font named '%s'.", name);
+
+	return NULL;
+}
+
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type)
 {
 	switch (type) {
@@ -193,6 +249,10 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 
 		case RES_ANIMATION:
 			file_for_each_in_directory(path, extension, res_load_animation_group);
+			break;
+
+		default:
+			log_warning("Resources", "Unhandled resource type %u.", type);
 			break;
 	}
 }
@@ -737,4 +797,67 @@ static void res_load_animation_keyframe(res_parser_t *parser, int *next_token,
 	}
 
 	*next_token = token;
+}
+
+static void res_load_font_list(FT_Library freetype)
+{
+	// Read the font list line by line.
+	if (!file_for_each_line("./fonts/fonts.txt", res_parse_font_entry, freetype, false)) {
+		return;
+	}
+}
+
+static void res_parse_font_entry(char *line, size_t length, void *context)
+{
+	string_strip(&line);
+
+	// Ignore comments.
+	if (*line == '#') {
+		return;
+	}
+
+	// Parse the contents of the file.
+	// Format: <font size> <first glyph> <last glyph> <font file name>
+	char size[32], first[32], last[32], name[128];
+
+	string_tokenize(line, ' ', size, sizeof(size));
+	string_tokenize(NULL, ' ', first, sizeof(first));
+	string_tokenize(NULL, ' ', last, sizeof(last));
+	string_tokenize(NULL, ' ', name, sizeof(name));
+
+	uint8_t font_size = (uint8_t)atoi(size);
+	uint32_t font_first = (uint32_t)atoi(first);
+	uint32_t font_last = (uint32_t)atoi(last);
+
+	// Load the font.
+	char path[260];
+	snprintf(path, sizeof(path), "./fonts/%s", name);
+
+	FT_Library freetype = (FT_Library)context;
+	res_load_font(freetype, path, font_size, font_first, font_last);
+}
+
+static void res_load_font(FT_Library freetype, const char *file_name,
+                          uint8_t font_size, uint32_t first_glyph, uint32_t last_glyph)
+{
+	char name[260];
+	string_get_file_name_without_extension(file_name, name, sizeof(name));
+
+	// Create a font data container.
+	font_t *font = font_create(name, file_name);
+
+	// Attempt to load the font and render the glyphs.
+	if (!font_load_from_file(font, freetype, font_size, first_glyph, last_glyph)) {
+
+		log_warning("Resources", "Failed to load font '%s'", file_name);
+		font_destroy(font);
+
+		return;
+	}
+
+	font->resource.is_loaded = true;
+
+	// Add to resource list.
+	arr_push(fonts, font);
+	font->resource.index = arr_last_index(fonts);
 }

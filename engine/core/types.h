@@ -13,6 +13,7 @@
 */
 
 // Rendering and models
+typedef struct font_t font_t;
 typedef struct mesh_t mesh_t;
 typedef struct model_t model_t;
 typedef struct shader_t shader_t;
