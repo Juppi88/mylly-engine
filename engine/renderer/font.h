@@ -11,7 +11,6 @@ BEGIN_DECLARATIONS;
 // -------------------------------------------------------------------------------------------------
 
 typedef struct FT_LibraryRec_ *FT_Library;
-typedef struct FT_FaceRec_ *FT_Face;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -54,6 +53,7 @@ typedef struct font_t {
 // NOTE: Should not be used directly. Load resources via the res_* API.
 font_t *font_create(const char *name, const char *path);
 void font_destroy(font_t *font);
+void font_destroy_glyph_bitmaps(font_t *font);
 
 bool font_load_from_file(font_t *font, FT_Library freetype,
                          uint8_t size, uint32_t first_glyph, uint32_t last_glyph);

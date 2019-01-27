@@ -53,7 +53,7 @@ void texture_destroy(texture_t *texture)
 
 bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 {
-	if (texture == NULL) {
+	if (texture == NULL || data == NULL) {
 		return false;
 	}
 
@@ -160,7 +160,28 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 	mem_free(row_pointers);
 
 	// Generate a GPU object for this texture.
-	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height);
+	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
+                                                 TEX_FORMAT_RGBA);
+
+	return true;
+}
+
+bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width, uint16_t height)
+{
+	if (texture == NULL || data == NULL) {
+		return false;
+	}
+
+	// Remove old texture data.
+	DESTROY(texture->data);
+
+	texture->width = width;
+	texture->height = height;
+	texture->data = data;
+
+	// Generate a GPU object for this texture.
+	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
+                                                 TEX_FORMAT_GRAYSCALE);
 
 	return true;
 }

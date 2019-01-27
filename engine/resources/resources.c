@@ -8,6 +8,7 @@
 #include "renderer/texture.h"
 #include "renderer/shader.h"
 #include "renderer/font.h"
+#include "renderer/fontpacker.h"
 #include "scene/sprite.h"
 #include "scene/spriteanimation.h"
 #include "math/math.h"
@@ -805,6 +806,72 @@ static void res_load_font_list(FT_Library freetype)
 	if (!file_for_each_line("./fonts/fonts.txt", res_parse_font_entry, freetype, false)) {
 		return;
 	}
+
+	// Count the total number of glyphs in the loaded fonts.
+	size_t num_glyphs = 0;
+
+	font_t *font;
+	arr_foreach(fonts, font) {
+
+		if (font != NULL) {
+			num_glyphs += font->num_glyphs;
+		}
+	}
+
+	// Create an array and copy a pointer to each renderable glyph into it.
+	NEW_ARRAY(glyph_t*, glyphs, num_glyphs);
+	num_glyphs = 0;
+
+	arr_foreach(fonts, font) {
+
+		if (font != NULL) {
+			
+			for (size_t i = 0; i < font->num_glyphs; i++) {
+
+				if (font->glyphs[i].bitmap != NULL &&
+					font->glyphs[i].bitmap->width != 0 &&
+					font->glyphs[i].bitmap->height != 0) {
+
+					glyphs[num_glyphs++] = &font->glyphs[i];
+				}
+			}
+		}
+	}
+
+	// Create a large bitmap into which to copy the bitmap of each glyph.
+	// TODO: Find out whether there's a way to make this size dynamic.
+	const size_t TEX_WIDTH = 1024;
+	const size_t TEX_HEIGHT = 1024;
+
+	uint8_t *bitmap = mem_alloc(TEX_WIDTH * TEX_HEIGHT);
+
+	if (!create_font_texture(glyphs, num_glyphs, bitmap, TEX_WIDTH, TEX_HEIGHT)) {
+
+		log_warning("Resources", "Failed to create font texture.");
+		return;
+	}
+
+	// We no longer need the glyph bitmaps, so release them.
+	arr_foreach(fonts, font) {
+
+		if (font != NULL) {
+			font_destroy_glyph_bitmaps(font);
+		}
+	}
+
+	// Create a special renderer texture from the glyph bitmap.
+	texture_t *texture = texture_create(FONT_TEXTURE_NAME, NULL);
+
+	if (texture_load_glyph_bitmap(texture, bitmap, (uint16_t)TEX_WIDTH, (uint16_t)TEX_HEIGHT)) {
+		texture->resource.is_loaded = true;
+	}
+	else {
+		log_warning("Resources", "Failed to load font texture.");
+	}
+
+	// Add to resource list.
+	arr_push(textures, texture);
+	texture->resource.index = arr_last_index(textures);
 }
 
 static void res_parse_font_entry(char *line, size_t length, void *context)

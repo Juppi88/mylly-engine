@@ -69,8 +69,14 @@ const char *rend_get_default_shader_source(void);
 // Textures
 //
 
+// The format of the texture to be uploaded.
+typedef enum texture_format_t {
+	TEX_FORMAT_RGBA,
+	TEX_FORMAT_GRAYSCALE,
+} texture_format_t;
+
 // Generate a GPU texture object.
-texture_name_t rend_generate_texture(void *image, size_t width, size_t height);
+texture_name_t rend_generate_texture(void *image, size_t width, size_t height, texture_format_t fmt);
 
 // Destroy a texture on the GPU.
 void rend_delete_texture(texture_name_t texture);

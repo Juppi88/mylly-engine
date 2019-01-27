@@ -162,6 +162,9 @@ void rend_begin_draw(void)
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
 void rend_end_draw(void)
@@ -590,7 +593,7 @@ const char *rend_get_default_shader_source(void)
 	return default_shader_source;
 }
 
-texture_name_t rend_generate_texture(void *image, size_t width, size_t height)
+texture_name_t rend_generate_texture(void *image, size_t width, size_t height, texture_format_t fmt)
 {
 	// Generate a texture name.
 	GLuint texture;
@@ -603,7 +606,23 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height)
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+	switch (fmt) {
+
+		case TEX_FORMAT_GRAYSCALE:
+			// Convert grayscale textures into 4-channel texture where the only colour is red.
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0,
+                         GL_RED, GL_UNSIGNED_BYTE, image);
+
+			break;
+
+		default:
+			// Assume 32bit RGBA texture by default.
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE, image);
+
+			break;
+	}
 
 	return texture;
 }

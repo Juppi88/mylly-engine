@@ -30,23 +30,31 @@ void font_destroy(font_t *font)
 	// Destroy glyph data.
 	if (font->glyphs != NULL) {
 		
-		for (uint32_t i = font->first_glyph, c = i + font->num_glyphs; i < c; i++) {
-
-			uint32_t index = i - font->first_glyph;
-
-			if (font->glyphs[index].bitmap != NULL) {
-
-				DESTROY(font->glyphs[index].bitmap->pixels);
-				DESTROY(font->glyphs[index].bitmap);
-			}
-		}
-
+		font_destroy_glyph_bitmaps(font);
 		DESTROY(font->glyphs);
 	}
 
 	DESTROY(font->resource.name);
 	DESTROY(font->resource.path);
 	DESTROY(font);
+}
+
+void font_destroy_glyph_bitmaps(font_t *font)
+{
+	if (font == NULL || font->glyphs == NULL) {
+		return;
+	}
+
+	for (uint32_t i = font->first_glyph, c = i + font->num_glyphs; i < c; i++) {
+
+		uint32_t index = i - font->first_glyph;
+
+		if (font->glyphs[index].bitmap != NULL) {
+
+			DESTROY(font->glyphs[index].bitmap->pixels);
+			DESTROY(font->glyphs[index].bitmap);
+		}
+	}
 }
 
 bool font_load_from_file(font_t *font, FT_Library freetype,

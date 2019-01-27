@@ -9,6 +9,11 @@ BEGIN_DECLARATIONS;
 
 // -------------------------------------------------------------------------------------------------
 
+// Special resource names.
+#define FONT_TEXTURE_NAME "__FONT_TEXTURE"
+
+// -------------------------------------------------------------------------------------------------
+
 void res_initialize(void);
 void res_shutdown(void);
 
