@@ -215,19 +215,20 @@ sprite_anim_t *res_get_sprite_anim(const char *name)
 	return NULL;
 }
 
-font_t *res_get_font(const char *name)
+font_t *res_get_font(const char *name, uint32_t size)
 {
 	font_t *font;
 	arr_foreach(fonts, font) {
 
-		if (string_equals(font->resource.name, name)) {
+		if (string_equals(font->resource.name, name) &&
+			(size == 0 || size == font->size)) {
 
 			// TODO: Add reference counting to resources.
 			return font;
 		}
 	}
 
-	log_warning("Resources", "Could not find a font named '%s'.", name);
+	log_warning("Resources", "Could not find a font named '%s' at size %u.", name, size);
 
 	return NULL;
 }
@@ -845,18 +846,10 @@ static void res_load_font_list(FT_Library freetype)
 
 	uint8_t *bitmap = mem_alloc(TEX_WIDTH * TEX_HEIGHT);
 
-	if (!create_font_texture(glyphs, num_glyphs, bitmap, TEX_WIDTH, TEX_HEIGHT)) {
+	if (!create_font_bitmap(glyphs, num_glyphs, bitmap, TEX_WIDTH, TEX_HEIGHT)) {
 
 		log_warning("Resources", "Failed to create font texture.");
 		return;
-	}
-
-	// We no longer need the glyph bitmaps, so release them.
-	arr_foreach(fonts, font) {
-
-		if (font != NULL) {
-			font_destroy_glyph_bitmaps(font);
-		}
 	}
 
 	// Create a special renderer texture from the glyph bitmap.
@@ -869,9 +862,20 @@ static void res_load_font_list(FT_Library freetype)
 		log_warning("Resources", "Failed to load font texture.");
 	}
 
-	// Add to resource list.
+	// Add the texture to the resource list.
 	arr_push(textures, texture);
 	texture->resource.index = arr_last_index(textures);
+
+	// We no longer need the glyph bitmaps, so release them. Also assign the created texture
+	// to each font.
+	arr_foreach(fonts, font) {
+
+		if (font != NULL) {
+
+			font_destroy_glyph_bitmaps(font);
+			font_set_texture(font, texture);
+		}
+	}
 }
 
 static void res_parse_font_entry(char *line, size_t length, void *context)

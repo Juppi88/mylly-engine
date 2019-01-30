@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __WIDGET_H
-#define __WIDGET_H
+#ifndef __MGUI_WIDGET_H
+#define __MGUI_WIDGET_H
 
 #include "mgui/mgui.h"
 #include "mgui/vector.h"
@@ -12,6 +12,10 @@
 
 #define NUM_WIDGET_VERTICES 16
 #define NUM_WIDGET_INDICES 54
+
+// -------------------------------------------------------------------------------------------------
+
+typedef struct text_t text_t;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -42,6 +46,7 @@ typedef struct widget_t {
 	bool has_colour_changed;
 
 	sprite_t *sprite;
+	text_t *text;
 
 	// Widget mesh and material info.
 	mesh_t *mesh;
@@ -63,6 +68,11 @@ void widget_set_position(widget_t *widget, vec2i_t position);
 void widget_set_size(widget_t *widget, vec2i_t size);
 void widget_set_colour(widget_t *widget, colour_t colour);
 void widget_set_sprite(widget_t *widget, sprite_t *sprite);
+
+void widget_set_text(widget_t *widget, const char* format, ...);
+void widget_set_text_s(widget_t *widget, const char *text);
+void widget_set_text_colour(widget_t *widget, colour_t colour);
+void widget_set_text_font(widget_t *widget, font_t *font);
 
 bool widget_is_point_inside(widget_t *widget, vec2i_t point);
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);

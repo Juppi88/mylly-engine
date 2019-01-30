@@ -17,6 +17,8 @@ font_t *font_create(const char *name, const char *path)
 	if (path != NULL) {
 		font->resource.path = string_duplicate(path);
 	}
+
+	font->texture = NULL;
 	
 	return font;
 }
@@ -82,6 +84,12 @@ bool font_load_from_file(font_t *font, FT_Library freetype,
 		return false;
 	}
 
+	if (FT_Select_Charmap(face, FT_ENCODING_UNICODE)) {
+
+		log_warning("Font", "Failed to select unicode character map.");
+		return false;	
+	}
+
 	font->size = size;
 	font->first_glyph = first_glyph;
 	font->num_glyphs = (last_glyph - first_glyph) + 1;
@@ -127,12 +135,24 @@ bool font_load_from_file(font_t *font, FT_Library freetype,
 		font->glyphs[index].bitmap = bitmap;
 
 		// Store glyph metrics.
+		font->glyphs[index].size = vec2(g->metrics.width / 64.0f, g->metrics.height / 64.0f);
 		font->glyphs[index].bearing = vec2(g->bitmap_left, g->bitmap_top);
 		font->glyphs[index].advance = vec2(g->advance.x / 64.0f, g->advance.y / 64.0f);
+
+		//printf("%s: Rendering glyph %u (%c), idx: %u\n", font->resource.name, glyph_index, glyph, glyph);
 	}
 
 	// Release font face.
 	FT_Done_Face(face);
 
 	return true;
+}
+
+void font_set_texture(font_t *font, texture_t *texture)
+{
+	if (font == NULL || texture == NULL) {
+		return;
+	}
+
+	font->texture = texture;
 }

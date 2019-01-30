@@ -156,8 +156,10 @@ void rsys_render_ui_mesh(mesh_t *mesh)
 	rmesh->handle_vertices = mesh->handle_vertices;
 
 	// Here we just move the widget indices to the GPU.
-	rmesh->handle_indices = bufcache_alloc_indices(BUFIDX_UI, mesh->indices,
-		                                           mesh->num_indices);
+	size_t num_indices = (mesh->num_indices_to_render ?
+	                      mesh->num_indices_to_render : mesh->num_indices);
+	
+	rmesh->handle_indices = bufcache_alloc_indices(BUFIDX_UI, mesh->indices, num_indices);
 	
 	// Use default shader unless others are available.
 	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);

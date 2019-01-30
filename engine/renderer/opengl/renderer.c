@@ -230,7 +230,7 @@ void rend_draw_ui_view(rview_ui_t *view)
 			// Flush indices.
 			if (length != 0) {
 				glDrawRangeElements(GL_TRIANGLES, offset, offset + length, length,
-                                    GL_UNSIGNED_SHORT, 0);
+                                    GL_UNSIGNED_SHORT, (const GLvoid *)(sizeof(vindex_t) * offset));
 
 				offset += length;
 				length = 0;
@@ -249,7 +249,8 @@ void rend_draw_ui_view(rview_ui_t *view)
 
 	// Draw remaining elements.
 	if (length != 0) {
-		glDrawRangeElements(GL_TRIANGLES, offset, offset + length, length, GL_UNSIGNED_SHORT, 0);
+		glDrawRangeElements(GL_TRIANGLES, offset, offset + length, length,
+		                    GL_UNSIGNED_SHORT, (const GLvoid *)(sizeof(vindex_t) * offset));
 	}
 }
 

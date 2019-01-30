@@ -10,7 +10,7 @@ BEGIN_DECLARATIONS;
 
 // -------------------------------------------------------------------------------------------------
 
-bool create_font_texture(glyph_t **glyphs, size_t num_glyphs,
+bool create_font_bitmap(glyph_t **glyphs, size_t num_glyphs,
                          uint8_t *bitmap, size_t width, size_t height);
 
 // -------------------------------------------------------------------------------------------------

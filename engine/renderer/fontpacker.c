@@ -9,7 +9,7 @@ static int compare_glyphs(const void *p1, const void *p2);
 
 // -------------------------------------------------------------------------------------------------
 
-bool create_font_texture(glyph_t **glyphs, size_t num_glyphs,
+bool create_font_bitmap(glyph_t **glyphs, size_t num_glyphs,
                          uint8_t *bitmap, size_t width, size_t height)
 {
 	if (glyphs == NULL || num_glyphs == 0 || bitmap == NULL) {
@@ -52,7 +52,7 @@ bool create_font_texture(glyph_t **glyphs, size_t num_glyphs,
 			// Ensure the texture has enough space for another level.
 			if (y + level_height > height) {
 
-				log_warning("Fontpacker", "Maximum glyps on the texture reached.");
+				log_warning("Fontpacker", "Maximum glyphs on the texture reached.");
 				break;
 			}
 		}
@@ -67,8 +67,8 @@ bool create_font_texture(glyph_t **glyphs, size_t num_glyphs,
 		}
 
 		// Calculate UV coordinates for the glyph.
-		glyphs[i]->uv1 = vec2((float)(x + glyph->width) / width, (float)(y + glyph->height) / height);
-		glyphs[i]->uv2 = vec2((float)x / width, (float)y / height);
+		glyphs[i]->uv1 = vec2((float)x / width, (float)y / height);
+		glyphs[i]->uv2 = vec2((float)(x + glyph->width) / width, (float)(y + glyph->height) / height);
 
 		// Advance forward.
 		x += glyph->width + PADDING;

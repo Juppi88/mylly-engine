@@ -29,6 +29,7 @@ typedef struct glyph_t {
 
 	vec2_t uv1; // Texture coordinates for the glyph
 	vec2_t uv2;
+	vec2_t size; // The size of the glyph
 	vec2_t bearing; // Glyph bearing from the cursor (in pixels)
 	vec2_t advance; // The amount of pixels the cursor should advance for a next character
 	glyph_bitmap_t *bitmap; // Temporary bitmap container (will only be valid during font loading)
@@ -45,6 +46,7 @@ typedef struct font_t {
 	uint32_t first_glyph; // The first glyph in the glyph array
 	uint32_t num_glyphs; // Number of glyphs in the glyph array
 	glyph_t *glyphs; // Font glyphs
+	texture_t *texture; // The texture this font is rendered to
 
 } font_t;
 
@@ -57,6 +59,24 @@ void font_destroy_glyph_bitmaps(font_t *font);
 
 bool font_load_from_file(font_t *font, FT_Library freetype,
                          uint8_t size, uint32_t first_glyph, uint32_t last_glyph);
+
+void font_set_texture(font_t *font, texture_t *texture);
+
+static glyph_t *font_get_glyph(font_t *font, uint32_t c);
+
+// -------------------------------------------------------------------------------------------------
+
+static INLINE glyph_t *font_get_glyph(font_t *font, uint32_t c)
+{
+	if (font == NULL ||
+		c < font->first_glyph ||
+		c >= font->first_glyph + font->num_glyphs) {
+
+		return NULL;
+	}
+
+	return &font->glyphs[c - font->first_glyph];
+}
 
 // -------------------------------------------------------------------------------------------------
 

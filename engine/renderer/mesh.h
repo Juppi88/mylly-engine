@@ -34,7 +34,8 @@ typedef struct mesh_t {
 	bool is_vertex_data_dirty; // Set to true when the data on the GPU needs refreshing
 
 	vindex_t *indices; // Array of vertex indices
-	size_t num_indices;
+	size_t num_indices; // Number of indices in the allocated buffer
+	size_t num_indices_to_render; // Number of indices to render if less than in the buffer
 
 	// GPU buffer objects.
 	// TODO: Replace with buffer handles eventually.
