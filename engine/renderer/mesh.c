@@ -129,8 +129,13 @@ void mesh_set_ui_vertices(mesh_t *mesh, const vertex_ui_t *vertices, size_t num_
 
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices)
 {
-	if (mesh == NULL || mesh->vertices != NULL) {
+	if (mesh == NULL) {
 		return;
+	}
+
+	// Destroy existing buffer to avoid leaks.
+	if (mesh->vertices != NULL) {
+		DESTROY(mesh->vertices);
 	}
 
 	if (type == VERTEX_NORMAL) {

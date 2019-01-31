@@ -23,6 +23,7 @@ typedef struct vec2i_t {
 #endif
 
 #define vec2i_to_vec2(v) vec2((v).x, (v).y)
+#define vec2_to_vec2i(v) vec2i((int16_t)(v).x, (int16_t)(v).y)
 
 // -------------------------------------------------------------------------------------------------
 

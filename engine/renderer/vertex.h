@@ -70,6 +70,9 @@ typedef struct vertex_ui_t {
 #define vertex_ui(pos, uv, colour) \
 	(vertex_ui_t){ pos, uv, colour }
 
+#define vertex_ui_empty()\
+	(vertex_ui_t){ vec2_zero(), vec2_zero(), COL_TRANSPARENT }
+
 // -------------------------------------------------------------------------------------------------
 
 #endif

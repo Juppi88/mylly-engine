@@ -73,6 +73,7 @@ void widget_set_text(widget_t *widget, const char* format, ...);
 void widget_set_text_s(widget_t *widget, const char *text);
 void widget_set_text_colour(widget_t *widget, colour_t colour);
 void widget_set_text_font(widget_t *widget, font_t *font);
+void widget_set_text_alignment(widget_t *widget, alignment_t alignment);
 
 bool widget_is_point_inside(widget_t *widget, vec2i_t point);
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);

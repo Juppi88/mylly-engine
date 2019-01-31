@@ -96,7 +96,7 @@ void widget_process(widget_t *widget)
 
 	// Update text object.
 	if (widget->text != NULL &&
-		(widget->has_moved || widget->text->is_dirty)) {
+		(widget->has_moved || widget->has_resized || widget->text->is_dirty)) {
 		
 		text_update(widget->text);
 	}
@@ -193,6 +193,10 @@ void widget_set_size(widget_t *widget, vec2i_t size)
 
 	widget->size = size;
 	widget->has_resized = true;
+
+	if (widget->text != NULL) {
+		text_update_boundaries(widget->text, widget->text->position, vec2_to_vec2i(size));
+	}
 }
 
 void widget_set_colour(widget_t *widget, colour_t colour)
@@ -265,6 +269,15 @@ void widget_set_text_font(widget_t *widget, font_t *font)
 	}
 
 	text_update_font(widget->text, font);
+}
+
+void widget_set_text_alignment(widget_t *widget, alignment_t alignment)
+{
+	if (widget == NULL || widget->text == NULL) {
+		return;
+	}
+
+	text_update_alignment(widget->text, alignment);
 }
 
 bool widget_is_point_inside(widget_t *widget, vec2i_t point)
