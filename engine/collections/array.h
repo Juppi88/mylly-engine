@@ -47,7 +47,7 @@
 	(arr).items[(idx)] = (val)
 
 #define arr_foreach(arr, var)\
-	for (int __i = 0; __i < (arr).count && ((var) = (arr).items[__i], 1); ++__i)
+	for (size_t __i = 0; __i < (arr).count && ((var) = (arr).items[__i], 1); ++__i)
 
 #define arr_foreach_reverse(arr, var)\
 	for (int __i = (arr).count; __i > 0 && ((var) = (arr).items[__i - 1], 1); --__i)
@@ -58,7 +58,7 @@
 	for ((idx) = 0; (idx) < (int)(arr).count; ++(idx)) {\
 		if ((arr).items[(idx)] == (val)) break;\
 	}\
-	if ((idx) == (arr).count) (idx) = -1;\
+	if ((idx) == (int)(arr).count) (idx) = -1;\
 }
 
 #define arr_remove(arr, val) {\

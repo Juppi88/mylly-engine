@@ -14,6 +14,7 @@
 #define INLINE inline
 #endif
 
+#define UNUSED(x) (void)x;
 #define UNUSED_RETURN(x) if (x);
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))

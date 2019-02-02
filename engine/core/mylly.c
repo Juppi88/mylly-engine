@@ -30,6 +30,9 @@ static monitor_info_t monitor; // Info about the monitor the engine is running o
 
 bool mylly_initialize(int argc, char **argv)
 {
+	UNUSED(argc);
+	UNUSED(argv);
+	
 	// Set working directory to the path of the executable.
 	mylly_set_working_directory();
 

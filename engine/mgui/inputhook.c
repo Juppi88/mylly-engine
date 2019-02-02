@@ -10,12 +10,18 @@ static vec2i_t cursor_position;
 
 bool mgui_handle_keyboard_event(input_event_t type, uint32_t key)
 {
+	UNUSED(type);
+	UNUSED(key);
+
 	return true;
 }
 
 bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 							 mouse_button_t button, mouse_wheel_t wheel)
 {
+	UNUSED(button);
+	UNUSED(wheel);
+	
 	switch (type) {
 		case INPUT_MOUSE_BUTTON_DOWN:
 		{

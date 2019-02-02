@@ -158,6 +158,8 @@ static Window root;
 
 bool window_create(bool fullscreen, int monitor, int x, int y, int width, int height)
 {
+	UNUSED(fullscreen);
+
 	// Already connected to the X server, don't do anything.
 	if (display != NULL) {
 		return false;

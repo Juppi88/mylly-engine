@@ -45,12 +45,12 @@ void input_shutdown(void)
 	}
 }
 
-void input_bind_button(button_t button, uint32_t key_symbol)
+void input_bind_button(button_code_t button, uint32_t key_symbol)
 {
 	button_symbols[button] = key_symbol;
 }
 
-bool input_is_button_down(button_t button)
+bool input_is_button_down(button_code_t button)
 {
 	uint32_t key_symbol = button_symbols[button];
 
@@ -63,7 +63,7 @@ bool input_is_button_down(button_t button)
 	return (input_sys_get_key_pressed_frame(key_symbol) != 0);
 }
 
-bool input_get_button_pressed(button_t button)
+bool input_get_button_pressed(button_code_t button)
 {
 	uint32_t key_symbol = button_symbols[button];
 	uint32_t frame = get_time().frame_count;
@@ -77,7 +77,7 @@ bool input_get_button_pressed(button_t button)
 	return (input_sys_get_key_pressed_frame(key_symbol) == frame);
 }
 
-bool input_get_button_released(button_t button)
+bool input_get_button_released(button_code_t button)
 {
 	uint32_t key_symbol = button_symbols[button];
 	uint32_t frame = get_time().frame_count;

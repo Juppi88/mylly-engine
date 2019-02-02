@@ -545,6 +545,8 @@ static void res_load_shader(const char *file_name)
 
 static void res_parse_shader_line(char *line, size_t length, void *context)
 {
+	UNUSED(length);
+
 	arr_t(char*) *lines = context;
 
 	// Check the source code for #pragma include directives.
@@ -581,7 +583,6 @@ static void res_load_animation_group(const char *file_name)
 {
 	// Store the name of the file for possible error messages.
 	parsed_file_name = file_name;
-
 
 	// Use the name of the file as the animation group name.
 	// The group name is used as a prefix for all animations.
@@ -880,6 +881,8 @@ static void res_load_font_list(FT_Library freetype)
 
 static void res_parse_font_entry(char *line, size_t length, void *context)
 {
+	UNUSED(length);
+	
 	string_strip(&line);
 
 	// Ignore comments.

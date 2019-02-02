@@ -24,7 +24,7 @@ bool res_parser_init(res_parser_t *parser, const char *text, size_t length);
 
 bool res_parser_is_valid_key_type(res_parser_t *parser, int token);
 bool res_parser_is_object(res_parser_t *parser, int token);
-bool res_parser_field_equals(res_parser_t *parser, int token, const char *name, int type);
+bool res_parser_field_equals(res_parser_t *parser, int token, const char *name, uint32_t type);
 
 char *res_parser_get_text(res_parser_t *parser, int token, char *dst, size_t dst_len);
 int res_parser_get_int(res_parser_t *parser, int token);

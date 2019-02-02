@@ -382,6 +382,8 @@ static vec3_t emitter_randomize_position(emitter_t *emitter)
 
 static void emitter_update_particle(emitter_t *emitter, particle_t *particle)
 {
+	UNUSED(emitter);
+	
 	float delta = get_time().delta_time;
 
 	particle->time_alive += delta;

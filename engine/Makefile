@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean analysis
 CC = clang
-CFLAGS = -Wall -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external -I/usr/include/freetype2
+CFLAGS = -Wall -Wextra -g -D_DEBUG -DCGLM_ALL_UNALIGNED -I. -I../external -I/usr/include/freetype2
 
 OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        collections/array.o\
@@ -9,6 +9,7 @@ OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        io/config.o io/console.o io/file.o io/input.o io/log.o\
        math/matrix.o math/quaternion.o math/random.o math/vector.o\
        mgui/inputhook.o mgui/mgui.o mgui/text.o mgui/vector.o mgui/widget.o\
+       mgui/widgets/button.o\
        platform/inputhook.o platform/thread.o platform/timer.o platform/window.o\
        renderer/buffer.o renderer/buffercache.o renderer/colour.o renderer/font.o\
        renderer/fontpacker.o renderer/mesh.o renderer/rendersystem.o renderer/shader.o\
@@ -27,6 +28,7 @@ builddirs:
 	mkdir -p build/objs/io
 	mkdir -p build/objs/math
 	mkdir -p build/objs/mgui
+	mkdir -p build/objs/mgui/widgets
 	mkdir -p build/objs/platform
 	mkdir -p build/objs/renderer
 	mkdir -p build/objs/renderer/opengl

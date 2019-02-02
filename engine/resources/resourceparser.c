@@ -51,7 +51,7 @@ bool res_parser_is_object(res_parser_t *parser, int token)
 	return (parser->tokens[token].type == JSMN_OBJECT);
 }
 
-bool res_parser_field_equals(res_parser_t *parser, int token, const char *name, int type)
+bool res_parser_field_equals(res_parser_t *parser, int token, const char *name, uint32_t type)
 {
 	if (parser == NULL || name == NULL || token + 1 >= parser->num_tokens) {
 		return false;
@@ -88,7 +88,11 @@ int res_parser_get_int(res_parser_t *parser, int token)
 	}
 
 	char tmp[100];
-	size_t length = MIN(sizeof(tmp), parser->tokens[token].end - parser->tokens[token].start + 1);
+	
+	size_t length = MIN(
+		sizeof(tmp),
+		(size_t)(parser->tokens[token].end - parser->tokens[token].start + 1)
+	);
 
 	string_copy(tmp, &parser->text[parser->tokens[token].start], length);
 
@@ -102,7 +106,11 @@ bool res_parser_get_bool(res_parser_t *parser, int token)
 	}
 
 	char tmp[100];
-	size_t length = MIN(sizeof(tmp), parser->tokens[token].end - parser->tokens[token].start + 1);
+
+	size_t length = MIN(
+		sizeof(tmp),
+		(size_t)(parser->tokens[token].end - parser->tokens[token].start + 1)
+	);
 
 	string_copy(tmp, &parser->text[parser->tokens[token].start], length);
 
@@ -116,7 +124,11 @@ float res_parser_get_float(res_parser_t *parser, int token)
 	}
 
 	char tmp[100];
-	size_t length = MIN(sizeof(tmp), parser->tokens[token].end - parser->tokens[token].start + 1);
+
+	size_t length = MIN(
+		sizeof(tmp),
+		(size_t)(parser->tokens[token].end - parser->tokens[token].start + 1)
+	);
 
 	string_copy(tmp, &parser->text[parser->tokens[token].start], length);
 

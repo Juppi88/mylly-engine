@@ -36,16 +36,16 @@ void input_shutdown(void);
 // Bind an arbitrary button index to a key symbol from 'input/keys.h'. The value can then be used
 // to query the state of a button without hardcoding the symbol into the code. Setting the key
 // symbol to 0 will unbind the symbol.
-typedef uint8_t button_t;
+typedef uint8_t button_code_t;
 
-void input_bind_button(button_t button, uint32_t key_symbol);
+void input_bind_button(button_code_t button, uint32_t key_symbol);
 
 // Returns whether the button is currently pressed down.
-bool input_is_button_down(button_t button);
+bool input_is_button_down(button_code_t button);
 
 // Returns whether the button was just pressed down or released.
-bool input_get_button_pressed(button_t button);
-bool input_get_button_released(button_t button);
+bool input_get_button_pressed(button_code_t button);
+bool input_get_button_released(button_code_t button);
 
 // -------------------------------------------------------------------------------------------------
 

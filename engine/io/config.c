@@ -94,6 +94,9 @@ static void config_parse_file(const char *path)
 
 static void config_parse_line(char *line, size_t line_len, void *context)
 {
+	UNUSED(line_len);
+	UNUSED(context);
+	
 	char *key, *value;
 	string_parse_command(line, &key, &value);
 
