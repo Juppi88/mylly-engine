@@ -27,3 +27,13 @@ colour_t col_multiply(colour_t a, colour_t b)
 
 	return col_a(_r, _g, _b, _a);
 }
+
+colour_t col_lerp(colour_t a, colour_t b, float t)
+{
+	return col_a(
+		(uint8_t)lerpi(a.r, b.r, t),
+		(uint8_t)lerpi(a.g, b.g, t),
+		(uint8_t)lerpi(a.b, b.b, t),
+		(uint8_t)lerpi(a.a, b.a, t)
+	);
+}

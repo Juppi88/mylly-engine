@@ -24,6 +24,21 @@ void timer_reset(timeout_t *timer, uint64_t interval_ms)
 	*timer = ticks + interval_ms;
 }
 
+float timer_get_factor(timeout_t *timer, uint64_t interval_ms)
+{
+	// The timer hasn't started yet.
+	if (*timer == 0) {
+		return 0.0f;
+	}
+
+	uint64_t ticks = timer_get_ticks();
+	uint64_t started = *timer - interval_ms;
+
+	float t = (float)(ticks - started) / interval_ms;
+
+	return (t > 1 ? 1 : t);
+}
+
 // --------------------------------------------------------------------------------
 
 #ifdef _WIN32

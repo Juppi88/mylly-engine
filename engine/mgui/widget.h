@@ -22,10 +22,10 @@ typedef struct text_t text_t;
 
 typedef enum widget_type_t {
 
-	TYPE_WIDGET,
-	TYPE_BUTTON,
+	WIDGET_TYPE_WIDGET,
+	WIDGET_TYPE_BUTTON,
 
-	NUM_TYPES
+	NUM_WIDGET_TYPES
 
 } widget_type_t;
 

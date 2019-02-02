@@ -32,7 +32,7 @@ widget_t *widget_create(widget_t *parent)
 	widget->position = vec2i_zero();
 	widget->world_position = vec2i_zero();
 	widget->size = vec2i(100, 100); // Use a non-zero default size
-	widget->type = TYPE_WIDGET;
+	widget->type = WIDGET_TYPE_WIDGET;
 	widget->colour = COL_WHITE;
 
 	widget->has_moved = false;
@@ -94,6 +94,10 @@ void widget_process(widget_t *widget)
 {
 	if (widget == NULL || (widget->state & WIDGET_STATE_INVISIBLE)) {
 		return;
+	}
+
+	if (widget->callbacks->on_process != NULL) {
+		widget->callbacks->on_process(widget);
 	}
 
 	// Check whether the parent has changed in a way that would affect this widget.
