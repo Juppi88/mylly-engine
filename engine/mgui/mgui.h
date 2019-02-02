@@ -23,6 +23,7 @@ extern mgui_parameters_t mgui_parameters;
 
 // -------------------------------------------------------------------------------------------------
 
+
 BEGIN_DECLARATIONS;
 
 void mgui_initialize(const mgui_parameters_t config);
@@ -36,11 +37,17 @@ void mgui_remove_widget_layer(widget_t *widget);
 
 widget_t *mgui_get_widget_at_position(vec2i_t point);
 
-widget_t *mgui_get_focused_widget(void);
-void mgui_set_focused_widget(widget_t *widget);
+void mgui_remove_references_to_object(widget_t *widget);
 
+widget_t *mgui_get_focused_widget(void);
 widget_t *mgui_get_dragged_widget(void);
+widget_t *mgui_get_hovered_widget(void);
+widget_t *mgui_get_pressed_widget(void);
+
+void mgui_set_focused_widget(widget_t *widget);
 void mgui_set_dragged_widget(widget_t *widget);
+void mgui_set_hovered_widget(widget_t *widget);
+void mgui_set_pressed_widget(widget_t *widget);
 
 END_DECLARATIONS;
 

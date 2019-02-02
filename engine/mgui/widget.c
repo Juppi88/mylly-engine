@@ -15,7 +15,17 @@ static void widget_refresh_mesh(widget_t *widget);
 
 // -------------------------------------------------------------------------------------------------
 
-widget_t *widget_create(void)
+static widget_callbacks_t callbacks = {
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+};
+
+// -------------------------------------------------------------------------------------------------
+
+widget_t *widget_create(widget_t *parent)
 {
 	NEW(widget_t, widget);
 
@@ -28,15 +38,26 @@ widget_t *widget_create(void)
 	widget->has_moved = false;
 	widget->has_resized = false;
 
-	// TODO: FOR TESTING ONLY! Move this to other widget types.
-	widget->text = text_create(widget);
+	widget->callbacks = &callbacks;
 
-	// Create a new layer for the widget.
-	widget->parent = NULL;
 	list_init(widget->children);
 
-	mgui_add_widget_layer(widget);
+	if (parent != NULL) {
 
+		// Attach the widget to its new parent.
+		list_push(parent->children, widget);
+		widget->parent = parent;
+
+		// Update the widget's position.
+		widget->world_position = parent->world_position;
+	}
+	else {
+
+		// Create a new layer for the widget.
+		widget->parent = NULL;
+		mgui_add_widget_layer(widget);
+	}
+	
 	// Allocate the vertices for this widget on the GPU.
 	widget_create_mesh(widget);
 
@@ -50,12 +71,7 @@ void widget_destroy(widget_t *widget)
 	}
 
 	// Remove references to widget.
-	if (widget == mgui_get_focused_widget()) {
-		mgui_set_focused_widget(NULL);
-	}
-	if (widget == mgui_get_dragged_widget()) {
-		mgui_set_dragged_widget(NULL);
-	}
+	mgui_remove_references_to_object(widget);
 
 	// Destroy child widgets.
 	widget_t *child, *tmp;
@@ -76,7 +92,7 @@ void widget_destroy(widget_t *widget)
 
 void widget_process(widget_t *widget)
 {
-	if (widget == NULL) {
+	if (widget == NULL || (widget->state & WIDGET_STATE_INVISIBLE)) {
 		return;
 	}
 
@@ -236,7 +252,7 @@ void widget_set_text(widget_t *widget, const char* format, ...)
 	va_end(marker);
 
 	// Ensure buffer formatting succeeded.
-	if (length < 0 || length >= sizeof(buffer)) {
+	if (length < 0 || (size_t)length >= sizeof(buffer)) {
 		return;
 	}
 
@@ -287,16 +303,16 @@ bool widget_is_point_inside(widget_t *widget, vec2i_t point)
 	}
 
 	return (
-		point.x >= widget->position.x &&
-		point.x <= widget->position.x + widget->size.x &&
-		point.y >= widget->position.y &&
-		point.y <= widget->position.y + widget->size.y
+		point.x >= widget->world_position.x &&
+		point.x <= widget->world_position.x + widget->size.x &&
+		point.y >= widget->world_position.y &&
+		point.y <= widget->world_position.y + widget->size.y
 	);
 }
 
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point)
 {
-	if (widget == NULL) {
+	if (widget == NULL || (widget->state & WIDGET_STATE_INVISIBLE)) {
 		return NULL;
 	}
 

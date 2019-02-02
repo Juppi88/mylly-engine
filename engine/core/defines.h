@@ -14,10 +14,10 @@
 #define INLINE inline
 #endif
 
-#define UNUSED(x) (void)x;
-#define UNUSED_RETURN(x) if (x);
+#define UNUSED(x) (void)(x);
+#define UNUSED_RETURN(x) if (x) {};
 
-#define LENGTH(x) (sizeof(x) / sizeof(x[0]))
+#define LENGTH(x) (sizeof(x) / sizeof(*x))
 
 #ifdef __cplusplus
 #define BEGIN_DECLARATIONS extern "C" {

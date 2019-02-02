@@ -45,7 +45,7 @@
 		(item)->__entry.previous = NULL;\
 		(item)->__entry.next = NULL;\
 	}\
-	else {\
+	else if ((list).last != NULL) {\
 		(list).last->__entry.next = (item);\
 		(item)->__entry.previous = (list).last;\
 		(item)->__entry.next = NULL;\

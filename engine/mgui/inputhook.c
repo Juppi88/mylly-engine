@@ -35,6 +35,7 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 
 				mgui_set_focused_widget(widget);
 				mgui_set_dragged_widget(widget);
+				mgui_set_pressed_widget(widget);
 
 				return false;
 			}
@@ -43,6 +44,8 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 		case INPUT_MOUSE_BUTTON_UP:
 		{
 			mgui_set_dragged_widget(NULL);
+			mgui_set_pressed_widget(NULL);
+
 			break;
 		}
 		case INPUT_MOUSE_MOVE:
@@ -57,6 +60,16 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 
 				vec2i_t position = vec2i(dragged->position.x + dx, dragged->position.y + dy);
 				widget_set_position(dragged, position);
+			}
+			else {
+
+				widget_t *hovered = mgui_get_widget_at_position(cursor_position);
+				mgui_set_hovered_widget(hovered);
+
+				// When the cursor is moved out of a pressed widget, reset the widget's state.
+				if (hovered != mgui_get_pressed_widget()) {
+					mgui_set_pressed_widget(NULL);
+				}
 			}
 
 			// Update cursor position.

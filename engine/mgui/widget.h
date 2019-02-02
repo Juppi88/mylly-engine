@@ -4,6 +4,7 @@
 
 #include "mgui/mgui.h"
 #include "mgui/vector.h"
+#include "mgui/widgets/button.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"
@@ -22,15 +23,41 @@ typedef struct text_t text_t;
 typedef enum widget_type_t {
 
 	TYPE_WIDGET,
+	TYPE_BUTTON,
+
 	NUM_TYPES
 
 } widget_type_t;
 
 // -------------------------------------------------------------------------------------------------
 
-typedef struct widget_t {
+typedef enum widget_state_t {
 
-	widget_type_t type;
+	WIDGET_STATE_INVISIBLE = 0x01, // Currently unused
+	WIDGET_STATE_DISABLED = 0x02,
+	WIDGET_STATE_FOCUSED = 0x04,
+	WIDGET_STATE_HOVERED = 0x08,
+	WIDGET_STATE_PRESSED = 0x10,
+	WIDGET_STATE_HOVERABLE = 0x20,
+	WIDGET_STATE_PRESSABLE = 0x40,
+
+} widget_state_t;
+
+// -------------------------------------------------------------------------------------------------
+
+typedef struct widget_callbacks_t {
+
+	void (*on_destroy)(widget_t *widget);
+	void (*on_process)(widget_t *widget);
+	void (*on_focused)(widget_t *widget, bool focused);
+	void (*on_hovered)(widget_t *widget, bool hovered);
+	void (*on_pressed)(widget_t *widget, bool pressed);
+
+} widget_callbacks_t;
+
+// -------------------------------------------------------------------------------------------------
+
+typedef struct widget_t {
 
 	list_entry(widget_t);
 	struct widget_t *parent;
@@ -45,11 +72,23 @@ typedef struct widget_t {
 	bool has_resized;
 	bool has_colour_changed;
 
+	widget_state_t state;
+
 	sprite_t *sprite;
 	text_t *text;
 
 	// Widget mesh and material info.
 	mesh_t *mesh;
+
+	// Callbacks for certain types of events.
+	widget_callbacks_t *callbacks;
+
+	// Widget-type specific data.
+	widget_type_t type;
+
+	union {
+		button_t button;
+	};
 
 } widget_t;
 
@@ -57,7 +96,7 @@ typedef struct widget_t {
 
 BEGIN_DECLARATIONS;
 
-widget_t *widget_create(void);
+widget_t *widget_create(widget_t *parent);
 void widget_destroy(widget_t *widget);
 void widget_process(widget_t *widget);
 

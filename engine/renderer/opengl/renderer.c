@@ -376,6 +376,10 @@ static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint si
 
 static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent)
 {
+	if (shader == NULL || texture == NULL || parent == NULL) {
+		return;
+	}
+	
 	// Select the active shader.
 	GLuint shader_id = shader->program;
 

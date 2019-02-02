@@ -10,6 +10,8 @@ mgui_parameters_t mgui_parameters;
 static list_t(widget_t) widgets;
 static widget_t *focused_widget;
 static widget_t *dragged_widget;
+static widget_t *hovered_widget;
+static widget_t *pressed_widget;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -71,9 +73,40 @@ widget_t *mgui_get_widget_at_position(vec2i_t point)
 	return NULL;
 }
 
+void mgui_remove_references_to_object(widget_t *widget)
+{
+	if (widget == focused_widget) {
+		focused_widget = NULL;
+	}
+	if (widget == dragged_widget) {
+		dragged_widget = NULL;
+	}
+	if (widget == hovered_widget) {
+		hovered_widget = NULL;
+	}
+	if (widget == pressed_widget) {
+		pressed_widget = NULL;
+	}
+}
+
 widget_t *mgui_get_focused_widget(void)
 {
 	return focused_widget;
+}
+
+widget_t *mgui_get_dragged_widget(void)
+{
+	return dragged_widget;
+}
+
+widget_t *mgui_get_hovered_widget(void)
+{
+	return hovered_widget;
+}
+
+widget_t *mgui_get_pressed_widget(void)
+{
+	return pressed_widget;
 }
 
 void mgui_set_focused_widget(widget_t *widget)
@@ -83,31 +116,36 @@ void mgui_set_focused_widget(widget_t *widget)
 	}
 
 	// Remove focus from previous widget.
-	// TODO: Callback
+	if (focused_widget != NULL) {
 
+		focused_widget->state &= ~WIDGET_STATE_FOCUSED;
+
+		if (focused_widget->callbacks->on_focused != NULL) {
+			focused_widget->callbacks->on_focused(focused_widget, false);
+		}
+	}
+
+	// Move focus to the new widget.
 	focused_widget = widget;
 
-	if (focused_widget == NULL) {
-		return;
+	if (focused_widget != NULL) {
+
+		focused_widget->state |= WIDGET_STATE_FOCUSED;
+
+		if (focused_widget->callbacks->on_focused != NULL) {
+			focused_widget->callbacks->on_focused(focused_widget, true);
+		}
+
+		// Move the new focused widget (or its grandparent) to the top (i.e. last of the widgets list).
+		widget_t *layer = widget_get_grandparent(focused_widget);
+
+		if (layer != NULL &&
+			list_contains(widgets, layer)) {
+
+			list_remove(widgets, layer);
+			list_push(widgets, layer);
+		}
 	}
-
-	// Change focus to the new widget.
-	// TODO: Callback
-
-	// Move the new focused widget (or its grandparent) to the top (i.e. last of the widgets list).
-	widget_t *layer = widget_get_grandparent(focused_widget);
-
-	if (layer != NULL &&
-		list_contains(widgets, layer)) {
-
-		list_remove(widgets, layer);
-		list_push(widgets, layer);
-	}
-}
-
-widget_t *mgui_get_dragged_widget(void)
-{
-	return dragged_widget;
 }
 
 void mgui_set_dragged_widget(widget_t *widget)
@@ -116,10 +154,92 @@ void mgui_set_dragged_widget(widget_t *widget)
 		return;
 	}
 
+	if (widget != NULL &&
+		widget->state & WIDGET_STATE_PRESSABLE) {
+
+		// The widget reacts to mouse presses, so it's not a good idea to drag it.
+		dragged_widget = NULL;
+		return;
+	}
+
 	dragged_widget = widget;
 
-	// Drag the parent widget.
+	// Drag the widget's root instead of the child widget.
 	if (dragged_widget != NULL) {
 		dragged_widget = widget_get_grandparent(dragged_widget);
+	}
+}
+
+void mgui_set_hovered_widget(widget_t *widget)
+{
+	if (widget == hovered_widget) {
+		return;
+	}
+
+	// Update the state of the previous widget.
+	if (hovered_widget != NULL) {
+
+		hovered_widget->state &= ~WIDGET_STATE_HOVERED;
+
+		if (hovered_widget->state & WIDGET_STATE_HOVERABLE) {
+			hovered_widget->has_colour_changed = true;
+		}
+
+		if (hovered_widget->callbacks->on_hovered != NULL) {
+			hovered_widget->callbacks->on_hovered(hovered_widget, false);
+		}
+	}
+
+	hovered_widget = widget;
+
+	// Update the state of the new widget.
+	if (hovered_widget != NULL) {
+
+		hovered_widget->state |= WIDGET_STATE_HOVERED;
+
+		if (hovered_widget->state & WIDGET_STATE_HOVERABLE) {
+			hovered_widget->has_colour_changed = true;
+		}
+
+		if (hovered_widget->callbacks->on_hovered != NULL) {
+			hovered_widget->callbacks->on_hovered(hovered_widget, true);
+		}
+	}
+}
+
+void mgui_set_pressed_widget(widget_t *widget)
+{
+	if (widget == pressed_widget) {
+		return;
+	}
+
+	// Update the state of the previous widget.
+	if (pressed_widget != NULL) {
+
+		pressed_widget->state &= ~WIDGET_STATE_PRESSED;
+
+		if (pressed_widget->state & WIDGET_STATE_PRESSABLE) {
+			pressed_widget->has_colour_changed = true;
+		}
+
+		if (pressed_widget->callbacks->on_pressed != NULL) {
+			pressed_widget->callbacks->on_pressed(pressed_widget, false);
+		}
+	}
+
+	pressed_widget = widget;
+
+	// Update the state of the new widget.
+	if (pressed_widget != NULL) {
+
+		pressed_widget->state |= WIDGET_STATE_PRESSED;
+
+		if (pressed_widget->state & WIDGET_STATE_PRESSABLE) {
+			pressed_widget->has_colour_changed = true;
+		}
+
+		if (pressed_widget->callbacks->on_pressed != NULL) {
+			pressed_widget->callbacks->on_pressed(pressed_widget, true);
+		}
 	}
 }

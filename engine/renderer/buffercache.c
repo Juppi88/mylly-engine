@@ -15,9 +15,18 @@ void bufcache_initialize(void)
 		uint32_t vertex_size;
 
 		switch (i) {
-			 case BUFIDX_PARTICLE: vertex_size = sizeof(vertex_particle_t);
-			 case BUFIDX_UI: vertex_size = sizeof(vertex_ui_t);
-			 default: vertex_size = sizeof(vertex_t);
+			
+			case BUFIDX_PARTICLE:
+				vertex_size = sizeof(vertex_particle_t);
+				break;
+
+			case BUFIDX_UI:
+				vertex_size = sizeof(vertex_ui_t);
+				break;
+
+			default:
+				vertex_size = sizeof(vertex_t);
+				break;
 		}
 
 		buffer_init(&buffers[i].index_buffer, BUFFER_INDEX, i, MAX_VERTICES * sizeof(vindex_t));
