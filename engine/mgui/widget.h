@@ -57,6 +57,38 @@ typedef struct widget_callbacks_t {
 
 // -------------------------------------------------------------------------------------------------
 
+typedef enum anchor_type_t {
+
+	ANCHOR_NONE, // Not anchored to anything
+	ANCHOR_MIN, // Left or top
+	ANCHOR_MIDDLE, // The centre of the target widget
+	ANCHOR_MAX, // Right or bottom
+
+} anchor_type_t;
+
+// -------------------------------------------------------------------------------------------------
+
+typedef enum anchor_edge_t {
+
+	ANCHOR_EDGE_LEFT,
+	ANCHOR_EDGE_TOP,
+	ANCHOR_EDGE_RIGHT,
+	ANCHOR_EDGE_BOTTOM,
+	NUM_ANCHOR_EDGES
+
+} anchor_edge_t;
+
+// -------------------------------------------------------------------------------------------------
+
+typedef struct anchor_t {
+
+	anchor_type_t type; // The point where the widget is anchored to
+	int16_t offset; // Offset from the anchor point
+
+} anchor_t;
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct widget_t {
 
 	list_entry(widget_t);
@@ -67,6 +99,8 @@ typedef struct widget_t {
 	vec2i_t world_position;
 	vec2i_t size;
 	colour_t colour;
+
+	anchor_t anchors[NUM_ANCHOR_EDGES]; // Widget anchors
 
 	bool has_moved;
 	bool has_resized;
@@ -105,6 +139,14 @@ void widget_remove_from_parent(widget_t *widget);
 
 void widget_set_position(widget_t *widget, vec2i_t position);
 void widget_set_size(widget_t *widget, vec2i_t size);
+
+void widget_set_anchor(widget_t *widget, anchor_edge_t edge, anchor_type_t type, int16_t offset);
+void widget_set_anchors(widget_t *widget,
+	anchor_type_t left_type, int16_t left_offset,
+	anchor_type_t right_type, int16_t right_offset,
+	anchor_type_t top_type, int16_t top_offset,
+	anchor_type_t bottom_type, int16_t bottom_offset);
+
 void widget_set_colour(widget_t *widget, colour_t colour);
 void widget_set_sprite(widget_t *widget, sprite_t *sprite);
 

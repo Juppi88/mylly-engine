@@ -12,6 +12,7 @@
 
 static void widget_create_mesh(widget_t *widget);
 static void widget_refresh_mesh(widget_t *widget);
+static bool widget_process_anchors(widget_t *widget);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -107,6 +108,13 @@ void widget_process(widget_t *widget)
 		// Recalculate world position.
 		widget->world_position = vec2i_add(widget->parent->world_position, widget->position);
 		widget->has_moved = true;
+	}
+
+	// Update anchors.
+	if (widget->has_moved || 
+		(widget->parent != NULL && widget->parent->has_resized)) {
+
+		widget_process_anchors(widget);
 	}
 
 	// Keep vertices up to date if changes in the shape or position of the widget occur.
@@ -214,9 +222,43 @@ void widget_set_size(widget_t *widget, vec2i_t size)
 	widget->size = size;
 	widget->has_resized = true;
 
+	// TODO: Do this per-widget!
 	if (widget->text != NULL) {
 		text_update_boundaries(widget->text, widget->text->position, vec2_to_vec2i(size));
 	}
+}
+
+void widget_set_anchor(widget_t *widget, anchor_edge_t edge, anchor_type_t type, int16_t offset)
+{
+	if (widget == NULL || edge >= NUM_ANCHOR_EDGES) {
+		return;
+	}
+
+	widget->anchors[edge].type = type;
+	widget->anchors[edge].offset = offset;
+	widget->has_moved = true;
+}
+
+void widget_set_anchors(widget_t *widget,
+	anchor_type_t left_type, int16_t left_offset,
+	anchor_type_t right_type, int16_t right_offset,
+	anchor_type_t top_type, int16_t top_offset,
+	anchor_type_t bottom_type, int16_t bottom_offset)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	widget->anchors[ANCHOR_EDGE_LEFT].type = left_type;
+	widget->anchors[ANCHOR_EDGE_LEFT].offset = left_offset;
+	widget->anchors[ANCHOR_EDGE_RIGHT].type = right_type;
+	widget->anchors[ANCHOR_EDGE_RIGHT].offset = right_offset;
+	widget->anchors[ANCHOR_EDGE_TOP].type = top_type;
+	widget->anchors[ANCHOR_EDGE_TOP].offset = top_offset;
+	widget->anchors[ANCHOR_EDGE_BOTTOM].type = bottom_type;
+	widget->anchors[ANCHOR_EDGE_BOTTOM].offset = bottom_offset;
+
+	widget->has_moved = true;
 }
 
 void widget_set_colour(widget_t *widget, colour_t colour)
@@ -430,4 +472,93 @@ static void widget_refresh_mesh(widget_t *widget)
 	vertices[15] = vertex_ui(vec2(p.x + w1, bottom - (p.y)),              vec2(suv1.x, uv1.y), widget->colour);
 
 	widget->mesh->is_vertex_data_dirty = true;
+}
+
+static bool widget_process_anchors(widget_t *widget)
+{
+	int16_t left, right, top, bottom;
+
+	// Calculate parent edges.
+	if (widget->parent != NULL) {
+
+		left = widget->parent->world_position.x;
+		right = left + widget->parent->size.x;
+		top = widget->parent->world_position.y;
+		bottom = top + widget->parent->size.y;
+	}
+	else {
+		left = 0;
+		right = mgui_parameters.width;
+		top = 0;
+		bottom = mgui_parameters.height;
+	}
+
+	// Process anchors.
+	bool is_updated = false;
+
+	for (anchor_edge_t edge = 0; edge < NUM_ANCHOR_EDGES; edge++) {
+
+		anchor_type_t type = widget->anchors[edge].type;
+
+		if (type == ANCHOR_NONE) {
+			continue;
+		}
+
+		is_updated = true;
+
+		bool horizontal = (edge == ANCHOR_EDGE_LEFT || edge == ANCHOR_EDGE_RIGHT);
+		int16_t offset = widget->anchors[edge].offset;
+		int16_t target;
+
+		// Calculate the target position for the edge.
+		switch (type) {
+			case ANCHOR_MIN:
+				target = (horizontal ? left : top) + offset;
+				break;
+
+			case ANCHOR_MAX:
+				target = (horizontal ? right : bottom) + offset;
+				break;
+
+			default: // ANCHOR_MIDDLE
+				target = (horizontal ? (left + right) / 2 : (top + bottom) / 2) + offset;
+				break;
+		}
+
+		// Update widget position and size.
+		switch (edge) {
+
+			case ANCHOR_EDGE_LEFT:
+			default:
+				widget->world_position.x = target;
+				break;
+
+			case ANCHOR_EDGE_RIGHT:
+				widget->size.x = (target - widget->world_position.x);
+				break;
+
+			case ANCHOR_EDGE_TOP:
+				widget->world_position.y = target;
+				break;
+
+			case ANCHOR_EDGE_BOTTOM:
+				widget->size.y = (target - widget->world_position.y);
+				break;
+		}
+	}
+
+	// Update local position and text boundaries.
+	if (is_updated) {
+		
+		widget->position = vec2i_subtract(widget->world_position, widget->parent->world_position);
+		widget->has_moved = true;
+
+		// TODO: Do this per-widget!
+		if (widget->text != NULL) {
+			text_update_boundaries(widget->text,
+			                       widget->text->position, vec2_to_vec2i(widget->size));
+		}
+	}
+
+	return is_updated;
 }
