@@ -5,6 +5,7 @@
 #include "mgui/mgui.h"
 #include "mgui/vector.h"
 #include "mgui/widgets/button.h"
+#include "mgui/widgets/checkbox.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"
@@ -13,6 +14,8 @@
 
 #define NUM_WIDGET_VERTICES 16
 #define NUM_WIDGET_INDICES 54
+#define NUM_WIDGET_ADDITIONAL_VERTICES 4
+#define NUM_WIDGET_ADDITIONAL_INDICES 6
 
 // -------------------------------------------------------------------------------------------------
 
@@ -24,6 +27,7 @@ typedef enum widget_type_t {
 
 	WIDGET_TYPE_WIDGET,
 	WIDGET_TYPE_BUTTON,
+	WIDGET_TYPE_CHECKBOX,
 
 	NUM_WIDGET_TYPES
 
@@ -33,13 +37,14 @@ typedef enum widget_type_t {
 
 typedef enum widget_state_t {
 
-	WIDGET_STATE_INVISIBLE = 0x01, // Currently unused
+	WIDGET_STATE_INVISIBLE = 0x01,
 	WIDGET_STATE_DISABLED = 0x02,
 	WIDGET_STATE_FOCUSED = 0x04,
 	WIDGET_STATE_HOVERED = 0x08,
 	WIDGET_STATE_PRESSED = 0x10,
 	WIDGET_STATE_HOVERABLE = 0x20,
 	WIDGET_STATE_PRESSABLE = 0x40,
+	WIDGET_STATE_EXT_MESH = 0x80, // Use an extended mesh with space for an additional sprite
 
 } widget_state_t;
 
@@ -49,6 +54,7 @@ typedef struct widget_callbacks_t {
 
 	void (*on_destroy)(widget_t *widget);
 	void (*on_process)(widget_t *widget);
+	void (*on_refresh_vertices)(widget_t *widget);
 	void (*on_focused)(widget_t *widget, bool focused);
 	void (*on_hovered)(widget_t *widget, bool hovered);
 	void (*on_pressed)(widget_t *widget, bool pressed);
@@ -104,7 +110,7 @@ typedef struct widget_t {
 
 	bool has_moved;
 	bool has_resized;
-	bool has_colour_changed;
+	bool has_colour_changed; // TODO: Name this better!
 
 	widget_state_t state;
 
@@ -122,6 +128,7 @@ typedef struct widget_t {
 
 	union {
 		button_t button;
+		checkbox_t checkbox;
 	};
 
 } widget_t;

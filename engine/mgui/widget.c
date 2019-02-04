@@ -22,6 +22,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -58,9 +59,6 @@ widget_t *widget_create(widget_t *parent)
 		widget->parent = NULL;
 		mgui_add_widget_layer(widget);
 	}
-	
-	// Allocate the vertices for this widget on the GPU.
-	widget_create_mesh(widget);
 
 	return widget;
 }
@@ -95,6 +93,11 @@ void widget_process(widget_t *widget)
 {
 	if (widget == NULL || (widget->state & WIDGET_STATE_INVISIBLE)) {
 		return;
+	}
+
+	// Ensure the widget mesh exists before updating the widget.
+	if (widget->mesh == NULL) {
+		widget_create_mesh(widget);
 	}
 
 	if (widget->callbacks->on_process != NULL) {
@@ -273,7 +276,7 @@ void widget_set_colour(widget_t *widget, colour_t colour)
 
 void widget_set_sprite(widget_t *widget, sprite_t *sprite)
 {
-	if (widget == NULL) {
+	if (widget == NULL || sprite == NULL) {
 		return;
 	}
 
@@ -400,36 +403,71 @@ static void widget_create_mesh(widget_t *widget)
 	// Create a new mesh to store the widgets vertices into.
 	widget->mesh = mesh_create();
 
+	bool extended_mesh = (widget->state & WIDGET_STATE_EXT_MESH);
+
+	size_t num_vertices = (extended_mesh ?
+	                       NUM_WIDGET_VERTICES + NUM_WIDGET_ADDITIONAL_VERTICES :
+	                       NUM_WIDGET_VERTICES);
+
+	size_t num_indices = (extended_mesh ?
+	                      NUM_WIDGET_INDICES + NUM_WIDGET_ADDITIONAL_INDICES :
+	                      NUM_WIDGET_INDICES);
+
 	// Preallocate the vertices. This creates a local copy and a GPU buffer.
-	mesh_prealloc_vertices(widget->mesh, VERTEX_UI, NUM_WIDGET_VERTICES);
+	mesh_prealloc_vertices(widget->mesh, VERTEX_UI, num_vertices);
 
 	// Set initial vertex values.
-	widget_refresh_mesh(widget);
+	//widget_refresh_mesh(widget);
 
-	// Create the indices for a nine-sliced sprite.
-	vindex_t indices[NUM_WIDGET_INDICES] = {
-		4, 5, 6, 6, 5, 7, // Centre
-		0, 8, 15, 15, 8, 4, // Bottom left
-		8, 9, 4, 4, 9, 5, // Left
-		9, 1, 5, 5, 1, 10, // Top left
-		5, 10, 7, 7, 10, 11, // Top
-		7, 11, 12, 12, 11, 3, // Top right
-		6, 7, 13, 13, 7, 12, // Right
-		14, 6, 2, 2, 6, 13, // Bottom right
-		15, 4, 14, 14, 4, 6 // Bottom
-	};
+	if (extended_mesh) {
 
-	// Set widget vertex indices. This takes into consideration the offset caused by using a shared
-	// vertex buffer.
-	mesh_set_indices(widget->mesh, indices, NUM_WIDGET_INDICES);
+		// Create the indices for a nine-sliced sprite and an addtional regular sprite.
+		vindex_t indices[NUM_WIDGET_INDICES + NUM_WIDGET_ADDITIONAL_INDICES] = {
+			4, 5, 6, 6, 5, 7, // Centre
+			0, 8, 15, 15, 8, 4, // Bottom left
+			8, 9, 4, 4, 9, 5, // Left
+			9, 1, 5, 5, 1, 10, // Top left
+			5, 10, 7, 7, 10, 11, // Top
+			7, 11, 12, 12, 11, 3, // Top right
+			6, 7, 13, 13, 7, 12, // Right
+			14, 6, 2, 2, 6, 13, // Bottom right
+			15, 4, 14, 14, 4, 6, // Bottom
+			16, 17, 18, 18, 17, 19 // Additional centre sprite
+		};
 
-	// Use a default shader for rendering the widget.
+		// Set widget vertex indices. This takes into consideration the offset caused by using
+		// a shared vertex buffer.
+		mesh_set_indices(widget->mesh, indices, num_indices);
+	}
+	else {
+		// Create the indices for a regular nine-sliced sprite.
+		vindex_t indices[NUM_WIDGET_INDICES] = {
+			4, 5, 6, 6, 5, 7, // Centre
+			0, 8, 15, 15, 8, 4, // Bottom left
+			8, 9, 4, 4, 9, 5, // Left
+			9, 1, 5, 5, 1, 10, // Top left
+			5, 10, 7, 7, 10, 11, // Top
+			7, 11, 12, 12, 11, 3, // Top right
+			6, 7, 13, 13, 7, 12, // Right
+			14, 6, 2, 2, 6, 13, // Bottom right
+			15, 4, 14, 14, 4, 6 // Bottom
+		};
+
+		mesh_set_indices(widget->mesh, indices, num_indices);
+	}
+
+	// Use a default UI shader for rendering the widget.
 	mesh_set_shader(widget->mesh, res_get_shader("default-ui"));
+
+	// Use the texture of the sprite sheet.
+	if (widget->sprite != NULL) {
+		mesh_set_texture(widget->mesh, widget->sprite->texture);
+	}
 }
 
 static void widget_refresh_mesh(widget_t *widget)
 {
-	if (widget->sprite == NULL) {
+	if (widget->sprite == NULL || widget->mesh == NULL) {
 		return;
 	}
 
@@ -451,6 +489,7 @@ static void widget_refresh_mesh(widget_t *widget)
 
 	vertex_ui_t *vertices = widget->mesh->ui_vertices;
 
+	// TODO: Should texture y be reversed here?
 	vertices[0]  = vertex_ui(vec2(p.x, bottom - p.y),                     vec2(uv1.x, uv1.y), widget->colour);
 	vertices[1]  = vertex_ui(vec2(p.x, bottom - (p.y + h)),               vec2(uv1.x, uv2.y), widget->colour);
 	vertices[2]  = vertex_ui(vec2(p.x + w, bottom - p.y),                 vec2(uv2.x, uv1.y), widget->colour);
@@ -470,6 +509,11 @@ static void widget_refresh_mesh(widget_t *widget)
 	vertices[13] = vertex_ui(vec2(p.x + w, bottom - (p.y + h1)),          vec2(uv2.x, suv1.y), widget->colour);
 	vertices[14] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y)),          vec2(suv2.x, uv1.y), widget->colour);
 	vertices[15] = vertex_ui(vec2(p.x + w1, bottom - (p.y)),              vec2(suv1.x, uv1.y), widget->colour);
+
+	// Additional vertices are updated separately by each widget type.
+	if (widget->callbacks->on_refresh_vertices != NULL) {
+		widget->callbacks->on_refresh_vertices(widget);
+	}
 
 	widget->mesh->is_vertex_data_dirty = true;
 }

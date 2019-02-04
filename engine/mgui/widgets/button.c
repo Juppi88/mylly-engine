@@ -19,6 +19,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	on_button_process,
 	NULL,
+	NULL,
 	on_button_hovered,
 	on_button_pressed,
 };
@@ -120,15 +121,16 @@ static void on_button_pressed(widget_t *button, bool pressed)
 	}
 
 	if (pressed) {
-
 		button_interpolate_colour(button, button->colour, button->button.pressed_colour);
+	}
+	else if (button->state & WIDGET_STATE_HOVERED) {
+		
+		button_interpolate_colour(button, button->colour, button->button.hovered_colour);
 
+		// Buton was released but is still hovered -> call click handler.
 		if (button->button.on_clicked != NULL) {
 			button->button.on_clicked(button->button.on_clicked_context);
 		}
-	}
-	else if (button->state & WIDGET_STATE_HOVERED) {
-		button_interpolate_colour(button, button->colour, button->button.hovered_colour);
 	}
 	else {
 		button_interpolate_colour(button, button->colour, button->button.normal_colour);
