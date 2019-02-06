@@ -6,6 +6,7 @@
 #include "mgui/vector.h"
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
+#include "mgui/widgets/group.h"
 #include "mgui/widgets/label.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
@@ -29,6 +30,7 @@ typedef enum widget_type_t {
 	WIDGET_TYPE_WIDGET,
 	WIDGET_TYPE_BUTTON,
 	WIDGET_TYPE_CHECKBOX,
+	WIDGET_TYPE_GROUP,
 	WIDGET_TYPE_LABEL,
 
 	NUM_WIDGET_TYPES
@@ -132,6 +134,7 @@ typedef struct widget_t {
 	union {
 		button_t button;
 		checkbox_t checkbox;
+		group_t group;
 		label_t label;
 	};
 
