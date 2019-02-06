@@ -214,8 +214,9 @@ static void text_refresh_vertices(text_t *text)
 			continue;
 		}
 
-		// Calculate the position of each glyph
-		vec2_t p = vec2(pos_x + g->bearing.x, -g->size.y);
+		// Calculate the position of each glyph. As a comment I am not sure why the Y coordinate
+		// works as well as it does, but as long as it does...
+		vec2_t p = vec2(pos_x + g->bearing.x, (g->size.y - g->bearing.y) - g->size.y);
 		vec2_t s = g->size;
 
 		vertices[base + 0] = vertex_ui(vec2(p.x, p.y),               vec2(g->uv1.x, g->uv1.y), text->colour);
