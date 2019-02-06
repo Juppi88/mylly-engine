@@ -6,6 +6,7 @@
 #include "mgui/vector.h"
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
+#include "mgui/widgets/label.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"
@@ -28,6 +29,7 @@ typedef enum widget_type_t {
 	WIDGET_TYPE_WIDGET,
 	WIDGET_TYPE_BUTTON,
 	WIDGET_TYPE_CHECKBOX,
+	WIDGET_TYPE_LABEL,
 
 	NUM_WIDGET_TYPES
 
@@ -45,6 +47,7 @@ typedef enum widget_state_t {
 	WIDGET_STATE_HOVERABLE = 0x20,
 	WIDGET_STATE_PRESSABLE = 0x40,
 	WIDGET_STATE_EXT_MESH = 0x80, // Use an extended mesh with space for an additional sprite
+	WIDGET_STATE_NO_MESH = 0x100, // Widget has no mesh i.e. it is invisible or text only
 
 } widget_state_t;
 
@@ -129,6 +132,7 @@ typedef struct widget_t {
 	union {
 		button_t button;
 		checkbox_t checkbox;
+		label_t label;
 	};
 
 } widget_t;

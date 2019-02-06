@@ -96,7 +96,7 @@ void widget_process(widget_t *widget)
 	}
 
 	// Ensure the widget mesh exists before updating the widget.
-	if (widget->mesh == NULL) {
+	if (widget->mesh == NULL && (widget->state & WIDGET_STATE_NO_MESH) == 0) {
 		widget_create_mesh(widget);
 	}
 
