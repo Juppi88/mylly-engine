@@ -11,10 +11,10 @@ colour_t col_add(colour_t a, colour_t b)
 	uint32_t _a = a.a + b.a;
 
 	return col_a(
-		CLAMP(_r, 0, 255),
-		CLAMP(_g, 0, 255),
-		CLAMP(_b, 0, 255),
-		CLAMP(_a, 0, 255)
+		MIN(_r, 255),
+		MIN(_g, 255),
+		MIN(_b, 255),
+		MIN(_a, 255)
 	);
 }
 

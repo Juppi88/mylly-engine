@@ -10,13 +10,16 @@
 
 // -------------------------------------------------------------------------------------------------
 
+static bool widget_is_point_inside_bounding_box(widget_t *widget, vec2i_t point);
 static void widget_create_mesh(widget_t *widget);
 static void widget_refresh_mesh(widget_t *widget);
 static bool widget_process_anchors(widget_t *widget);
+static void widget_recalculate_bounding_box(widget_t *widget);
 
 // -------------------------------------------------------------------------------------------------
 
 static widget_callbacks_t callbacks = {
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -37,8 +40,13 @@ widget_t *widget_create(widget_t *parent)
 	widget->type = WIDGET_TYPE_WIDGET;
 	widget->colour = COL_WHITE;
 
+	widget->bounds_min = vec2i_zero();
+	widget->bounds_max = widget->size;
+
 	widget->has_moved = false;
 	widget->has_resized = false;
+	widget->has_colour_changed = false;
+	widget->have_child_boundaries_changed = false;
 
 	widget->callbacks = &callbacks;
 
@@ -130,11 +138,17 @@ void widget_process(widget_t *widget)
 		(widget->has_moved || widget->has_resized || widget->text->is_dirty)) {
 		
 		text_update(widget->text);
+
+		if (widget->callbacks->on_process_text != NULL) {
+			widget->callbacks->on_process_text(widget);
+		}
 	}
 
 	// Actual rendering is done in the render system - just report that this mesh needs to be
 	// rendered during this frame.
-	if (widget->sprite != NULL) {
+	if (widget->mesh != NULL &&
+		widget->sprite != NULL) {
+
 		rsys_render_ui_mesh(widget->mesh);
 	}
 
@@ -153,10 +167,27 @@ void widget_process(widget_t *widget)
 		widget_process(child);
 	}
 
+	// If this widget has moved, resized or has children with a changed size, update bounding box.
+	if (widget->have_child_boundaries_changed || widget->has_moved || widget->has_resized) {
+		widget_recalculate_bounding_box(widget);
+	}
+
+	// Notify grandparents about size or position changes.
+	if (widget->has_moved || widget->has_resized) {
+
+		widget_t *parent = widget->parent;
+		while (parent != NULL) {
+
+			parent->have_child_boundaries_changed = true;
+			parent = parent->parent;
+		}
+	}
+
 	// Reset state flags.
 	widget->has_moved = false;
 	widget->has_resized = false;
 	widget->has_colour_changed = false;
+	widget->have_child_boundaries_changed = false;
 }
 
 void widget_add_child(widget_t *widget, widget_t *child)
@@ -359,18 +390,29 @@ bool widget_is_point_inside(widget_t *widget, vec2i_t point)
 	);
 }
 
+static bool widget_is_point_inside_bounding_box(widget_t *widget, vec2i_t point)
+{
+	return (
+		point.x >= widget->bounds_min.x &&
+		point.x <= widget->bounds_max.x &&
+		point.y >= widget->bounds_min.y &&
+		point.y <= widget->bounds_max.y
+	);
+}
+
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point)
 {
 	if (widget == NULL || (widget->state & WIDGET_STATE_INVISIBLE)) {
 		return NULL;
 	}
 
-	// Test self first.
-	if (!widget_is_point_inside(widget, point)) {
+	// Test whether the point is within the bounding box of the widget and its children.
+	if (!widget_is_point_inside_bounding_box(widget, point)) {
 		return NULL;
 	}
 
-	// Test each child recursively.
+	// Test each child recursively. If a child is found under the cursor, return it as it will be
+	// above the parent widget.
 	widget_t *child, *hit;
 
 	list_foreach_reverse(widget->children, child) {
@@ -381,8 +423,14 @@ widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point)
 			return hit;
 		}
 	}
+
+	// If the point was not inside any of the children but it is within the parent, return it.
+	if (widget_is_point_inside(widget, point)) {
+		return widget;
+	}
 	
-	return widget;
+	// Could not find anything at the specified point!
+	return NULL;
 }
 
 widget_t *widget_get_grandparent(widget_t *widget)
@@ -605,4 +653,31 @@ static bool widget_process_anchors(widget_t *widget)
 	}
 
 	return is_updated;
+}
+
+static void widget_recalculate_bounding_box(widget_t *widget)
+{
+	widget->bounds_min = widget->world_position;
+	widget->bounds_max = vec2i_add(widget->world_position, widget->size);
+
+	// To calculate the bounding box we only need to check immediate child widgets, as their
+	// bounding boxes include their children at this state.
+	widget_t *child;
+
+	list_foreach(widget->children, child) {
+
+		if (child->bounds_min.x < widget->bounds_min.x) {
+			widget->bounds_min.x = child->bounds_min.x;
+		}
+		else if (child->bounds_max.x > widget->bounds_max.x) {
+			widget->bounds_max.x = child->bounds_max.x;
+		}
+
+		if (child->bounds_min.y < widget->bounds_min.y) {
+			widget->bounds_min.y = child->bounds_min.y;
+		}
+		else if (child->bounds_max.y > widget->bounds_max.y) {
+			widget->bounds_max.y = child->bounds_max.y;
+		}
+	}
 }

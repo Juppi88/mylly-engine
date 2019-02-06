@@ -266,7 +266,7 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	}
 
 	// Select the active texture.
-	GLuint texture = (mesh->texture != NULL ? mesh->texture->gpu_texture : -1);
+	GLuint texture = (mesh->texture != NULL ? mesh->texture->gpu_texture : 0);
 
 	if (texture != active_texture) {
 
@@ -390,7 +390,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 	}
 
 	// Select the active texture.
-	GLuint texture_id = (texture != NULL ? texture->gpu_texture : -1);
+	GLuint texture_id = (texture != NULL ? texture->gpu_texture : 0);
 
 	if (texture_id != active_texture) {
 

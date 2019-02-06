@@ -48,8 +48,9 @@ typedef enum widget_state_t {
 	WIDGET_STATE_PRESSED = 0x10,
 	WIDGET_STATE_HOVERABLE = 0x20,
 	WIDGET_STATE_PRESSABLE = 0x40,
-	WIDGET_STATE_EXT_MESH = 0x80, // Use an extended mesh with space for an additional sprite
-	WIDGET_STATE_NO_MESH = 0x100, // Widget has no mesh i.e. it is invisible or text only
+	WIDGET_STATE_CONSUME_CHILD_PRESSES = 0x80, // Consume child clicks (i.e. label of a checkbox)
+	WIDGET_STATE_EXT_MESH = 0x100, // Use an extended mesh with space for an additional sprite
+	WIDGET_STATE_NO_MESH = 0x200, // Widget has no mesh i.e. it is invisible or text only
 
 } widget_state_t;
 
@@ -59,6 +60,7 @@ typedef struct widget_callbacks_t {
 
 	void (*on_destroy)(widget_t *widget);
 	void (*on_process)(widget_t *widget);
+	void (*on_process_text)(widget_t *widget);
 	void (*on_refresh_vertices)(widget_t *widget);
 	void (*on_focused)(widget_t *widget, bool focused);
 	void (*on_hovered)(widget_t *widget, bool hovered);
@@ -111,11 +113,15 @@ typedef struct widget_t {
 	vec2i_t size;
 	colour_t colour;
 
+	vec2i_t bounds_min; // The bounding box of the widget. Takes child widget sizes into account.
+	vec2i_t bounds_max;
+
 	anchor_t anchors[NUM_ANCHOR_EDGES]; // Widget anchors
 
 	bool has_moved;
 	bool has_resized;
 	bool has_colour_changed; // TODO: Name this better!
+	bool have_child_boundaries_changed;
 
 	widget_state_t state;
 

@@ -232,6 +232,16 @@ void mgui_set_pressed_widget(widget_t *widget)
 	// Update the state of the new widget.
 	if (pressed_widget != NULL) {
 
+		// If the widget itself doesn't react to mouse presses but its parent consumes them,
+		// relay the press event to the parent instead. This is so we can have e.g. checkboxes with
+		// clickable child labels.
+		if (pressed_widget->callbacks->on_pressed == NULL &&
+			pressed_widget->parent != NULL &&
+			pressed_widget->parent->state & WIDGET_STATE_CONSUME_CHILD_PRESSES) {
+
+			pressed_widget = pressed_widget->parent;
+		}
+
 		pressed_widget->state |= WIDGET_STATE_PRESSED;
 
 		if (pressed_widget->state & WIDGET_STATE_PRESSABLE) {

@@ -15,6 +15,7 @@ static void on_checkbox_pressed(widget_t *checkbox, bool pressed);
 static widget_callbacks_t callbacks = {
 	NULL,
 	NULL,
+	NULL,
 	on_checkbox_refresh_vertices,
 	NULL,
 	NULL,
@@ -31,7 +32,13 @@ widget_t *checkbox_create(widget_t *parent)
 	// Initialize type specific data.
 	widget->type = WIDGET_TYPE_CHECKBOX;
 	widget->callbacks = &callbacks;
-	widget->state |= (WIDGET_STATE_HOVERABLE | WIDGET_STATE_PRESSABLE | WIDGET_STATE_EXT_MESH);
+
+	widget->state |= (
+		WIDGET_STATE_HOVERABLE |
+		WIDGET_STATE_PRESSABLE |
+		WIDGET_STATE_CONSUME_CHILD_PRESSES | // Clicking child (e.g. label) clicks the checkbox
+		WIDGET_STATE_EXT_MESH
+	);
 
 	return widget;
 }
@@ -122,7 +129,7 @@ static void on_checkbox_pressed(widget_t *checkbox, bool pressed)
 		return;
 	}
 
-	if (!pressed && checkbox->state & WIDGET_STATE_HOVERED) {
+	if (!pressed) {
 		
 		// Toggle checkbox status.
 		checkbox->checkbox.is_toggled = !checkbox->checkbox.is_toggled;
