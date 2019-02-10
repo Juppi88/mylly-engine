@@ -8,16 +8,29 @@ BEGIN_DECLARATIONS;
 
 // -------------------------------------------------------------------------------------------------
 
+// TODO: This is an OpenGL ES 2.0 limitation, re-define for full OpenGL.
 #define MAX_VERTICES 0xFFFF
 
 // -------------------------------------------------------------------------------------------------
 
 typedef enum buffer_index_t {
 
-	BUFIDX_STATIC,
-	BUFIDX_DYNAMIC,
-	BUFIDX_PARTICLE,
-	BUFIDX_UI,
+	BUFIDX_STATIC, // Static objects which persist in memory
+	BUFIDX_DYNAMIC, // Dynamic objects with changing vertex data
+	BUFIDX_PARTICLE, // Particle emitters
+	BUFIDX_UI, // UI elements
+	BUFIDX_DEBUG, // Debug elements (triangles)
+	BUFIDX_DEBUG_LINE, // Debug elements (lines)
+	BUFIDX_RESERVED1, // Reserved for future use
+	BUFIDX_RESERVED2,
+	BUFIDX_RESERVED3,
+	BUFIDX_RESERVED4,
+	BUFIDX_CUSTOM1, // Vertex buffers for custom meshes (i.e. tile grids)
+	BUFIDX_CUSTOM2,
+	BUFIDX_CUSTOM3,
+	BUFIDX_CUSTOM4,
+	BUFIDX_CUSTOM5,
+	BUFIDX_CUSTOM6,
 
 	NUM_BUF_INDICES
 	

@@ -18,6 +18,7 @@ typedef enum {
 	VERTEX_NORMAL, // Regular 3D vertices with normals
 	VERTEX_PARTICLE, // Particle vertices
 	VERTEX_UI, // UI panel vertices
+	VERTEX_DEBUG, // Debug object vertex
 
 } vertex_type_t;
 
@@ -72,6 +73,19 @@ typedef struct vertex_ui_t {
 
 #define vertex_ui_empty()\
 	(vertex_ui_t){ vec2_zero(), vec2_zero(), COL_TRANSPARENT }
+
+// -------------------------------------------------------------------------------------------------
+
+// Vertex definition for 3D scene debug primitives.
+typedef struct vertex_debug_t {
+
+	vec3_t pos; // Position of the vertex in the scene
+	colour_t colour; // Colour of the vertex
+	
+} vertex_debug_t;
+
+#define vertex_debug(pos, colour) \
+	(vertex_debug_t){ pos, colour }
 
 // -------------------------------------------------------------------------------------------------
 

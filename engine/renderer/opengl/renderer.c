@@ -153,12 +153,9 @@ void rend_begin_draw(void)
 	glEnable(GL_BLEND);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
 	//glDisable(GL_CULL_FACE);
-
-	//glClearDepth(0);
-	//glDepthFunc(GL_GEQUAL);
-
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -275,7 +272,25 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	}
 
 	// Bind the meshes vertex buffer and set vertex data pointers.
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
+	if (mesh->handle_vertices != 0 && mesh->handle_indices != 0) {
+
+		// Mesh uses a buffer handle (i.e. only a part of the buffer is drawn).
+		bufcache_t *buffer = bufcache_get(BUFFER_GET_INDEX(mesh->handle_vertices));
+
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer->vertex_buffer.object);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer->index_buffer.object);
+	}
+	else if (mesh->vertices != NULL && mesh->indices != NULL) {
+
+		// Mesh uses a buffer cache object (i.e. the entire buffer is drawn).
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, mesh->vertices->vbo);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
+	}
+	else {
+
+		// Mesh does not contain vertex data, unable to render.
+		return;
+	}
 
 	// Set pointers to vertex attributes.
 	if (mesh->vertex_type == VERTEX_NORMAL) {
@@ -292,6 +307,15 @@ static void rend_draw_mesh(rmesh_t *mesh)
 
 		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                                    sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
+	}
+	else if (mesh->vertex_type == VERTEX_DEBUG) {
+
+		// Debug vertex attributes.
+		rend_bind_shader_attribute(mesh->shader, ATTR_VERTEX, 3, GL_FLOAT, GL_FALSE,
+		                          sizeof(vertex_debug_t), (void *)offsetof(vertex_debug_t, pos));
+
+		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+		                           sizeof(vertex_debug_t), (void *)offsetof(vertex_debug_t, colour));
 	}
 	else {
 		// Particle vertex attributes.
@@ -349,8 +373,23 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	}
 
 	// Draw the triangles of the mesh.
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, mesh->indices->vbo);
-	glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
+	if (mesh->vertices != NULL && mesh->indices != NULL) {
+		glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
+	}
+	else {
+
+		uint32_t offset = BUFFER_GET_OFFSET(mesh->handle_indices) / sizeof(vindex_t);
+		uint32_t length = BUFFER_GET_SIZE(mesh->handle_indices) / sizeof(vindex_t);
+
+		GLenum mode = (
+			BUFFER_GET_INDEX(mesh->handle_vertices) == BUFIDX_DEBUG_LINE ?
+			GL_LINES :
+			GL_TRIANGLES
+		);
+
+		glDrawRangeElements(mode, offset, offset + length, length,
+		                    GL_UNSIGNED_SHORT, (const GLvoid *)(sizeof(vindex_t) * offset));
+	}
 
 	// Disable vertex attributes to avoid using them when there is no such data available.
 	for (int i = 0; i < NUM_SHADER_ATTRIBUTES; i++) {
@@ -372,7 +411,6 @@ static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint si
 
 	return true;
 }
-
 
 static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent)
 {

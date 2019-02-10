@@ -6,6 +6,7 @@
 #include "platform/window.h"
 #include "platform/inputhook.h"
 #include "renderer/rendersystem.h"
+#include "renderer/debug.h"
 #include "resources/resources.h"
 #include "scene/scene.h"
 #include "mgui/mgui.h"
@@ -65,6 +66,8 @@ bool mylly_initialize(int argc, char **argv)
 		monitor.height,
 	};
 
+	debug_initialize();
+
 	mgui_initialize(params);
 
 	return true;
@@ -75,6 +78,8 @@ static void mylly_shutdown(void)
 	// Destroy UI.
 	mgui_shutdown();
 
+	debug_shutdown();
+	
 	// Unload all loaded resources.
 	res_shutdown();
 	
@@ -91,13 +96,13 @@ void mylly_main_loop(on_loop_t callback)
 		window_pump_events();
 		window_process_events(input_sys_process_messages);
 
+		// Render the current scene.
+		rsys_begin_frame();
+
 		// Call the main loop callback.
 		if (callback != NULL) {
 			callback();
 		}
-
-		// Render the current scene.
-		rsys_begin_frame();
 
 		if (current_scene != NULL) {
 

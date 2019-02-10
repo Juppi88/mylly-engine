@@ -6,6 +6,7 @@
 #include "texture.h"
 #include "vertexbuffer.h"
 #include "buffercache.h"
+#include "debug.h"
 #include "scene/scene.h"
 #include "scene/object.h"
 #include "scene/model.h"
@@ -77,13 +78,16 @@ void rsys_begin_frame(void)
 	vbcache_set_current_frame(frames_rendered);
 
 	rend_begin_draw();
+	debug_begin_frame();
 }
 
 void rsys_end_frame(void)
 {
 	// Issue the actual draw calls here.
+	debug_end_frame();
 	rend_draw_views(views.first);
 	rend_draw_ui_view(&ui_view);
+
 	rend_end_draw();
 
 	// Release all temporary data.
@@ -121,6 +125,10 @@ void rsys_render_scene(scene_t *scene)
 			*camera_get_view_matrix(camera->camera),
 			&view->projection
 		);
+
+		// Initialize a virtual root object.
+		view->root.matrix = mat_identity();
+		view->root.mvp = view->projection;
 
 		// Add the view to the list of views to be rendered.
 		list_push(views, view);
@@ -168,6 +176,55 @@ void rsys_render_ui_mesh(mesh_t *mesh)
 	// Add the mesh to the view. UI meshes ignore the render queue and are always rendered after
 	// everything else.
 	list_push(ui_view.meshes, rmesh);
+}
+
+void rsys_render_mesh(mesh_t *mesh)
+{
+	rview_t *view;
+
+	// Upload changed vertex data to the GPU.
+	if (mesh->is_vertex_data_dirty &&
+		mesh->handle_vertices != 0) {
+
+		// Optimize sequential debug line data (which is usually updated every frame) by only
+		// updating as many vertices as are needed to ne drawn.
+		buffer_handle_t handle = mesh->handle_vertices;
+
+		if (BUFFER_GET_INDEX(handle) == BUFIDX_DEBUG_LINE) {
+			BUFFER_SET_SIZE(handle, mesh->vertex_size * mesh->num_indices_to_render);
+		}
+
+		bufcache_update(handle, mesh->debug_vertices);
+		mesh->is_vertex_data_dirty = false;
+	}
+
+	// TODO: Cull the mesh before adding it to the views!
+	list_foreach(views, view) {
+
+		// Create a new render mesh as a copy for the renderer.
+		NEW(rmesh_t, rmesh);
+
+		rmesh->parent = &view->root;
+		rmesh->vertex_type = mesh->vertex_type;
+		rmesh->handle_vertices = mesh->handle_vertices;
+		rmesh->handle_indices = mesh->handle_indices;
+
+		// Override the number of indices to render.
+		if (mesh->num_indices_to_render != 0) {
+
+			BUFFER_SET_SIZE(
+				rmesh->handle_indices,
+				sizeof(vindex_t) * (uint64_t)mesh->num_indices_to_render
+			);
+		}
+
+		// Use default shader unless others are available.
+		rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
+		rmesh->texture = mesh->texture;
+
+		// Add the mesh to the view to a render queue determined by its shader.
+		list_push(view->meshes[rmesh->shader->queue], rmesh);
+	}
 }
 
 static void rsys_cull_object(object_t *object)

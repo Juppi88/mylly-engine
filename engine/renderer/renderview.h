@@ -37,8 +37,13 @@ typedef struct rmesh_t {
 
 	robject_t *parent; // Parent object this mesh belongs to. Contains the model matrices
 	vertex_type_t vertex_type; // The type of vertex used by the mesh
+
+	// Vertex and index data. Only one of the two is used, either buffer or handle to buffer.
 	vertexbuffer_t *vertices; // Vertex buffer containing the vertices of this mesh
 	vertexbuffer_t *indices; // Vertex buffer containing the indices of this mesh
+	buffer_handle_t handle_vertices; // Handle to vertex data
+	buffer_handle_t handle_indices; // Handle to index data
+	
 	shader_t *shader; // The shader used for rendering this mesh
 	texture_t *texture; // The texture applied to this mesh.
 
@@ -61,6 +66,10 @@ typedef struct rview_t {
 	
 	// List of all the meshes to be rendered in the view, sorted by render queues
 	list_t(rmesh_t) meshes[NUM_QUEUES];
+
+	// A virtual root object placed at the origin. Used for custom meshes placed in the scene
+	// (for example debug meshes).
+	robject_t root;
 
 } rview_t;
 

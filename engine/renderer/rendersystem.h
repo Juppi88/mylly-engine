@@ -23,6 +23,9 @@ void rsys_render_scene(scene_t *scene);
 // Report a UI mesh to be rendered during this frame.
 void rsys_render_ui_mesh(mesh_t *mesh);
 
+// Report a generic mesh to be rendered.
+void rsys_render_mesh(mesh_t *mesh);
+
 END_DECLARATIONS;
 
 #endif

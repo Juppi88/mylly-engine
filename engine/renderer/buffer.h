@@ -36,6 +36,10 @@ typedef uint64_t buffer_handle_t;
 
 #define BUFFER_GET_START_INDEX(h, vertsize) BUFFER_GET_OFFSET(h) / (vertsize)
 
+#define BUFFER_SET_SIZE(h, size)\
+	(h) &= ~((uint64_t)BUFFER_SIZE_MASK << BUFFER_SIZE_SHIFT);\
+	(h) |= (((size) & BUFFER_SIZE_MASK) << BUFFER_SIZE_SHIFT)
+
 // -------------------------------------------------------------------------------------------------
 
 typedef enum buffer_type_t {

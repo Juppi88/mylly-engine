@@ -127,6 +127,42 @@ void mesh_set_ui_vertices(mesh_t *mesh, const vertex_ui_t *vertices, size_t num_
 	mesh->is_vertex_data_dirty = true;
 }
 
+void mesh_set_debug_vertices(mesh_t *mesh, const vertex_debug_t *vertices, size_t num_vertices)
+{
+	if (mesh == NULL || vertices == NULL) {
+		return;
+	}
+
+	// Remove old vertex data if vertex type has changed or the size of the buffer is different.
+	if (mesh->ui_vertices == NULL ||
+		mesh->vertex_type != VERTEX_DEBUG ||
+		mesh->num_vertices != num_vertices) {
+
+		if (mesh->ui_vertices != NULL) {
+
+			DESTROY(mesh->ui_vertices);
+
+			mesh->ui_vertices = NULL;
+			mesh->num_vertices = 0;
+			mesh->vertex_buffer = NULL;
+		}
+
+		NEW_ARRAY(vertex_debug_t, arr, num_vertices);
+
+		mesh->debug_vertices = arr;
+		mesh->num_vertices = num_vertices;
+		mesh->vertex_type = VERTEX_DEBUG;
+		mesh->vertex_size = sizeof(vertex_debug_t);
+	}
+
+	// Copy new vertices into the buffer.
+	for (size_t i = 0; i < num_vertices; ++i) {
+		mesh->debug_vertices[i] = vertices[i];
+	}
+	
+	mesh->is_vertex_data_dirty = true;
+}
+
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices)
 {
 	if (mesh == NULL) {
@@ -161,6 +197,17 @@ void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertice
 
 		// Allocate the GPU handle for UI vertices.
 		mesh->handle_vertices = bufcache_alloc_vertices(BUFIDX_UI, mesh->ui_vertices,
+		                                                mesh->vertex_size, num_vertices);
+	}
+	else if (type == VERTEX_DEBUG) {
+
+		NEW_ARRAY(vertex_debug_t, arr, num_vertices);
+
+		mesh->debug_vertices = arr;
+		mesh->vertex_size = sizeof(vertex_debug_t);
+
+		// Allocate the GPU handle for UI vertices.
+		mesh->handle_vertices = bufcache_alloc_vertices(BUFIDX_DEBUG_LINE, mesh->debug_vertices,
 		                                                mesh->vertex_size, num_vertices);
 	}
 

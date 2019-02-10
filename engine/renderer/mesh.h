@@ -28,6 +28,7 @@ typedef struct mesh_t {
 		vertex_t *vertices;
 		vertex_particle_t *part_vertices;
 		vertex_ui_t *ui_vertices;
+		vertex_debug_t *debug_vertices;
 	};
 
 	size_t num_vertices;
@@ -61,6 +62,7 @@ void mesh_destroy(mesh_t *mesh);
 void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertices);
 void mesh_set_particle_vertices(mesh_t *mesh, const vertex_particle_t *vertices, size_t num_vertices);
 void mesh_set_ui_vertices(mesh_t *mesh, const vertex_ui_t *vertices, size_t num_vertices);
+void mesh_set_debug_vertices(mesh_t *mesh, const vertex_debug_t *vertices, size_t num_vertices);
 
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices);
 void mesh_refresh_vertices(mesh_t *mesh);
