@@ -169,6 +169,7 @@ void widget_set_anchors(widget_t *widget,
 
 void widget_set_colour(widget_t *widget, colour_t colour);
 void widget_set_sprite(widget_t *widget, sprite_t *sprite);
+void widget_set_visible(widget_t *widget, bool visible);
 
 void widget_set_text(widget_t *widget, const char* format, ...);
 void widget_set_text_s(widget_t *widget, const char *text);

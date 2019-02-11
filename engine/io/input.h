@@ -11,18 +11,24 @@ BEGIN_DECLARATIONS;
 
 // Mouse buttons. Can be used as key symbols alongside those defined in 'input/keys.h'.
 typedef enum mouse_button_t {
+
 	MOUSE_NONE,
 	MOUSE_LEFT,
 	MOUSE_MIDDLE,
 	MOUSE_RIGHT,
 	MOUSE_FORCE_DWORD = 0x7FFFFFFF
+
 } mouse_button_t;
+
+// -------------------------------------------------------------------------------------------------
 
 // Mouse wheel events.
 typedef enum mouse_wheel_t {
+
 	MWHEEL_STATIONARY,
 	MWHEEL_UP,
 	MWHEEL_DOWN,
+	
 } mouse_wheel_t;
 
 // -------------------------------------------------------------------------------------------------
@@ -36,7 +42,7 @@ void input_shutdown(void);
 // Bind an arbitrary button index to a key symbol from 'input/keys.h'. The value can then be used
 // to query the state of a button without hardcoding the symbol into the code. Setting the key
 // symbol to 0 will unbind the symbol.
-typedef uint8_t button_code_t;
+typedef uint16_t button_code_t;
 
 void input_bind_button(button_code_t button, uint32_t key_symbol);
 
@@ -51,12 +57,12 @@ bool input_get_button_released(button_code_t button);
 
 // Bind keyboard keys and mouse buttons to handler methods which are called every time the button is
 // pressed or released.
-#define KEYBIND_HANDLER(x) static bool x(uint32_t key, bool pressed)
+#define KEYBIND_HANDLER(x) static bool x(uint32_t key, bool pressed, void *context)
 
-typedef bool (*keybind_handler_t)(uint32_t key, bool pressed);
+typedef bool (*keybind_handler_t)(uint32_t key, bool pressed, void *context);
 
-void input_bind_key(uint32_t key_symbol, keybind_handler_t method);
-void input_unbind_key(uint32_t key_symbol, keybind_handler_t method);
+void input_bind_key(uint32_t key_symbol, keybind_handler_t method, void *context);
+void input_unbind_key(uint32_t key_symbol, keybind_handler_t method, void *context);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -67,14 +73,16 @@ void input_set_cursor_position(uint16_t x, uint16_t y);
 // -------------------------------------------------------------------------------------------------
 
 typedef enum input_event_t {
+
 	INPUT_CHARACTER, // Input a character
 	INPUT_KEY_UP, // A keyboard button is released
 	INPUT_KEY_DOWN, // A keyboard button is pressed
 	INPUT_MOUSE_MOVE, // Mouse movement
 	INPUT_MOUSE_WHEEL, // Mouse scroll
 	INPUT_MOUSE_BUTTON_UP, // Mouse button released
-	INPUT_MOUSE_BUTTON_DOWN, // ;ouse button pressed
+	INPUT_MOUSE_BUTTON_DOWN, // Mouse button pressed
 	NUM_INPUT_EVENTS
+
 } input_event_t;
 
 // Internal handler for raw keyboard events.

@@ -156,6 +156,8 @@ uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
 
 #else
 
+// -------------------------------------------------------------------------------------------------
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 

@@ -19,8 +19,9 @@ typedef struct keybind_t {
 
 	list_entry(keybind_t);
 
-	uint32_t key_symbol; // The symbol this handler is bound to (defined in 'input/keys.h').
-	keybind_handler_t handler; // The handler method.
+	uint32_t key_symbol; // The symbol this handler is bound to (defined in 'input/keys.h')
+	keybind_handler_t handler; // The handler method
+	void *context; // Event handler context
 
 } keybind_t;
 
@@ -91,7 +92,7 @@ bool input_get_button_released(button_code_t button)
 	return (input_sys_get_key_released_frame(key_symbol) == frame);
 }
 
-void input_bind_key(uint32_t key_symbol, keybind_handler_t method)
+void input_bind_key(uint32_t key_symbol, keybind_handler_t method, void *context)
 {
 	if (method == NULL) {
 		return;
@@ -101,11 +102,12 @@ void input_bind_key(uint32_t key_symbol, keybind_handler_t method)
 
 	bind->key_symbol = key_symbol;
 	bind->handler = method;
+	bind->context = context;
 
 	list_push(keybinds, bind);
 }
 
-void input_unbind_key(uint32_t key_symbol, keybind_handler_t method)
+void input_unbind_key(uint32_t key_symbol, keybind_handler_t method, void *context)
 {
 	keybind_t *bind, *tmp;
 
@@ -113,7 +115,8 @@ void input_unbind_key(uint32_t key_symbol, keybind_handler_t method)
 
 		// Remove all bind with the matching key and handler method.
 		if (bind->key_symbol == key_symbol &&
-			bind->handler == method) {
+			bind->handler == method &&
+			bind->context == context) {
 
 			list_remove(keybinds, bind);
 			DESTROY(bind);
@@ -189,7 +192,7 @@ static bool input_process_keybinds(uint32_t key_symbol, bool pressed)
 		if (bind->key_symbol == key_symbol) {
 
 			// Stop processing further binds if a bind returns false.
-			if (!bind->handler(key_symbol, pressed)) {
+			if (!bind->handler(key_symbol, pressed, bind->context)) {
 				return false;
 			}
 		}

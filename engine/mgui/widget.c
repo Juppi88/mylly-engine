@@ -318,6 +318,20 @@ void widget_set_sprite(widget_t *widget, sprite_t *sprite)
 	mesh_set_texture(widget->mesh, sprite->texture);
 }
 
+void widget_set_visible(widget_t *widget, bool visible)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	if (visible) {
+		widget->state &= ~WIDGET_STATE_INVISIBLE;
+	}
+	else {
+		widget->state |= WIDGET_STATE_INVISIBLE;
+	}
+}
+
 void widget_set_text(widget_t *widget, const char* format, ...)
 {
 	if (widget == NULL || widget->text == NULL || format == NULL) {
