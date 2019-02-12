@@ -13,8 +13,13 @@ camera_t *camera_create(object_t *parent)
 	camera->parent = parent;
 	camera->scene_index = INVALID_INDEX;
 
-	camera->is_view_matrix_dirty = true;
-	camera->is_projection_matrix_dirty = true;
+	// Flag all matrices dirty at first.
+	camera->state = (
+		CAMSTATE_VIEW_DIRTY |
+		CAMSTATE_PROJ_DIRTY |
+		CAMSTATE_VIEWPROJ_DIRTY |
+		CAMSTATE_VIEWPROJ_INV_DIRTY
+	);
 
 	camera->is_orthographic = true;
 	camera->near = ORTOGRAPHIC_NEAR;
@@ -47,7 +52,7 @@ void camera_set_orthographic_projection(camera_t *camera, float size, float near
 	camera->far = far;
 
 	// Flag the camera as dirty so the projection matrix is recalculated before use.
-	camera->is_projection_matrix_dirty = true;
+	camera->state |= (CAMSTATE_PROJ_DIRTY | CAMSTATE_VIEWPROJ_DIRTY | CAMSTATE_VIEWPROJ_INV_DIRTY);
 }
 
 void camera_set_perspective_projection(camera_t *camera, float fov, float near, float far)
@@ -63,12 +68,49 @@ void camera_set_perspective_projection(camera_t *camera, float fov, float near, 
 	camera->far = far;
 
 	// Flag the camera as dirty so the projection matrix is recalculated before use.
-	camera->is_projection_matrix_dirty = true;
+	camera->state |= (CAMSTATE_PROJ_DIRTY | CAMSTATE_VIEWPROJ_DIRTY | CAMSTATE_VIEWPROJ_INV_DIRTY);
+}
+
+vec2_t camera_world_to_screen(camera_t *camera, vec3_t position)
+{
+	if (camera == NULL) {
+		return vec2_zero();
+	}
+
+	vec3_t projected = mat_multiply3(*camera_get_view_projection_matrix(camera), position);
+
+	// The projected position is in normalized -1...1 coordinates, translate them to screen units.
+	uint16_t screen_width, screen_height;
+	mylly_get_resolution(&screen_width, &screen_height);
+
+	return vec2(
+		screen_width * (projected.x + 1.0f) / 2.0f,
+		screen_height * (1.0f - (projected.y + 1.0f) / 2.0f)
+	);
+}
+
+vec3_t camera_screen_to_world(camera_t *camera, vec2_t position)
+{
+	if (camera == NULL) {
+		return vec3_zero();
+	}
+
+	// Normalize screen coordinates to a -1...1 range.
+	uint16_t screen_width, screen_height;
+	mylly_get_resolution(&screen_width, &screen_height);
+
+	vec3_t normalized = vec3(
+		2.0f * position.x / screen_width - 1.0f,
+		2.0f * (1.0f - position.y / screen_height) - 1.0f,
+		0
+	);
+
+	return mat_multiply3(*camera_get_view_projection_matrix_inverse(camera), normalized);
 }
 
 void camera_update_view_matrix(camera_t *camera)
 {
-	if (camera == NULL || !camera->is_view_matrix_dirty) {
+	if (camera == NULL || (camera->state & CAMSTATE_VIEW_DIRTY) == 0) {
 		return;
 	}
 
@@ -108,12 +150,12 @@ void camera_update_view_matrix(camera_t *camera)
 		1
 	);
 
-	camera->is_view_matrix_dirty = false;
+	camera->state &= ~CAMSTATE_VIEW_DIRTY;
 }
 
 void camera_update_projection_matrix(camera_t *camera)
 {
-	if (camera == NULL || !camera->is_projection_matrix_dirty) {
+	if (camera == NULL || (camera->state & CAMSTATE_PROJ_DIRTY) == 0) {
 		return;
 	}
 
@@ -186,5 +228,30 @@ void camera_update_projection_matrix(camera_t *camera)
 		);
 	}
 
-	camera->is_projection_matrix_dirty = false;
+	camera->state &= ~CAMSTATE_PROJ_DIRTY;
+}
+
+void camera_update_view_projection_matrix(camera_t *camera)
+{
+	if (camera == NULL || (camera->state & CAMSTATE_VIEWPROJ_DIRTY) == 0) {
+		return;
+	}
+
+	mat_multiply(
+		*camera_get_projection_matrix(camera),
+		*camera_get_view_matrix(camera),
+		&camera->view_projection
+	);
+
+	camera->state &= ~CAMSTATE_VIEWPROJ_DIRTY;
+}
+
+void camera_update_view_projection_matrix_inverse(camera_t *camera)
+{
+	if (camera == NULL || (camera->state & CAMSTATE_VIEWPROJ_INV_DIRTY) == 0) {
+		return;
+	}
+
+	camera->view_projection_inv = mat_invert(*camera_get_view_projection_matrix(camera));
+	camera->state &= ~CAMSTATE_VIEWPROJ_INV_DIRTY;
 }

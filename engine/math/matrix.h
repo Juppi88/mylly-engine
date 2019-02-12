@@ -31,6 +31,8 @@ vec4_t mat_multiply4(mat_t mat, vec4_t v);
 void mat_multiply(mat_t mat1, mat_t mat2, mat_t *out);
 quat_t mat_to_quat(mat_t mat);
 
+mat_t mat_invert(mat_t mat);
+
 // --------------------------------------------------------------------------------
 
 static INLINE void mat_set(

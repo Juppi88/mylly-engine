@@ -8,7 +8,7 @@ mat_t mat_identity = mat_identity();
 vec3_t mat_multiply3(mat_t mat, vec3_t v)
 {
 	vec3_t result;
-	glm_mat4_mulv3(mat.col, v.vec, 0, result.vec);
+	glm_mat4_mulv3(mat.col, v.vec, 1, result.vec);
 	
 	return result;
 }
@@ -32,4 +32,11 @@ quat_t mat_to_quat(mat_t mat)
 	glm_mat4_quat(mat.col, quat.vec);
 
 	return quat;
+}
+
+mat_t mat_invert(mat_t mat)
+{
+	mat_t dest;
+	glm_mat4_inv(mat.col, dest.col);
+	return dest;
 }

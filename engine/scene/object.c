@@ -284,7 +284,12 @@ void obj_set_dirty(object_t *obj)
 
 	// Flag components dirty.
 	if (obj->camera != NULL) {
-		obj->camera->is_view_matrix_dirty = true;
+		
+		obj->camera->state |= (
+			CAMSTATE_VIEW_DIRTY |
+			CAMSTATE_VIEWPROJ_DIRTY |
+			CAMSTATE_VIEWPROJ_INV_DIRTY
+		);
 	}
 
 	// Do the same to each child object.
