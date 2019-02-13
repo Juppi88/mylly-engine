@@ -6,9 +6,9 @@
 
 #include <Windows.h>
 
-#define MKEY_LMB			VK_LBUTTON
-#define MKEY_RMB			VK_RBUTTON
-#define MKEY_MMB			VK_MBUTTON
+#define MKEY_LMB			1
+#define MKEY_MMB			2
+#define MKEY_RMB			3
 
 #define MKEY_CANCEL			VK_CANCEL
 #define MKEY_BACKSPACE		VK_BACK
@@ -82,9 +82,9 @@
 #define XK_MISCELLANY
 #include <X11/keysym.h>
 
-#define MKEY_LMB			XK_Pointer_Left
-#define MKEY_RMB			XK_Pointer_Right
-#define MKEY_MMB			XK_Pointer_Button3
+#define MKEY_LMB			1
+#define MKEY_MMB			2
+#define MKEY_RMB			3
 
 #define MKEY_CANCEL			XK_Cancel
 #define MKEY_BACKSPACE		XK_BackSpace
