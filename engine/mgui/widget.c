@@ -656,7 +656,14 @@ static bool widget_process_anchors(widget_t *widget)
 	// Update local position and text boundaries.
 	if (is_updated) {
 		
-		widget->position = vec2i_subtract(widget->world_position, widget->parent->world_position);
+		if (widget->parent != NULL) {
+			widget->position =
+				vec2i_subtract(widget->world_position, widget->parent->world_position);
+		}
+		else {
+			widget->position = widget->world_position;
+		}
+
 		widget->has_moved = true;
 
 		// TODO: Do this per-widget!
