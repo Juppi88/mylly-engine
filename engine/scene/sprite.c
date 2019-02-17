@@ -65,6 +65,12 @@ void sprite_set(sprite_t *sprite, texture_t *texture,
 		(sprite->position.y + sprite->size.y) / texture->height
 	);
 
+	// Initialize slice position and coordinates so regular sprites can be used as 9-slice sprites.
+	sprite->slice_position = sprite->position;
+	sprite->slice_size = sprite->size;
+	sprite->slice_uv1 = sprite->uv1;
+	sprite->slice_uv2 = sprite->uv2;
+
 	// Create a mesh for the sprite.
 	if (sprite->mesh != NULL) {
 		mesh_destroy(sprite->mesh);
