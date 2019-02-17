@@ -3,6 +3,7 @@
 #define __TEXTURE_H
 
 #include "core/defines.h"
+#include "collections/array.h"
 #include "resources/resource.h"
 
 BEGIN_DECLARATIONS;
@@ -20,6 +21,8 @@ typedef struct texture_t {
 	uint16_t height; // Texture height in pixels
 	texture_name_t gpu_texture; // GPU texture name
 	void *data; // Texture pixels
+
+	arr_t(sprite_t*) sprites; // List of sprites onthis texture
 
 } texture_t;
 

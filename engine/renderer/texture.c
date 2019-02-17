@@ -33,6 +33,8 @@ texture_t *texture_create(const char *name, const char *path)
 
 	texture->gpu_texture = -1;
 
+	arr_init(texture->sprites);
+
 	return texture;
 }
 
@@ -44,6 +46,8 @@ void texture_destroy(texture_t *texture)
 
 	// Release GPU resources.
 	rend_delete_texture(texture->gpu_texture);
+
+	arr_clear(texture->sprites);
 
 	DESTROY(texture->resource.name);
 	DESTROY(texture->resource.path);

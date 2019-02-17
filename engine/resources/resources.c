@@ -13,6 +13,7 @@
 #include "scene/spriteanimation.h"
 #include "math/math.h"
 #include <ft2build.h>
+#include <stdlib.h>
 #include FT_FREETYPE_H
 
 // -------------------------------------------------------------------------------------------------
@@ -501,6 +502,9 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 		sprite->resource.is_loaded = true;
 
 		arr_push(sprites, sprite);
+
+		// Add a reference to texture.
+		arr_push(texture->sprites, sprite);
 	}
 
 	*next_token = token;
