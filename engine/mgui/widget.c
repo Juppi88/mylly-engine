@@ -108,10 +108,6 @@ void widget_process(widget_t *widget)
 		widget_create_mesh(widget);
 	}
 
-	if (widget->callbacks->on_process != NULL) {
-		widget->callbacks->on_process(widget);
-	}
-
 	// Check whether the parent has changed in a way that would affect this widget.
 	if (widget->parent != NULL &&
 		widget->parent->has_moved) {
@@ -126,6 +122,11 @@ void widget_process(widget_t *widget)
 		(widget->parent != NULL && widget->parent->has_resized)) {
 
 		widget_process_anchors(widget);
+	}
+
+	// Widget type specific processing.
+	if (widget->callbacks->on_process != NULL) {
+		widget->callbacks->on_process(widget);
 	}
 
 	// Keep vertices up to date if changes in the shape or position of the widget occur.

@@ -6,8 +6,9 @@
 #include "mgui/vector.h"
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
-#include "mgui/widgets/panel.h"
+#include "mgui/widgets/grid.h"
 #include "mgui/widgets/label.h"
+#include "mgui/widgets/panel.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"
@@ -141,6 +142,7 @@ typedef struct widget_t {
 	union {
 		button_t button;
 		checkbox_t checkbox;
+		grid_t grid;
 		label_t label;
 		panel_t panel;
 	};
