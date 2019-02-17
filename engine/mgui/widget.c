@@ -556,25 +556,25 @@ static void widget_refresh_mesh(widget_t *widget)
 	vertex_ui_t *vertices = widget->mesh->ui_vertices;
 
 	// TODO: Should texture y be reversed here?
-	vertices[0]  = vertex_ui(vec2(p.x, bottom - p.y),                     vec2(uv1.x, uv1.y), widget->colour);
-	vertices[1]  = vertex_ui(vec2(p.x, bottom - (p.y + h)),               vec2(uv1.x, uv2.y), widget->colour);
-	vertices[2]  = vertex_ui(vec2(p.x + w, bottom - p.y),                 vec2(uv2.x, uv1.y), widget->colour);
-	vertices[3]  = vertex_ui(vec2(p.x + w, bottom - (p.y + h)),           vec2(uv2.x, uv2.y), widget->colour);
+	vertices[0]  = vertex_ui(vec2(p.x, bottom - (p.y + h)),     vec2(uv1.x, uv1.y), widget->colour);
+	vertices[1]  = vertex_ui(vec2(p.x, bottom - p.y),           vec2(uv1.x, uv2.y), widget->colour);
+	vertices[2]  = vertex_ui(vec2(p.x + w, bottom - (p.y + h)), vec2(uv2.x, uv1.y), widget->colour);
+	vertices[3]  = vertex_ui(vec2(p.x + w, bottom - p.y),       vec2(uv2.x, uv2.y), widget->colour);
 
-	vertices[4]  = vertex_ui(vec2(p.x + w1, bottom - (p.y + h1)),         vec2(suv1.x, suv1.y), widget->colour);
-	vertices[5]  = vertex_ui(vec2(p.x + w1, bottom - (p.y + h - h2)),     vec2(suv1.x, suv2.y), widget->colour);
-	vertices[6]  = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h1)),     vec2(suv2.x, suv1.y), widget->colour);
-	vertices[7]  = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h - h2)), vec2(suv2.x, suv2.y), widget->colour);
+	vertices[4]  = vertex_ui(vec2(p.x + w1, bottom - (p.y + h - h2)),     vec2(suv1.x, suv1.y), widget->colour);
+	vertices[5]  = vertex_ui(vec2(p.x + w1, bottom - (p.y + h1)),         vec2(suv1.x, suv2.y), widget->colour);
+	vertices[6]  = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h - h2)), vec2(suv2.x, suv1.y), widget->colour);
+	vertices[7]  = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h1)),     vec2(suv2.x, suv2.y), widget->colour);
 
-	vertices[8]  = vertex_ui(vec2(p.x, bottom - (p.y + h1)),              vec2(uv1.x, suv1.y), widget->colour);
-	vertices[9]  = vertex_ui(vec2(p.x, bottom - (p.y + h - h2)),          vec2(uv1.x, suv2.y), widget->colour);
-	vertices[10] = vertex_ui(vec2(p.x + w1, bottom - (p.y + h)),          vec2(suv1.x, uv2.y), widget->colour);
-	vertices[11] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h)),      vec2(suv2.x, uv2.y), widget->colour);
+	vertices[8]  = vertex_ui(vec2(p.x, bottom - (p.y + h - h2)), vec2(uv1.x, suv1.y), widget->colour);
+	vertices[9]  = vertex_ui(vec2(p.x, bottom - (p.y + h1)),     vec2(uv1.x, suv2.y), widget->colour);
+	vertices[10] = vertex_ui(vec2(p.x + w1, bottom - (p.y)),     vec2(suv1.x, uv2.y), widget->colour);
+	vertices[11] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y)), vec2(suv2.x, uv2.y), widget->colour);
 
-	vertices[12] = vertex_ui(vec2(p.x + w, bottom - (p.y + h - h2)),      vec2(uv2.x, suv2.y), widget->colour);
-	vertices[13] = vertex_ui(vec2(p.x + w, bottom - (p.y + h1)),          vec2(uv2.x, suv1.y), widget->colour);
-	vertices[14] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y)),          vec2(suv2.x, uv1.y), widget->colour);
-	vertices[15] = vertex_ui(vec2(p.x + w1, bottom - (p.y)),              vec2(suv1.x, uv1.y), widget->colour);
+	vertices[12] = vertex_ui(vec2(p.x + w, bottom - (p.y + h1)),     vec2(uv2.x, suv2.y), widget->colour);
+	vertices[13] = vertex_ui(vec2(p.x + w, bottom - (p.y + h - h2)), vec2(uv2.x, suv1.y), widget->colour);
+	vertices[14] = vertex_ui(vec2(p.x + w - w2, bottom - (p.y + h)), vec2(suv2.x, uv1.y), widget->colour);
+	vertices[15] = vertex_ui(vec2(p.x + w1, bottom - (p.y + h)),     vec2(suv1.x, uv1.y), widget->colour);
 
 	// Additional vertices are updated separately by each widget type.
 	if (widget->callbacks->on_refresh_vertices != NULL) {

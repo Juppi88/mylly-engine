@@ -118,10 +118,10 @@ static void on_checkbox_refresh_vertices(widget_t *checkbox)
 	vec2_t uv2 = sprite->uv2;
 
 	// Copy the vertex coordinates of the centre quad, change texture coordinates and colour.
-	vertices[16] = vertex_ui(vertices[4].pos, vec2(uv1.x, uv2.y), colour);
-	vertices[17] = vertex_ui(vertices[5].pos, vec2(uv1.x, uv1.y), colour);
-	vertices[18] = vertex_ui(vertices[6].pos, vec2(uv2.x, uv2.y), colour);
-	vertices[19] = vertex_ui(vertices[7].pos, vec2(uv2.x, uv1.y), colour);
+	vertices[16] = vertex_ui(vertices[4].pos, vec2(uv1.x, uv1.y), colour);
+	vertices[17] = vertex_ui(vertices[5].pos, vec2(uv1.x, uv2.y), colour);
+	vertices[18] = vertex_ui(vertices[6].pos, vec2(uv2.x, uv1.y), colour);
+	vertices[19] = vertex_ui(vertices[7].pos, vec2(uv2.x, uv2.y), colour);
 }
 
 static void on_checkbox_pressed(widget_t *checkbox, bool pressed)
