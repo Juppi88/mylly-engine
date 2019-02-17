@@ -90,13 +90,15 @@ bool input_sys_process_messages(void *params)
 			keycode, MWHEEL_STATIONARY);
 
 	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
 
 		switch (msg->message) {
 			case WM_LBUTTONUP: keycode = MOUSE_LEFT; break;
 			case WM_RBUTTONUP: keycode = MOUSE_RIGHT; break;
 			case WM_MBUTTONUP: keycode = MOUSE_MIDDLE; break;
 		}
-
+		
 		key_pressed_frames[keycode] = 0;
 		key_released_frames[keycode] = frame;
 
