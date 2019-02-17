@@ -438,8 +438,11 @@ widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point)
 		}
 	}
 
-	// If the point was not inside any of the children but it is within the parent, return it.
-	if (widget_is_point_inside(widget, point)) {
+	// If the point was not inside any of the children but it is within the parent, return it -
+	// assuming the widget has something visible (a mesh or text).
+	if ((widget->text != NULL || widget->state & WIDGET_STATE_HAS_MESH) &&
+		widget_is_point_inside(widget, point)) {
+
 		return widget;
 	}
 	
