@@ -28,7 +28,6 @@ widget_t *label_create(widget_t *parent)
 	// Initialize type specific data.
 	widget->type = WIDGET_TYPE_LABEL;
 	widget->callbacks = &callbacks;
-	widget->state |= WIDGET_STATE_NO_MESH;
 	widget->text = text_create(widget);
 
 	return widget;

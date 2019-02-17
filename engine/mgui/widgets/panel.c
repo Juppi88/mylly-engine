@@ -1,4 +1,4 @@
-#include "group.h"
+#include "panel.h"
 #include "mgui/widget.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -15,15 +15,15 @@ static widget_callbacks_t callbacks = {
 
 // -------------------------------------------------------------------------------------------------
 
-widget_t *group_create(widget_t *parent)
+widget_t *panel_create(widget_t *parent)
 {
 	// Create the widget.
 	widget_t *widget = widget_create(parent);
 
 	// Initialize type specific data.
-	widget->type = WIDGET_TYPE_GROUP;
+	widget->type = WIDGET_TYPE_PANEL;
 	widget->callbacks = &callbacks;
-	widget->state |= WIDGET_STATE_NO_MESH;
+	widget->state |= WIDGET_STATE_HAS_MESH;
 
 	return widget;
 }

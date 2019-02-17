@@ -37,6 +37,7 @@ widget_t *checkbox_create(widget_t *parent)
 		WIDGET_STATE_HOVERABLE |
 		WIDGET_STATE_PRESSABLE |
 		WIDGET_STATE_CONSUME_CHILD_PRESSES | // Clicking child (e.g. label) clicks the checkbox
+		WIDGET_STATE_HAS_MESH |
 		WIDGET_STATE_EXT_MESH
 	);
 

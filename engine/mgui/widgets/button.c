@@ -35,7 +35,7 @@ widget_t *button_create(widget_t *parent)
 	// Initialize type specific data.
 	widget->type = WIDGET_TYPE_BUTTON;
 	widget->callbacks = &callbacks;
-	widget->state |= (WIDGET_STATE_HOVERABLE | WIDGET_STATE_PRESSABLE);
+	widget->state |= (WIDGET_STATE_HAS_MESH | WIDGET_STATE_HOVERABLE | WIDGET_STATE_PRESSABLE);
 	widget->text = text_create(widget);
 
 	widget->button.normal_colour = COL_WHITE;

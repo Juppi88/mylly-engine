@@ -1,20 +1,20 @@
 #pragma once
-#ifndef __MGUI_GROUP_H
-#define __MGUI_GROUP_H
+#ifndef __MGUI_PANEL_H
+#define __MGUI_PANEL_H
 
 #include "mgui/mgui.h"
 
 // -------------------------------------------------------------------------------------------------
 
-typedef struct group_t {
+typedef struct panel_t {
 
-} group_t;
+} panel_t;
 
 // -------------------------------------------------------------------------------------------------
 
 BEGIN_DECLARATIONS;
 
-widget_t *group_create(widget_t *parent);
+widget_t *panel_create(widget_t *parent);
 
 END_DECLARATIONS;
 
