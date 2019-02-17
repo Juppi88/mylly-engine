@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __MGUI_INPUTHOOK_H
-#define __MGUI_INPUTHOOK_H
+#ifndef __MGUI_UIINPUT_H
+#define __MGUI_UIINPUT_H
 
 #include "io/input.h"
 

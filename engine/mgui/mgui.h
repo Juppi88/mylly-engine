@@ -3,7 +3,7 @@
 #define __MGUI_H
 
 #include "core/defines.h"
-#include "mgui/vector.h"
+#include "mgui/vectori.h"
 
 // -------------------------------------------------------------------------------------------------
 

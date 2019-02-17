@@ -1,4 +1,4 @@
-#include "vector.h"
+#include "vectori.h"
 
 vec2i_t vec2i_add(vec2i_t a, vec2i_t b)
 {

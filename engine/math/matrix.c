@@ -1,8 +1,6 @@
 #include "matrix.h"
 #include <cglm/cglm.h>
 
-mat_t mat_identity = mat_identity();
-
 // --------------------------------------------------------------------------------
 
 vec3_t mat_multiply3(mat_t mat, vec3_t v)

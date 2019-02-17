@@ -3,7 +3,6 @@
 #define __MGUI_TEXT_H
 
 #include "mgui/mgui.h"
-#include "mgui/vector.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"

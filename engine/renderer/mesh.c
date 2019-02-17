@@ -245,7 +245,7 @@ void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 	vindex_t index_offset = 0;
 
 	if (mesh->handle_vertices != 0) {
-		index_offset = BUFFER_GET_START_INDEX(mesh->handle_vertices, mesh->vertex_size);
+		index_offset = (vindex_t)BUFFER_GET_START_INDEX(mesh->handle_vertices, mesh->vertex_size);
 	}
 
 	NEW_ARRAY(vindex_t, arr, num_indices);

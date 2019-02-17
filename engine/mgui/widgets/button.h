@@ -3,7 +3,6 @@
 #define __MGUI_BUTTON_H
 
 #include "mgui/mgui.h"
-#include "mgui/vector.h"
 #include "renderer/colour.h"
 #include "platform/timer.h"
 

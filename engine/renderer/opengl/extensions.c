@@ -43,6 +43,8 @@ PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 
 PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
+PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
+
 // --------------------------------------------------------------------------------
 
 static bool glext_is_supported(const char *extension);
@@ -102,6 +104,8 @@ bool glext_initialize(void)
 	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glDisableVertexAttribArray");
 
 	glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)glext_get_method("glBlendFuncSeparate");
+
+	glDrawRangeElementsARB = (PFNGLDRAWRANGEELEMENTSPROC)glext_get_method("glDrawRangeElements");
 
 	return true;
 }

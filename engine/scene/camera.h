@@ -40,8 +40,8 @@ typedef struct camera_t {
 	camera_state_t state; // Current state of camera matrices
 
 	bool is_orthographic; // The camera is an orthographic one (as opposed to perspective)
-	float near; // Near clip plane
-	float far; // Far clip plane
+	float clip_near; // Near clip plane
+	float clip_far; // Far clip plane
 	float size; // Size of the camera when ortographic
 	float fov; // Field of view
 

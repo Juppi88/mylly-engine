@@ -173,7 +173,7 @@ static void text_reallocate_vertices(text_t *text)
 	size_t num_indices = NUM_INDICES_PER_CHAR * text->buffer_size;
 	NEW_ARRAY(vindex_t, indices, num_indices);
 
-	for (size_t i = 0; i < text->buffer_size; i++) {
+	for (vindex_t i = 0; i < (vindex_t)text->buffer_size; i++) {
 
 		indices[i * NUM_INDICES_PER_CHAR + 0] = i * NUM_VERTICES_PER_CHAR + 0;
 		indices[i * NUM_INDICES_PER_CHAR + 1] = i * NUM_VERTICES_PER_CHAR + 1;

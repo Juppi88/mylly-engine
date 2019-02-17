@@ -34,11 +34,11 @@ typedef uint64_t buffer_handle_t;
 #define BUFFER_GET_INDEX(h) (((h) >> BUFFER_INDEX_SHIFT) & BUFFER_INDEX_MASK)
 #define BUFFER_IS_INDEX(h) (((h) >> BUFFER_TYPE_SHIFT) & 1)
 
-#define BUFFER_GET_START_INDEX(h, vertsize) BUFFER_GET_OFFSET(h) / (vertsize)
+#define BUFFER_GET_START_INDEX(h, vertsize) (BUFFER_GET_OFFSET(h) / (vertsize))
 
 #define BUFFER_SET_SIZE(h, size)\
 	(h) &= ~((uint64_t)BUFFER_SIZE_MASK << BUFFER_SIZE_SHIFT);\
-	(h) |= (((size) & BUFFER_SIZE_MASK) << BUFFER_SIZE_SHIFT)
+	(h) |= (((uint64_t)(size) & BUFFER_SIZE_MASK) << BUFFER_SIZE_SHIFT)
 
 // -------------------------------------------------------------------------------------------------
 

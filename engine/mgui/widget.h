@@ -3,7 +3,6 @@
 #define __MGUI_WIDGET_H
 
 #include "mgui/mgui.h"
-#include "mgui/vector.h"
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
 #include "mgui/widgets/grid.h"

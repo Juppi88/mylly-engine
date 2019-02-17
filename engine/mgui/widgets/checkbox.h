@@ -3,7 +3,6 @@
 #define __MGUI_CHECKBOX_H
 
 #include "mgui/mgui.h"
-#include "mgui/vector.h"
 #include "renderer/colour.h"
 
 // -------------------------------------------------------------------------------------------------

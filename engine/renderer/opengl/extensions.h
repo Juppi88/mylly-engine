@@ -60,6 +60,8 @@ extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 // Misc functions
 extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
+extern PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
+
 // --------------------------------------------------------------------------------
 
 bool glext_initialize(void);

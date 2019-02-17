@@ -3,7 +3,7 @@
 #include "core/memory.h"
 #include "core/time.h"
 #include "collections/list.h"
-#include "mgui/inputhook.h"
+#include "mgui/uiinput.h"
 
 // -------------------------------------------------------------------------------------------------
 

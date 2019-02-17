@@ -3,6 +3,10 @@
 #include <stdarg.h>
 #include <time.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 static void log_timestamp(FILE *stream)
 {
 	time_t local = time(NULL);
@@ -10,12 +14,13 @@ static void log_timestamp(FILE *stream)
 
 #ifndef _WIN32
 	fprintf(stream, "\033[30;1m"); // Grey
-#endif
-
 	fprintf(stream, "[%02u:%02u.%02u] ", tm->tm_hour, tm->tm_min, tm->tm_sec);
-
-#ifndef _WIN32
 	fprintf(stream, "\033[37;0m"); // Reset colour
+#else
+	char buffer[1024];
+	sprintf_s(buffer, sizeof(buffer), "[%02u:%02u.%02u] ", tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+	OutputDebugString(buffer);
 #endif
 }
 
@@ -30,7 +35,14 @@ void log_message(const char *note, const char *format, ...)
 
 	log_timestamp(stdout);
 
+#ifndef _WIN32
 	fprintf(stdout, "[%s] %s\n", note, buffer);
+#else
+	char buffer2[1024];
+	sprintf_s(buffer2, sizeof(buffer2), "[%s] %s\n", note, buffer);
+
+	OutputDebugString(buffer2);
+#endif
 }
 
 void log_warning(const char *note, const char *format, ...)
@@ -46,12 +58,13 @@ void log_warning(const char *note, const char *format, ...)
 
 #ifndef _WIN32
 	fprintf(stderr, "\033[33;1m"); // Set colour to yellow for notification messages.
-#endif
-
 	fprintf(stderr, "[%s] %s\n", note, buffer);
-
-#ifndef _WIN32
 	fprintf(stderr, "\033[37;0m"); // Reset colour.
+#else
+	char buffer2[1024];
+	sprintf_s(buffer2, sizeof(buffer2), "[%s] %s\n", note, buffer);
+
+	OutputDebugString(buffer2);
 #endif
 }
 
@@ -68,11 +81,12 @@ void log_error(const char *note, const char *format, ...)
 
 #ifndef _WIN32
 	fprintf(stderr, "\033[31;1m"); // Set colour to red for error messages.
-#endif
-
 	fprintf(stderr, "[%s] %s\n", note, buffer);
-
-#ifndef _WIN32
 	fprintf(stderr, "\033[37;0m"); // Reset colour.
+#else
+	char buffer2[1024];
+	sprintf_s(buffer2, sizeof(buffer2), "[%s] %s\n", note, buffer);
+
+	OutputDebugString(buffer2);
 #endif
 }

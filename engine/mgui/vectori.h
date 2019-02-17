@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __MGUI_VECTOR_H
-#define __MGUI_VECTOR_H
+#ifndef __MGUI_VECTORI_H
+#define __MGUI_VECTORI_H
 
 #include "core/defines.h"
 

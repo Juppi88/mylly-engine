@@ -22,8 +22,8 @@ camera_t *camera_create(object_t *parent)
 	);
 
 	camera->is_orthographic = true;
-	camera->near = ORTOGRAPHIC_NEAR;
-	camera->far = ORTOGRAPHIC_FAR;
+	camera->clip_near = ORTOGRAPHIC_NEAR;
+	camera->clip_far = ORTOGRAPHIC_FAR;
 	camera->size = 2;
 	camera->fov = 60;
 
@@ -48,8 +48,8 @@ void camera_set_orthographic_projection(camera_t *camera, float size, float near
 	// Set camera parameters for orthographic projection.
 	camera->is_orthographic = true;
 	camera->size = size;
-	camera->near = near;
-	camera->far = far;
+	camera->clip_near = near;
+	camera->clip_far = far;
 
 	// Flag the camera as dirty so the projection matrix is recalculated before use.
 	camera->state |= (CAMSTATE_PROJ_DIRTY | CAMSTATE_VIEWPROJ_DIRTY | CAMSTATE_VIEWPROJ_INV_DIRTY);
@@ -64,8 +64,8 @@ void camera_set_perspective_projection(camera_t *camera, float fov, float near, 
 	// Set camera parameters for perspective projection.
 	camera->is_orthographic = false;
 	camera->fov = fov;
-	camera->near = near;
-	camera->far = far;
+	camera->clip_near = near;
+	camera->clip_far = far;
 
 	// Flag the camera as dirty so the projection matrix is recalculated before use.
 	camera->state |= (CAMSTATE_PROJ_DIRTY | CAMSTATE_VIEWPROJ_DIRTY | CAMSTATE_VIEWPROJ_INV_DIRTY);
@@ -188,12 +188,12 @@ void camera_update_projection_matrix(camera_t *camera)
 
 			0,
 			0,
-			2.0f / (camera->far - camera->near),
+			2.0f / (camera->clip_far - camera->clip_near),
 			0,
 
 			-(right + left) / (right - left),
 			-(top + bottom) / (top - bottom),
-			-(camera->far + camera->near) / (camera->far - camera->near),
+			-(camera->clip_far + camera->clip_near) / (camera->clip_far - camera->clip_near),
 			1
 		);
 
@@ -218,12 +218,12 @@ void camera_update_projection_matrix(camera_t *camera)
 
 			0,
 			0,
-			(camera->far + camera->near) / (camera->far - camera->near),
+			(camera->clip_far + camera->clip_near) / (camera->clip_far - camera->clip_near),
 			1,
 
 			0,
 			0,
-			(2 * camera->far * camera->near) / (camera->far - camera->near),
+			(2 * camera->clip_far * camera->clip_near) / (camera->clip_far - camera->clip_near),
 			0
 		);
 	}

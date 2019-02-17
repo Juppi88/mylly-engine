@@ -20,7 +20,7 @@ void debug_initialize(void)
 
 	// Prealloc buffers on the GPU..
 	mesh_prealloc_vertices(debug_mesh, VERTEX_DEBUG, 2 * MAX_LINES);
-	
+
 	// Generate indices into a temporary buffer and upload them to the GPU.
 	NEW_ARRAY(vindex_t, indices, 2 * MAX_LINES);
 
