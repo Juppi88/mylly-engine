@@ -201,6 +201,23 @@ bool file_read_all_data(const char *path, void **buf, size_t *bytes_read)
 	return true;
 }
 
+bool file_exists(const char *path)
+{
+	if (string_is_null_or_empty(path)) {
+		return false;
+	}
+
+	FILE *f = fopen(path, "r");
+
+	if (f != NULL) {
+
+		fclose(f);
+		return true;
+	}
+
+	return false;
+}
+
 static size_t file_get_size(FILE *file)
 {
 	fseek(file, 0, SEEK_END);
