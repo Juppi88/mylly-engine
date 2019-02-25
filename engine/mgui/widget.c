@@ -230,6 +230,38 @@ void widget_remove_from_parent(widget_t *widget)
 	widget->position = widget->world_position;
 }
 
+vec2i_t widget_get_position(widget_t *widget)
+{
+	if (widget == NULL) {
+		return vec2i_zero();
+	}
+
+	// Update anchors.
+	if (widget->has_moved || 
+		(widget->parent != NULL && widget->parent->has_resized)) {
+
+		widget_process_anchors(widget);
+	}
+
+	return widget->position;
+}
+
+vec2i_t widget_get_size(widget_t *widget)
+{
+	if (widget == NULL) {
+		return vec2i_zero();
+	}
+
+	// Update anchors.
+	if (widget->has_moved || 
+		(widget->parent != NULL && widget->parent->has_resized)) {
+
+		widget_process_anchors(widget);
+	}
+
+	return widget->size;
+}
+
 void widget_set_position(widget_t *widget, vec2i_t position)
 {
 	if (widget == NULL) {
@@ -555,7 +587,6 @@ static void widget_refresh_mesh(widget_t *widget)
 
 	vertex_ui_t *vertices = widget->mesh->ui_vertices;
 
-	// TODO: Should texture y be reversed here?
 	vertices[0]  = vertex_ui(vec2(p.x, bottom - (p.y + h)),     vec2(uv1.x, uv1.y), widget->colour);
 	vertices[1]  = vertex_ui(vec2(p.x, bottom - p.y),           vec2(uv1.x, uv2.y), widget->colour);
 	vertices[2]  = vertex_ui(vec2(p.x + w, bottom - (p.y + h)), vec2(uv2.x, uv1.y), widget->colour);
