@@ -23,6 +23,10 @@ void main()
 
 void main()
 {
+	if (texCoord.s > 1 || texCoord.t > 1) {
+		discard;
+	}
+
 	gl_FragColor = colour * texture(Texture, texCoord.st);
 }
 
