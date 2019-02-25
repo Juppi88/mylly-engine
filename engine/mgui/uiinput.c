@@ -8,10 +8,16 @@ static vec2i_t cursor_position;
 
 // -------------------------------------------------------------------------------------------------
 
+static void mgui_widget_keyboard_event(input_event_t type, uint32_t key);
+static void mgui_widget_mouse_event(input_event_t type, int16_t x, int16_t y,
+                                    mouse_button_t button, mouse_wheel_t wheel);
+
+// -------------------------------------------------------------------------------------------------
+
 bool mgui_handle_keyboard_event(input_event_t type, uint32_t key)
 {
-	UNUSED(type);
-	UNUSED(key);
+	// Call custom input event handler on focused widget.
+	mgui_widget_keyboard_event(type, key);
 
 	return true;
 }
@@ -19,9 +25,8 @@ bool mgui_handle_keyboard_event(input_event_t type, uint32_t key)
 bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 							 mouse_button_t button, mouse_wheel_t wheel)
 {
-	UNUSED(button);
-	UNUSED(wheel);
-	
+	bool result = true;
+
 	switch (type) {
 		case INPUT_MOUSE_BUTTON_DOWN:
 		{
@@ -37,7 +42,7 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 				mgui_set_dragged_widget(widget);
 				mgui_set_pressed_widget(widget);
 
-				return false;
+				result = false;
 			}
 			break;
 		}
@@ -81,5 +86,53 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 			break;
 	}
 
-	return true;
+	// Call custom input event handler on focused widget.
+	mgui_widget_mouse_event(type, x, y, button, wheel);
+
+	return result;
+}
+
+static void mgui_widget_keyboard_event(input_event_t type, uint32_t key)
+{
+	// Relay keyboard event to the focused widget if it has a custom override event handler.
+	widget_t *widget = mgui_get_focused_widget();
+
+	if (widget == NULL ||
+		widget->input_handler == NULL) {
+
+		return;
+	}
+
+	widget_event_t event;
+
+	event.widget = widget;
+	event.type = type;
+	event.keyboard.key = key;
+
+	widget->input_handler(&event);
+}
+
+static void mgui_widget_mouse_event(input_event_t type, int16_t x, int16_t y,
+                                    mouse_button_t button, mouse_wheel_t wheel)
+{
+
+	// Relay mouse event to the focused widget if it has a custom override event handler.
+	widget_t *widget = mgui_get_focused_widget();
+
+	if (widget == NULL ||
+		widget->input_handler == NULL) {
+
+		return;
+	}
+
+	widget_event_t event;
+
+	event.widget = widget;
+	event.type = type;
+	event.mouse.x = x;
+	event.mouse.y = y;
+	event.mouse.button = button;
+	event.mouse.wheel = wheel;
+
+	widget->input_handler(&event);
 }

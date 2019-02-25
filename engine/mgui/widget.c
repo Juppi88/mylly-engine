@@ -496,6 +496,15 @@ widget_t *widget_get_grandparent(widget_t *widget)
 	return widget;
 }
 
+void widget_set_input_handler(widget_t *widget, widget_input_handler_t handler)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	widget->input_handler = handler;
+}
+
 static void widget_create_mesh(widget_t *widget)
 {
 	// Create a new mesh to store the widgets vertices into.

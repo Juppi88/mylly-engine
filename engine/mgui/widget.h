@@ -103,6 +103,34 @@ typedef struct anchor_t {
 
 // -------------------------------------------------------------------------------------------------
 
+// Parameters for override widget input handler.
+typedef struct widget_event_t {
+
+	widget_t *widget;
+	input_event_t type;
+
+	union {
+		struct {
+			uint32_t key;
+		} keyboard;
+
+		struct {
+			mouse_button_t button;
+			mouse_wheel_t wheel;
+			int16_t x;
+			int16_t y;
+		} mouse;
+	};
+
+} widget_event_t;
+
+// -------------------------------------------------------------------------------------------------
+
+// Override event handler for widget input events (mouse movement and key presses).
+typedef void (*widget_input_handler_t)(widget_event_t *event);
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct widget_t {
 
 	list_entry(widget_t);
@@ -134,6 +162,9 @@ typedef struct widget_t {
 
 	// Callbacks for certain types of events.
 	widget_callbacks_t *callbacks;
+
+	// Override input handler.
+	widget_input_handler_t input_handler;
 
 	// Widget-type specific data.
 	widget_type_t type;
@@ -186,6 +217,8 @@ bool widget_is_point_inside(widget_t *widget, vec2i_t point);
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);
 
 widget_t *widget_get_grandparent(widget_t *widget);
+
+void widget_set_input_handler(widget_t *widget, widget_input_handler_t handler);
 
 END_DECLARATIONS;
 

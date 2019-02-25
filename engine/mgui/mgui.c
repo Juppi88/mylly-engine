@@ -154,10 +154,12 @@ void mgui_set_dragged_widget(widget_t *widget)
 		return;
 	}
 
-	if (widget != NULL &&
-		widget->state & WIDGET_STATE_PRESSABLE) {
+	if (widget != NULL && (
+		widget->state & WIDGET_STATE_PRESSABLE ||
+		widget->input_handler != NULL)) {
 
-		// The widget reacts to mouse presses, so it's not a good idea to drag it.
+		// The widget reacts to mouse presses or has a custom input event handler, so it's not
+		// a good idea to drag it.
 		dragged_widget = NULL;
 		return;
 	}

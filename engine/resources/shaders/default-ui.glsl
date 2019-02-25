@@ -23,7 +23,10 @@ void main()
 
 void main()
 {
-	if (texCoord.s > 1 || texCoord.t > 1) {
+	// Discard off-sheet pixels.
+	if (texCoord.s < 0 || texCoord.t < 0 ||
+		texCoord.s > 1 || texCoord.t > 1) {
+		
 		discard;
 	}
 
