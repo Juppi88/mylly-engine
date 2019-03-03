@@ -16,10 +16,31 @@ static void mgui_widget_mouse_event(input_event_t type, int16_t x, int16_t y,
 
 bool mgui_handle_keyboard_event(input_event_t type, uint32_t key)
 {
+	widget_t *focused;
+	bool result = true;
+
+	switch (type) {
+		case INPUT_KEY_DOWN:
+
+			focused = mgui_get_focused_widget();
+
+			if (focused != NULL &&
+				focused->callbacks->on_key_pressed != NULL) {
+
+				focused->callbacks->on_key_pressed(focused, key);
+				result = false;
+			}
+
+			break;
+
+		default:
+			break;
+	}
+
 	// Call custom input event handler on focused widget.
 	mgui_widget_keyboard_event(type, key);
 
-	return true;
+	return result;
 }
 
 bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,

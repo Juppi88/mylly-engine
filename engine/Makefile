@@ -9,7 +9,7 @@ OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        io/config.o io/console.o io/file.o io/input.o io/log.o\
        math/matrix.o math/quaternion.o math/random.o math/vector.o\
        mgui/mgui.o mgui/text.o mgui/uiinput.o mgui/vectori.o mgui/widget.o\
-       mgui/widgets/button.o mgui/widgets/checkbox.o mgui/widgets/grid.o\
+       mgui/widgets/button.o mgui/widgets/checkbox.o mgui/widgets/grid.o mgui/widgets/inputbox.o\
        mgui/widgets/label.o mgui/widgets/panel.o\
        platform/inputhook.o platform/thread.o platform/timer.o platform/window.o\
        renderer/buffer.o renderer/buffercache.o renderer/colour.o renderer/debug.o renderer/font.o\

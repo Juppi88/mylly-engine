@@ -6,6 +6,7 @@
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
 #include "mgui/widgets/grid.h"
+#include "mgui/widgets/inputbox.h"
 #include "mgui/widgets/label.h"
 #include "mgui/widgets/panel.h"
 #include "collections/list.h"
@@ -31,6 +32,7 @@ typedef enum widget_type_t {
 	WIDGET_TYPE_BUTTON,
 	WIDGET_TYPE_CHECKBOX,
 	WIDGET_TYPE_GRID,
+	WIDGET_TYPE_INPUTBOX,
 	WIDGET_TYPE_LABEL,
 	WIDGET_TYPE_PANEL,
 
@@ -66,6 +68,7 @@ typedef struct widget_callbacks_t {
 	void (*on_focused)(widget_t *widget, bool focused);
 	void (*on_hovered)(widget_t *widget, bool hovered);
 	void (*on_pressed)(widget_t *widget, bool pressed);
+	void (*on_key_pressed)(widget_t *widget, uint32_t key);
 
 } widget_callbacks_t;
 
@@ -173,6 +176,7 @@ typedef struct widget_t {
 		button_t button;
 		checkbox_t checkbox;
 		grid_t grid;
+		inputbox_t inputbox;
 		label_t label;
 		panel_t panel;
 	};

@@ -23,6 +23,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	on_button_hovered,
 	on_button_pressed,
+	NULL,
 };
 
 // -------------------------------------------------------------------------------------------------
