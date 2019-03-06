@@ -258,7 +258,8 @@ static void text_refresh_vertices(text_t *text)
 		size_t base = i * NUM_VERTICES_PER_CHAR;
 
 		// Some glyphs may not have a visual representation, so clear their vertices.
-		if (g == NULL) {
+		// Also clear vertices if they'd go off the boundaries of the text object.
+		if (g == NULL || pos_x + g->advance.x > text->position.x + text->boundaries.x) {
 
 			vertices[base + 0] = vertex_ui_empty();
 			vertices[base + 1] = vertex_ui_empty();

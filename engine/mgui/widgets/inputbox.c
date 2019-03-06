@@ -97,8 +97,13 @@ static void on_inputbox_refresh_vertices(widget_t *inputbox)
 		float cursor_offset = text_calculate_width(inputbox->text, inputbox->inputbox.cursor_position);
 		float cursor_height = 0.5f * inputbox->text->font->size;
 
-		min = vec2(position.x + cursor_offset, position.y - cursor_height);
-		max = vec2(min.x + inputbox->inputbox.cursor_width, position.y + cursor_height);
+		// Draw the cursor only when it's still within the text's boundaries. 
+		if (position.x + cursor_offset <=
+			inputbox->text->position.x + inputbox->text->boundaries.x) {
+
+			min = vec2(position.x + cursor_offset, position.y - cursor_height);
+			max = vec2(min.x + inputbox->inputbox.cursor_width, position.y + cursor_height);
+		}
 	}
 
 	// Get cursor sprite texture coordinates.
