@@ -94,6 +94,9 @@ bool font_load_from_file(font_t *font, FT_Library freetype,
 	font->first_glyph = first_glyph;
 	font->num_glyphs = (last_glyph - first_glyph) + 1;
 
+	// Calculate font height.
+	font->height = (uint8_t)((face->size->metrics.ascender - face->size->metrics.descender) / 64);
+
 	// Allocate space for glyph data.
 	font->glyphs = mem_alloc(font->num_glyphs * sizeof(glyph_t));
 
@@ -138,8 +141,6 @@ bool font_load_from_file(font_t *font, FT_Library freetype,
 		font->glyphs[index].size = vec2(g->metrics.width / 64.0f, g->metrics.height / 64.0f);
 		font->glyphs[index].bearing = vec2(g->bitmap_left, g->bitmap_top);
 		font->glyphs[index].advance = vec2(g->advance.x / 64.0f, g->advance.y / 64.0f);
-
-		//printf("%s: Rendering glyph %u (%c), idx: %u\n", font->resource.name, glyph_index, glyph, glyph);
 	}
 
 	// Release font face.

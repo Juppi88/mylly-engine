@@ -245,6 +245,10 @@ float text_calculate_width(text_t *text, int end_index)
 
 static void text_refresh_vertices(text_t *text)
 {
+	if (text->font == NULL) {
+		return;
+	}
+
 	float pos_x = 0;
 	float min_y = FLT_MAX;
 	float max_y = FLT_MIN;
@@ -259,7 +263,8 @@ static void text_refresh_vertices(text_t *text)
 
 		// Some glyphs may not have a visual representation, so clear their vertices.
 		// Also clear vertices if they'd go off the boundaries of the text object.
-		if (g == NULL || pos_x + g->advance.x > text->position.x + text->boundaries.x) {
+		if (g == NULL ||
+		    pos_x + g->advance.x >= text->position.x + text->boundaries.x - text->margin.left) {
 
 			vertices[base + 0] = vertex_ui_empty();
 			vertices[base + 1] = vertex_ui_empty();
@@ -354,5 +359,5 @@ static void text_calculate_position(text_t *text)
 		}
 	}
 
-	text->cursor_position = vec2(position.x, position.y - text->size.y / 2);
+	text->cursor_position = vec2(position.x, position.y);
 }

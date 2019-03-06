@@ -20,14 +20,27 @@ bool mgui_handle_keyboard_event(input_event_t type, uint32_t key)
 	bool result = true;
 
 	switch (type) {
+		case INPUT_CHARACTER:
+
+			focused = mgui_get_focused_widget();
+			if (focused != NULL &&
+				focused->callbacks->on_character_injected != NULL &&
+				!focused->callbacks->on_character_injected(focused, key)) {
+
+				result = false;
+			}
+
+			break;
+
 		case INPUT_KEY_DOWN:
+		case INPUT_KEY_UP:
 
 			focused = mgui_get_focused_widget();
 
 			if (focused != NULL &&
-				focused->callbacks->on_key_pressed != NULL) {
+				focused->callbacks->on_key_pressed != NULL &&
+				!focused->callbacks->on_key_pressed(focused, key, type == INPUT_KEY_DOWN)) {
 
-				focused->callbacks->on_key_pressed(focused, key);
 				result = false;
 			}
 
@@ -57,14 +70,14 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 			// move focus to said widget.
 			widget_t *widget = mgui_get_widget_at_position(cursor_position);
 
+			mgui_set_focused_widget(widget);
+			mgui_set_dragged_widget(widget);
+			mgui_set_pressed_widget(widget);
+
 			if (widget != NULL) {
-
-				mgui_set_focused_widget(widget);
-				mgui_set_dragged_widget(widget);
-				mgui_set_pressed_widget(widget);
-
 				result = false;
 			}
+			
 			break;
 		}
 		case INPUT_MOUSE_BUTTON_UP:

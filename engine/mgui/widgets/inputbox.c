@@ -11,7 +11,8 @@
 
 static void on_inputbox_focused(widget_t *inputbox, bool focused);
 static void on_inputbox_refresh_vertices(widget_t *inputbox);
-static void on_inputbox_key_pressed(widget_t *inputbox, uint32_t key);
+static bool on_inputbox_key_pressed(widget_t *inputbox, uint32_t key, bool pressed);
+static bool on_inputbox_character_injected(widget_t *inputbox, uint32_t c);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	NULL,
 	on_inputbox_key_pressed,
+	on_inputbox_character_injected,
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -95,14 +97,17 @@ static void on_inputbox_refresh_vertices(widget_t *inputbox)
 
 		// Calculate the offset from text start to cursor position in pixels.
 		float cursor_offset = text_calculate_width(inputbox->text, inputbox->inputbox.cursor_position);
-		float cursor_height = 0.5f * inputbox->text->font->size;
+		float cursor_height = inputbox->text->font->height;
+		float cursor_vert_offset = cursor_height - inputbox->text->font->size + 1;
 
 		// Draw the cursor only when it's still within the text's boundaries. 
-		if (position.x + cursor_offset <=
+		if (position.x + cursor_offset <
 			inputbox->text->position.x + inputbox->text->boundaries.x) {
 
+			position.y += cursor_vert_offset;
+
 			min = vec2(position.x + cursor_offset, position.y - cursor_height);
-			max = vec2(min.x + inputbox->inputbox.cursor_width, position.y + cursor_height);
+			max = vec2(min.x + inputbox->inputbox.cursor_width, position.y);
 		}
 	}
 
@@ -120,77 +125,92 @@ static void on_inputbox_refresh_vertices(widget_t *inputbox)
 	vertices[19] = vertex_ui(vec2(max.x, bottom - max.y), vec2(uv2.x, uv2.y), COL_WHITE);
 }
 
-static void on_inputbox_key_pressed(widget_t *inputbox, uint32_t key)
+static bool on_inputbox_key_pressed(widget_t *inputbox, uint32_t key, bool pressed)
 {
 	if (inputbox == NULL) {
-		return;
+		return true;
 	}
 
 	// TODO: Handle arrow keys, backspace, delete, return etc.
-	// TODO: Handle num keys
-	// TODO: Handle lower case keys (use character event instead of key down?)
 
 	// Pressing escape removes focus from the widget.
-	if (key == MKEY_ESCAPE) {
-		mgui_set_focused_widget(NULL);
+	if (pressed) {
+
+		if (key == MKEY_ESCAPE) {
+			mgui_set_focused_widget(NULL);
+
+			inputbox->has_colour_changed = true;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool on_inputbox_character_injected(widget_t *inputbox, uint32_t c)
+{
+	if (inputbox == NULL) {
+		return true;
 	}
 
 	// Inject visible characters into the text buffer.
-	if (key >= 32 && key <= 255) {
-
-		char tmp[1024];
-		size_t i = 0;
-		
-		// If the buffer already has content and the cursor is somewhere else than the end of the
-		// buffer, copy characters in a loop and inject the new character into the middle.
-		if (inputbox->text->buffer != NULL &&
-			inputbox->text->buffer_length != 0 &&
-			(inputbox->inputbox.cursor_position != inputbox->text->buffer_length)) {
-
-			char *s = inputbox->text->buffer;
-		
-			while (*s) {
-
-				// Safety check so we don't write past the boundaries of the temporary buffer.
-				if (i >= sizeof(tmp) - 1) {
-					break;
-				}
-
-				if (i == inputbox->inputbox.cursor_position) {
-
-					// Inject the character to the position of the cursor and advance the cursor.
-					tmp[i++] = (char)key;
-					inputbox->inputbox.cursor_position++;
-				}
-
-				// Copy characters from the existing buffer.
-				tmp[i++] = *s++;
-			}
-		}
-		else {
-
-			// Empty or non existing buffer or cursor at the end -> copy previous text into a new
-			// buffer and append the injected character.
-			i = inputbox->text->buffer_length;
-
-			if (inputbox->text->buffer != NULL) {
-				string_copy(tmp, inputbox->text->buffer, sizeof(tmp));
-			}
-
-			// Inject new character only if the buffer has space.			
-			if (i < sizeof(tmp) - 1) {
-
-				tmp[i++] = (char)key;
-				inputbox->inputbox.cursor_position++;
-			}
-		}
-
-		// Terminate the buffer.
-		tmp[++i] = 0;
-
-		// Copy the updated buffer into the text object.
-		widget_set_text_s(inputbox, tmp);
+	if (c < 32 || c > 255) {
+		return true;
 	}
 
+	char tmp[1024];
+	size_t i = 0;
+	
+	// If the buffer already has content and the cursor is somewhere else than the end of the
+	// buffer, copy characters in a loop and inject the new character into the middle.
+	if (inputbox->text->buffer != NULL &&
+		inputbox->text->buffer_length != 0 &&
+		(inputbox->inputbox.cursor_position != inputbox->text->buffer_length)) {
+
+		char *s = inputbox->text->buffer;
+	
+		while (*s) {
+
+			// Safety check so we don't write past the boundaries of the temporary buffer.
+			if (i >= sizeof(tmp) - 1) {
+				break;
+			}
+
+			if (i == inputbox->inputbox.cursor_position) {
+
+				// Inject the character to the position of the cursor and advance the cursor.
+				tmp[i++] = (char)c;
+				inputbox->inputbox.cursor_position++;
+			}
+
+			// Copy characters from the existing buffer.
+			tmp[i++] = *s++;
+		}
+	}
+	else {
+
+		// Empty or non existing buffer or cursor at the end -> copy previous text into a new
+		// buffer and append the injected character.
+		i = inputbox->text->buffer_length;
+
+		if (inputbox->text->buffer != NULL) {
+			string_copy(tmp, inputbox->text->buffer, sizeof(tmp));
+		}
+
+		// Inject new character only if the buffer has space.			
+		if (i < sizeof(tmp) - 1) {
+
+			tmp[i++] = (char)c;
+			inputbox->inputbox.cursor_position++;
+		}
+	}
+
+	// Terminate the buffer.
+	tmp[++i] = 0;
+
+	// Copy the updated buffer into the text object.
+	widget_set_text_s(inputbox, tmp);
+
 	inputbox->has_colour_changed = true;
+	return false;
 }

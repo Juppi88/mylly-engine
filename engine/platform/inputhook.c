@@ -169,9 +169,9 @@ bool input_sys_process_messages(void *params)
 {
 	XEvent *event = (XEvent *)params;
 
-	XKeyEvent* key_event;
-	XButtonEvent* button_event;
-	XMotionEvent* motion_event;
+	XKeyEvent *key_event;
+	XButtonEvent *button_event;
+	XMotionEvent *motion_event;
 	char buffer[20];
 	KeySym sym;
 	uint32_t code;
@@ -183,15 +183,6 @@ bool input_sys_process_messages(void *params)
 
 		case KeyPress: {
 			key_event = (XKeyEvent *)event;
-
-			// Store the frame the button is pressed.
-			if (key_pressed_frames[key_event->keycode] == 0) {
-
-				// Update the frame only when the key is pressed down for the first time.
-				// Other KeyPress events are just character repeats.
-				key_pressed_frames[key_event->keycode] = frame;
-				key_released_frames[key_event->keycode] = 0;
-			}
 
 			// Store modifier flags.
 			modifier_flags = key_event->state;
@@ -212,9 +203,21 @@ bool input_sys_process_messages(void *params)
 			}
 
 			// Handle character event and related bindings.
-			if (*buffer != 0) {
-				return input_handle_keyboard_event(INPUT_CHARACTER, *buffer);
+			if (*buffer != 0 &&
+				!input_handle_keyboard_event(INPUT_CHARACTER, *buffer)) {
+
+				return false;
 			}
+
+			// Store the frame the button is pressed.
+			if (key_pressed_frames[key_event->keycode] == 0) {
+
+				// Update the frame only when the key is pressed down for the first time.
+				// Other KeyPress events are just character repeats.
+				key_pressed_frames[key_event->keycode] = frame;
+				key_released_frames[key_event->keycode] = 0;
+			}
+
 			return true;
 		}
 

@@ -68,7 +68,8 @@ typedef struct widget_callbacks_t {
 	void (*on_focused)(widget_t *widget, bool focused);
 	void (*on_hovered)(widget_t *widget, bool hovered);
 	void (*on_pressed)(widget_t *widget, bool pressed);
-	void (*on_key_pressed)(widget_t *widget, uint32_t key);
+	bool (*on_key_pressed)(widget_t *widget, uint32_t key, bool pressed);
+	bool (*on_character_injected)(widget_t *widget, uint32_t c);
 
 } widget_callbacks_t;
 

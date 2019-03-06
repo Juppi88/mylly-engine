@@ -38,7 +38,7 @@ builddirs:
 	mkdir -p build/bin
 
 clean:
-	rm -f objs/* bin/*
+	rm -rf build/objs/ build/bin/*.a
 
 libmylly.a: $(OBJS)
 	ar -rv build/bin/$@ $(addprefix build/objs/, $^)

@@ -151,7 +151,7 @@ bool input_handle_keyboard_event(input_event_t type, uint32_t key)
 
 	// Process keybinds unless MGUI blocks them.
 	if (type == INPUT_KEY_UP ||
-		type == INPUT_KEY_DOWN) {
+	    type == INPUT_KEY_DOWN) {
 
 		if (!input_process_keybinds(key, type == INPUT_KEY_DOWN)) {
 			return false;

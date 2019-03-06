@@ -21,6 +21,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	on_checkbox_pressed,
 	NULL,
+	NULL,
 };
 
 // -------------------------------------------------------------------------------------------------

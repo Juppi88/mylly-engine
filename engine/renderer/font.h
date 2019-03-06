@@ -43,6 +43,7 @@ typedef struct font_t {
 	resource_t resource; // Resource info
 	
 	uint8_t size; // Font size in points
+	uint8_t height; // Font height in points
 	uint32_t first_glyph; // The first glyph in the glyph array
 	uint32_t num_glyphs; // Number of glyphs in the glyph array
 	glyph_t *glyphs; // Font glyphs
