@@ -9,6 +9,8 @@
 
 // -------------------------------------------------------------------------------------------------
 
+static void inputbox_remove_character(widget_t *inputbox, uint32_t position);
+
 static void on_inputbox_focused(widget_t *inputbox, bool focused);
 static void on_inputbox_refresh_vertices(widget_t *inputbox);
 static bool on_inputbox_key_pressed(widget_t *inputbox, uint32_t key, bool pressed);
@@ -62,6 +64,43 @@ void inputbox_set_cursor_sprite(widget_t *inputbox, sprite_t *cursor, uint8_t wi
 	inputbox->inputbox.cursor_width = width;
 
 	// Refresh the vertices for the cursor.
+	inputbox->has_colour_changed = true;
+}
+
+static void inputbox_remove_character(widget_t *inputbox, uint32_t position)
+{
+	// Nothing to remove if the cursor is at either end of the text.
+	if (position == 0 || position > inputbox->text->buffer_length) {
+		return;
+	}
+
+	char tmp[inputbox->text->buffer_length];
+	char *s = inputbox->text->buffer;
+	char *d = tmp;
+	size_t i = 0;
+
+	// Copy all the characters from the existing text buffer to the temporary buffer - except
+	// for the one to be removed.
+	while (*s) {
+
+		if (i++ == position - 1) {
+
+			++s;
+			continue;
+		}
+
+		*d++ = *s++;
+	}
+
+	// Terminate the temporary buffer.
+	*d = 0;
+
+	// Copy the updated buffer into the text object.
+	widget_set_text_s(inputbox, tmp);
+
+	// Move cursor position back by one.
+	inputbox->inputbox.cursor_position = position - 1;
+
 	inputbox->has_colour_changed = true;
 }
 
@@ -127,21 +166,80 @@ static void on_inputbox_refresh_vertices(widget_t *inputbox)
 
 static bool on_inputbox_key_pressed(widget_t *inputbox, uint32_t key, bool pressed)
 {
-	if (inputbox == NULL) {
+	if (inputbox == NULL || !pressed) {
 		return true;
 	}
 
-	// TODO: Handle arrow keys, backspace, delete, return etc.
+	// TODO: Handle selecting text by holding shift.
+	// TODO: Remove cut/copy/paste.
 
-	// Pressing escape removes focus from the widget.
-	if (pressed) {
+	switch (key) {
 
-		if (key == MKEY_ESCAPE) {
+		case MKEY_ESCAPE:
+
+			// Pressing escape removes focus from the widget.
 			mgui_set_focused_widget(NULL);
-
 			inputbox->has_colour_changed = true;
+
 			return false;
-		}
+
+		case MKEY_RETURN:
+
+			// TODO: Add submitting.
+			return false;
+
+		case MKEY_LEFT:
+
+			// Move cursor to the left.
+			if (inputbox->inputbox.cursor_position > 0) {
+
+				inputbox->inputbox.cursor_position--;
+				inputbox->has_colour_changed = true;
+			}
+
+			return false;
+
+		case MKEY_RIGHT:
+
+			// Move cursor to the right.
+			if (inputbox->inputbox.cursor_position < inputbox->text->buffer_length) {
+
+				inputbox->inputbox.cursor_position++;
+				inputbox->has_colour_changed = true;
+			}
+
+			return false;
+
+		case MKEY_HOME:
+
+			// Move cursor to the beginning of the line.
+			inputbox->inputbox.cursor_position = 0;
+			inputbox->has_colour_changed = true;
+
+			return false;
+
+		case MKEY_END:
+
+			// Move cursor to the beginning of the line.
+			inputbox->inputbox.cursor_position = inputbox->text->buffer_length;
+			inputbox->has_colour_changed = true;
+
+			return false;
+
+		case MKEY_BACKSPACE:
+
+			// Backspace removes a character to the left of cursor.
+			inputbox_remove_character(inputbox, inputbox->inputbox.cursor_position);
+			return false;
+
+		case MKEY_DELETE:
+
+			// Delete removes a character to the right of cursor.
+			inputbox_remove_character(inputbox, inputbox->inputbox.cursor_position + 1);
+			return false;
+
+		default:
+			break;
 	}
 
 	return true;

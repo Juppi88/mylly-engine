@@ -158,7 +158,8 @@ void widget_process(widget_t *widget)
 	// Render text object.
 	if (widget->text != NULL &&
 		widget->text->mesh != NULL &&
-		widget->text->mesh->num_indices != 0) {
+		widget->text->mesh->num_indices != 0 &&
+		widget->text->buffer_length != 0) {
 
 		rsys_render_ui_mesh(widget->text->mesh);
 	}
