@@ -3,6 +3,7 @@
 #include "mgui/widget.h"
 #include "scene/sprite.h"
 #include "renderer/mesh.h"
+#include "renderer/font.h"
 #include "io/log.h"
 #include "core/string.h"
 
@@ -44,17 +45,19 @@ widget_t *inputbox_create(widget_t *parent)
 
 	widget_set_text_alignment(widget, ALIGNMENT_LEFT);
 
+	widget->inputbox.cursor_width = 1;
+
 	return widget;
 }
 
-void inputbox_set_cursor_sprite(widget_t *inputbox, sprite_t *cursor, uint8_t margin)
+void inputbox_set_cursor_sprite(widget_t *inputbox, sprite_t *cursor, uint8_t width)
 {
 	if (inputbox == NULL || inputbox->type != WIDGET_TYPE_INPUTBOX || cursor == NULL) {
 		return;
 	}
 
 	inputbox->inputbox.cursor = cursor;
-	inputbox->inputbox.cursor_margin = margin;
+	inputbox->inputbox.cursor_width = width;
 
 	// Refresh the vertices for the cursor.
 	inputbox->has_colour_changed = true;
@@ -77,21 +80,25 @@ static void on_inputbox_focused(widget_t *inputbox, bool focused)
 
 static void on_inputbox_refresh_vertices(widget_t *inputbox)
 {
-	if (inputbox == NULL || inputbox->inputbox.cursor == NULL) {
+	if (inputbox == NULL || inputbox->text == NULL || inputbox->inputbox.cursor == NULL) {
 		return;
 	}
 
 	// Calculate cursor position.
-	float margin = (float)inputbox->inputbox.cursor_margin;
-	float bottom = mgui_parameters.height;
+	vec2_t position = inputbox->text->cursor_position;
 
 	vec2_t min = vec2_zero();
 	vec2_t max = vec2_zero();
 
+	// Draw cursor when the widget is focused.
 	if (inputbox->state & WIDGET_STATE_FOCUSED) {
 
-		min = vec2(inputbox->world_position.x + margin, inputbox->world_position.y + margin);
-		max = vec2(min.x + 2, min.y + inputbox->size.y - 2 * margin);
+		// Calculate the offset from text start to cursor position in pixels.
+		float cursor_offset = text_calculate_width(inputbox->text, inputbox->inputbox.cursor_position);
+		float cursor_height = 0.5f * inputbox->text->font->size;
+
+		min = vec2(position.x + cursor_offset, position.y - cursor_height);
+		max = vec2(min.x + inputbox->inputbox.cursor_width, position.y + cursor_height);
 	}
 
 	// Get cursor sprite texture coordinates.
@@ -99,6 +106,7 @@ static void on_inputbox_refresh_vertices(widget_t *inputbox)
 	vec2_t uv1 = sprite->uv1;
 	vec2_t uv2 = sprite->uv2;
 
+	float bottom = mgui_parameters.height;
 	vertex_ui_t *vertices = inputbox->mesh->ui_vertices;
 
 	vertices[16] = vertex_ui(vec2(min.x, bottom - min.y), vec2(uv1.x, uv1.y), COL_WHITE);
@@ -116,7 +124,6 @@ static void on_inputbox_key_pressed(widget_t *inputbox, uint32_t key)
 	// TODO: Handle arrow keys, backspace, delete, return etc.
 	// TODO: Handle num keys
 	// TODO: Handle lower case keys (use character event instead of key down?)
-	// TODO: Add margin for text object in widget?
 
 	// Pressing escape removes focus from the widget.
 	if (key == MKEY_ESCAPE) {
@@ -179,4 +186,6 @@ static void on_inputbox_key_pressed(widget_t *inputbox, uint32_t key)
 		// Copy the updated buffer into the text object.
 		widget_set_text_s(inputbox, tmp);
 	}
+
+	inputbox->has_colour_changed = true;
 }

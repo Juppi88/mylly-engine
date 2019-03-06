@@ -21,7 +21,11 @@ typedef struct text_t {
 	vec2i_t position; // Bottom left corner of the text
 	vec2i_t size; // Size of the text
 	vec2i_t boundaries; // Size of text boundaries used for alignment
+	vec2_t cursor_position; // Start position of text in screen units (vertically aligned)
 	alignment_t alignment; // Text alignment
+
+	// Text margins in relation to its boundaries.
+	struct { int8_t left, right, top, bottom; } margin;
 
 	colour_t colour; // Text colour
 	font_t *font; // Text font
@@ -49,8 +53,13 @@ void text_update_colour(text_t *text, colour_t colour);
 void text_update_font(text_t *text, font_t *font);
 void text_update_alignment(text_t *text, alignment_t alignment);
 void text_update_boundaries(text_t *text, vec2i_t position, vec2i_t boundaries);
+void text_update_margin(text_t *text, int8_t left, int8_t right, int8_t top, int8_t bottom);
 
 void text_update(text_t *text);
+
+// Calculates the length of the text in pixels up until character at position end_index.
+// If end_index is negative, the length of the entire text is calculated.
+float text_calculate_width(text_t *text, int end_index);
 
 END_DECLARATIONS;
 

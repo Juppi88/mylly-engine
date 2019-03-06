@@ -424,6 +424,15 @@ void widget_set_text_alignment(widget_t *widget, alignment_t alignment)
 	text_update_alignment(widget->text, alignment);
 }
 
+void widget_set_text_margin(widget_t *widget, int8_t left, int8_t right, int8_t top, int8_t bottom)
+{
+	if (widget == NULL || widget->text == NULL) {
+		return;
+	}
+
+	text_update_margin(widget->text, left, right, top, bottom);
+}
+
 bool widget_is_point_inside(widget_t *widget, vec2i_t point)
 {
 	if (widget == NULL) {

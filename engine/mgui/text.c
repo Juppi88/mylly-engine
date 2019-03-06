@@ -34,6 +34,12 @@ text_t *text_create(widget_t *parent)
 	text->buffer_length = 0;
 	text->buffer_size = 0;
 
+	text->alignment = ALIGNMENT_CENTRE;
+	text->margin.left = 5;
+	text->margin.right = 5;
+	text->margin.top = 5;
+	text->margin.bottom = 5;
+
 	return text;
 }
 
@@ -113,6 +119,20 @@ void text_update_boundaries(text_t *text, vec2i_t position, vec2i_t boundaries)
 	text->is_dirty = true;
 }
 
+void text_update_margin(text_t *text, int8_t left, int8_t right, int8_t top, int8_t bottom)
+{
+	if (text == NULL) {
+		return;
+	}
+
+	text->margin.left = left;
+	text->margin.right = right;
+	text->margin.top = top;
+	text->margin.bottom = bottom;
+
+	text->is_dirty = true;
+}
+
 void text_update(text_t *text)
 {
 	if (text == NULL) {
@@ -189,6 +209,40 @@ static void text_reallocate_vertices(text_t *text)
 	DESTROY(indices);
 }
 
+float text_calculate_width(text_t *text, int end_index)
+{
+	if (text == NULL ||
+		text->buffer == NULL ||
+		text->font == NULL ||
+		end_index == 0) {
+
+		return 0.0f;
+	}
+
+	// Stop calculation at the last character in the buffer.
+	if (end_index < 0 || end_index > (int)text->buffer_length) {
+		end_index = (int)text->buffer_length;
+	}
+
+	float width = 0.0f;
+
+	for (int i = 0; i < end_index; i++) {
+
+		// Get the glyph for the character at the current position.
+		glyph_t *g = font_get_glyph(text->font, (uint8_t)text->buffer[i]);
+
+		// Some glyphs may not have a visual representation, so skip them.
+		if (g == NULL) {
+			continue;
+		}
+
+		// Advance current position.
+		width += g->advance.x;
+	}
+
+	return width;
+}
+
 static void text_refresh_vertices(text_t *text)
 {
 	float pos_x = 0;
@@ -253,29 +307,41 @@ static void text_calculate_position(text_t *text)
 		vec2i_to_vec2(text->position)
 	);
 
-	// Horizontal alignment
+	vec2_t boundaries = vec2i_to_vec2(text->boundaries);
+
+	// Offset text position and boundaries by margins.
+	position.x += text->margin.left;
+	position.y += text->margin.top;
+	boundaries.x -= text->margin.left + text->margin.right;
+	boundaries.y -= text->margin.top + text->margin.bottom;
+
+	//
+	// --- Horizontal alignment ---
+	//
 	if (text->alignment & ALIGNMENT_LEFT) {
 		// Nothing to do here - the text is aligned from the left bottom corner.
 	}
 	else if (text->alignment & ALIGNMENT_RIGHT) {
-		position.x += (text->boundaries.x - text->size.x);
+		position.x += (boundaries.x - text->size.x);
 	}
 	else {
-		position.x += (text->boundaries.x - text->size.x) / 2;
+		position.x += (boundaries.x - text->size.x) / 2;
 	}
 
-	// Vertical alignment
+	//
+	// --- Vertical alignment ---
+	//
 	if (text->alignment & ALIGNMENT_TOP) {
 		position.y += text->size.y;
 	}
 	else if (text->alignment & ALIGNMENT_BOTTOM) {
-		position.y += text->boundaries.y;
+		position.y += boundaries.y;
 	}
 	else {
-		position.y += (text->boundaries.y + text->size.y) / 2;
+		position.y += (boundaries.y + text->size.y) / 2;
 	}
 
-	// Offset the vertices.
+	// Offset and flip the vertices.
 	float bottom = mgui_parameters.height;
 
 	for (size_t i = 0; i < text->buffer_length; i++) {
@@ -286,4 +352,6 @@ static void text_calculate_position(text_t *text)
 			v->pos = vec2(v->pos.x + position.x, bottom - (v->pos.y + position.y));
 		}
 	}
+
+	text->cursor_position = vec2(position.x, position.y - text->size.y / 2);
 }
