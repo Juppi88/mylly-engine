@@ -7,6 +7,7 @@
 #include "resources/resources.h"
 #include <stdio.h>
 #include <float.h>
+#include <math.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -355,7 +356,11 @@ static void text_calculate_position(text_t *text)
 		for (size_t j = 0; j < NUM_VERTICES_PER_CHAR; j++) {
 
 			vertex_ui_t *v = &text->mesh->ui_vertices[i * NUM_VERTICES_PER_CHAR + j];
-			v->pos = vec2(v->pos.x + position.x, bottom - (v->pos.y + position.y));
+
+			v->pos = vec2(
+				v->pos.x + position.x,
+				roundf(bottom - (v->pos.y + position.y)) // Ensure coordinate is in full pixels
+			);
 		}
 	}
 

@@ -6,6 +6,7 @@
 #include "io/log.h"
 #include "platform/window.h"
 #include "core/time.h"
+#include "core/mylly.h"
 #include <stdio.h>
 
 // Device and OpenGL context
@@ -373,6 +374,20 @@ static void rend_draw_mesh(rmesh_t *mesh)
 		);
 	}
 
+	if (shader_uses_global(mesh->shader, GLOBAL_SCREEN)) {
+
+		uint16_t width, height;
+		mylly_get_resolution(&width, &height);
+
+		vec4_t screen = vec4(width, height, 0, 0);
+
+		glUniform4fv(
+			shader_get_global_position(mesh->shader, GLOBAL_SCREEN),
+			1,
+			(const GLfloat *)&screen
+		);
+	}
+
 	// Draw the triangles of the mesh.
 	if (mesh->vertices != NULL && mesh->indices != NULL) {
 		glDrawElements(GL_TRIANGLES, mesh->indices->count, GL_UNSIGNED_SHORT, 0);
@@ -485,6 +500,20 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 			shader_get_global_position(shader, GLOBAL_TIME),
 			1,
 			(const GLfloat *)&time
+		);
+	}
+
+	if (shader_uses_global(shader, GLOBAL_SCREEN)) {
+
+		uint16_t width, height;
+		mylly_get_resolution(&width, &height);
+
+		vec4_t screen = vec4(width, height, 0, 0);
+
+		glUniform4fv(
+			shader_get_global_position(shader, GLOBAL_SCREEN),
+			1,
+			(const GLfloat *)&screen
 		);
 	}
 }
@@ -648,12 +677,13 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height, t
 
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 	switch (fmt) {
 
 		case TEX_FORMAT_GRAYSCALE:
+
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 			// Convert grayscale textures into 4-channel texture where the only colour is red.
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0,
                          GL_RED, GL_UNSIGNED_BYTE, image);
@@ -661,6 +691,10 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height, t
 			break;
 
 		default:
+
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 			// Assume 32bit RGBA texture by default.
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
                          GL_RGBA, GL_UNSIGNED_BYTE, image);

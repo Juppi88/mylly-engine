@@ -137,16 +137,14 @@ static void on_inputbox_refresh_vertices(widget_t *inputbox)
 		// Calculate the offset from text start to cursor position in pixels.
 		float cursor_offset = text_calculate_width(inputbox->text, inputbox->inputbox.cursor_position);
 		float cursor_height = inputbox->text->font->height;
-		float cursor_vert_offset = cursor_height - inputbox->text->font->size + 1;
+		float cursor_centre = inputbox->world_position.y + 0.5f * inputbox->size.y;
 
 		// Draw the cursor only when it's still within the text's boundaries. 
 		if (position.x + cursor_offset <
-			inputbox->text->position.x + inputbox->text->boundaries.x) {
+			inputbox->world_position.x + inputbox->text->position.x + inputbox->text->boundaries.x) {
 
-			position.y += cursor_vert_offset;
-
-			min = vec2(position.x + cursor_offset, position.y - cursor_height);
-			max = vec2(min.x + inputbox->inputbox.cursor_width, position.y);
+			min = vec2(position.x + cursor_offset, cursor_centre - 0.5f * cursor_height);
+			max = vec2(min.x + inputbox->inputbox.cursor_width, cursor_centre + 0.5f * cursor_height);
 		}
 	}
 

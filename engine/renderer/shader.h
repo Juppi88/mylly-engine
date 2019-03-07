@@ -15,16 +15,20 @@ typedef uint32_t shader_program_t;
 // -------------------------------------------------------------------------------------------------
 
 typedef enum {
+
 	GLOBAL_MODEL_MATRIX,
 	GLOBAL_MVP_MATRIX,
 	GLOBAL_TEXTURE,
 	GLOBAL_TIME,
+	GLOBAL_SCREEN,
 	NUM_SHADER_GLOBALS
+
 } SHADER_GLOBAL;
 
 // -------------------------------------------------------------------------------------------------
 
 typedef enum {
+
 	ATTR_VERTEX,
 	ATTR_NORMAL,
 	ATTR_TEXCOORD,
@@ -32,23 +36,28 @@ typedef enum {
 	ATTR_CENTRE,
 	ATTR_SIZE,
 	NUM_SHADER_ATTRIBUTES
+
 } SHADER_ATTRIBUTE;
 
 // -------------------------------------------------------------------------------------------------
 
 typedef enum {
+
 	SHADER_VERTEX,
 	SHADER_FRAGMENT,
+
 } SHADER_TYPE;
 
 // -------------------------------------------------------------------------------------------------
 
 typedef enum {
+
 	QUEUE_BACKGROUND,
 	QUEUE_GEOMETRY,
 	QUEUE_TRANSPARENT,
 	QUEUE_OVERLAY,
 	NUM_QUEUES
+	
 } SHADER_QUEUE;
 
 // -------------------------------------------------------------------------------------------------

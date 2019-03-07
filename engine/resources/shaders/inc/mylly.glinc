@@ -12,23 +12,46 @@ uniform mat4 MatrixModel;
 uniform mat4 MatrixMVP;
 uniform sampler2D Texture;
 uniform vec4 Time; // time, cosTime, sinTime, deltaTime
+uniform vec4 Screen; // screenWidth, screenHeight
 
 // Vertex attributes
 #if defined(VERTEX_SHADER)
 
-// Attributes for normal vertices
-attribute vec4 Vertex;
-attribute vec3 Normal;
-attribute vec4 Colour;
-attribute vec2 TexCoord;
+#ifdef VERTEX_UI
+	// Attributes for UI widget quads.
+	attribute vec2 Vertex;
+	attribute vec4 Colour;
+	attribute vec2 TexCoord;
+#else
+	// Attributes for normal vertices
+	attribute vec4 Vertex;
+	attribute vec3 Normal;
+	attribute vec4 Colour;
+	attribute vec2 TexCoord;
+#endif
 
-// Attributes for particles
-attribute vec3 ParticleCentre;
-attribute float ParticleSize;
+#ifdef VERTEX_PARTICLE
+	// Attributes for particles
+	attribute vec3 ParticleCentre;
+	attribute float ParticleSize;
+#endif
 
 #endif
 
-// Utility macros
+// Utility macros and functions
 #define alphacut(a, cutoff) if ((a) < (cutoff)) { discard; }
+
+// Snap vertices to match the pixels on the screen to avoid sub-pixel wiggling.
+vec4 pixelsnap(vec4 pos)
+{
+	// Convert vertex position to pixels and round the result.
+	vec2 halfScreen = 0.5 * Screen.xy;
+	vec2 pixelPos = round((pos.xy / pos.w) * halfScreen);
+
+	// Convert back to normalized coordinates.
+	pos.xy = pixelPos / halfScreen * pos.w;
+
+	return pos;
+}
 
 #endif

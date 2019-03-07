@@ -1,19 +1,16 @@
-uniform sampler2D Texture;
-uniform mat4 MatrixMVP;
+#define VERTEX_UI
+#pragma include inc/mylly.glinc
+#pragma queue OVERLAY
 
 varying vec2 texCoord;
 varying vec4 colour;
 
 #if defined(VERTEX_SHADER)
 
-// Attributes for UI widget quads.
-attribute vec2 Vertex;
-attribute vec4 Colour;
-attribute vec2 TexCoord;
-
 void main()
 {
 	gl_Position = MatrixMVP * vec4(Vertex, 0, 1);
+	gl_Position = pixelsnap(gl_Position);
 	
 	texCoord = TexCoord;
 	colour = Colour;

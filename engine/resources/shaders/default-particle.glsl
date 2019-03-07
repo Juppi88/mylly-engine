@@ -1,3 +1,4 @@
+#define VERTEX_PARTICLE
 #pragma include inc/mylly.glinc
 #pragma queue TRANSPARENT
 

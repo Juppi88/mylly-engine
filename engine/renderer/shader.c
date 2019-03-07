@@ -15,7 +15,8 @@ static const char *shader_global_names[NUM_SHADER_GLOBALS] = {
 	"MatrixModel",
 	"MatrixMVP",
 	"Texture",
-	"Time"
+	"Time",
+	"Screen"
 };
 
 // Shader vertex attribute names.
