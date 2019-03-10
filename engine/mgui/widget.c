@@ -249,6 +249,22 @@ vec2i_t widget_get_position(widget_t *widget)
 	return widget->position;
 }
 
+vec2i_t widget_get_world_position(widget_t *widget)
+{
+	if (widget == NULL) {
+		return vec2i_zero();
+	}
+
+	// Update anchors.
+	if (widget->has_moved || 
+		(widget->parent != NULL && widget->parent->has_resized)) {
+
+		widget_process_anchors(widget);
+	}
+
+	return widget->world_position;
+}
+
 vec2i_t widget_get_size(widget_t *widget)
 {
 	if (widget == NULL) {
