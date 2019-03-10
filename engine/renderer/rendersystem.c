@@ -84,8 +84,10 @@ void rsys_begin_frame(void)
 void rsys_end_frame(void)
 {
 	// Issue the actual draw calls here.
-	debug_end_frame();
+	debug_process_3d_drawings();
+	debug_process_2d_drawings();
 	rend_draw_views(views.first);
+	
 	rend_draw_ui_view(&ui_view);
 
 	rend_end_draw();
