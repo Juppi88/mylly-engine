@@ -234,6 +234,26 @@ font_t *res_get_font(const char *name, uint32_t size)
 	return NULL;
 }
 
+sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
+{
+	char sprite_name[200];
+	snprintf(sprite_name, sizeof(sprite_name), "%s/%s", texture->resource.name, name);
+
+	// Create the empty sprite container.
+	sprite_t *sprite = sprite_create(sprite_name);
+	
+	// Add to resource list.
+	sprite->resource.index = arr_last_index(sprites);
+	sprite->resource.is_loaded = true;
+
+	arr_push(sprites, sprite);
+
+	// Add a reference to texture.
+	arr_push(texture->sprites, sprite);
+
+	return sprite;
+}
+
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type)
 {
 	switch (type) {
