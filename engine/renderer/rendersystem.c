@@ -24,8 +24,8 @@ static shader_t *default_shader; // Default shader used for rendering when a mes
 
 static list_t(rview_t) views; // List of views to be rendered this frame
 
+static rview_t *ui_view; // A dedicated view for UI widgets due to UI not needing a camera
 static robject_t ui_parent; // A virtual object to be used as the UI parent
-static rview_ui_t ui_view; // Meshes to be rendered for the UI.
 
 // -------------------------------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ void rsys_initialize(void)
 	vbcache_initialize();
 	bufcache_initialize();
 
-	// Initialize UI parent object.
+	// Initialize UI parent objects.
 	ui_parent.matrix = mat_identity();
 
 	// Calculate an MVP matrix for the UI based on screen resolution.
@@ -79,16 +79,29 @@ void rsys_begin_frame(void)
 
 	rend_begin_draw();
 	debug_begin_frame();
+
+	// Setup a per-frame view object for the UI.
+	NEW(rview_t, view);
+	ui_view = view;
+
+	mat_cpy(&ui_view->projection, &ui_parent.mvp);
 }
 
 void rsys_end_frame(void)
 {
 	// Issue the actual draw calls here.
+
+	// First collect 3D scene debug lines.
 	debug_process_3d_drawings();
+
+	// Add the UI view to the view list as last.
+	list_push(views, ui_view);
+
+	// Issue 2D (UI) debug lines.
 	debug_process_2d_drawings();
+
+	// Draw all the views now.
 	rend_draw_views(views.first);
-	
-	rend_draw_ui_view(&ui_view);
 
 	rend_end_draw();
 
@@ -159,7 +172,7 @@ void rsys_render_ui_mesh(mesh_t *mesh)
 	}
 
 	// Create a new temporary UI mesh for the renderer.
-	NEW(rmesh_ui_t, rmesh);
+	NEW(rmesh_t, rmesh);
 
 	rmesh->parent = &ui_parent;
 	rmesh->vertex_type = mesh->vertex_type;
@@ -175,9 +188,8 @@ void rsys_render_ui_mesh(mesh_t *mesh)
 	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
 	rmesh->texture = mesh->texture;
 
-	// Add the mesh to the view. UI meshes ignore the render queue and are always rendered after
-	// everything else.
-	list_push(ui_view.meshes, rmesh);
+	// Add the mesh to the view to a render queue determined by its shader.
+	list_push(ui_view->meshes[rmesh->shader->queue], rmesh);
 }
 
 void rsys_render_mesh(mesh_t *mesh)
@@ -378,15 +390,7 @@ static void rsys_free_frame_data(void)
 	}
 
 	list_clear(views);
-
-	// Clear UI view.
-	rmesh_ui_t *ui_mesh, *tmp_ui_mesh;
-
-	list_foreach_safe(ui_view.meshes, ui_mesh, tmp_ui_mesh) {
-		mem_free(ui_mesh);
-	}
-
-	list_clear(ui_view.meshes);
+	ui_view = NULL;
 
 	// Clear the UI index buffer for rebuilding during the next frame.
 	bufcache_clear_all_indices(BUFIDX_UI);

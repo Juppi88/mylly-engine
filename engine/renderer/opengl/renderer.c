@@ -50,9 +50,12 @@ static const char *default_shader_source =
 // --------------------------------------------------------------------------------
 
 static void rend_draw_mesh(rmesh_t *mesh);
+
+static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent,
+                                     vertex_type_t vertex_type);
+
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
-static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent);
 
 // --------------------------------------------------------------------------------
 
@@ -101,10 +104,6 @@ bool rend_initialize(void)
 	// Make the new rendering context the current one for the application.
 	wglMakeCurrent(context, gl_context);
 
-	/*// Get the rendering area rectangle.
-	RECT rect;
-	GetClientRect(window, &rect);
-	*/
 #else
 	gl_context = glXCreateContext(window_get_display(), window_get_visual_info(), NULL, GL_TRUE);
  
@@ -187,18 +186,33 @@ void rend_draw_views(rview_t *first_view)
 	rview_t *view;
 	rmesh_t *mesh;
 
-	// Draw meshes from each view sorted by render queue.
-	list_foreach(views, view) {
+	// TODO: Group meshes by a) shader/texture and b) the vertex buffer used, in order to minimize
+	// draw calls. This could be done in render system before passing the renderer data to render.
 
-		for (int i = 0; i < NUM_QUEUES; i++) {
+	// TODO: See rend_draw_ui_view below - don't issue any draw call as long as the objects are
+	// using the same buffer object!
+
+	// Process render queues.
+	for (int i = 0; i < NUM_QUEUES; i++) {
+
+		// Disable depth testing for the overlay queue.
+		if (i == QUEUE_OVERLAY) {
+			glDisable(GL_DEPTH_TEST);
+		}
+
+		// Draw meshes from each view.
+		list_foreach(views, view) {
 
 			list_foreach(view->meshes[i], mesh) {
 				rend_draw_mesh(mesh);
 			}
 		}
+
+		// Re-enable depth testing.
+		glEnable(GL_DEPTH_TEST);
 	}
 }
-
+/*
 void rend_draw_ui_view(rview_ui_t *view)
 {
 	// Disable depth testing for UI.
@@ -252,27 +266,9 @@ void rend_draw_ui_view(rview_ui_t *view)
 		                       GL_UNSIGNED_SHORT, (const GLvoid *)(sizeof(vindex_t) * offset));
 	}
 }
-
+*/
 static void rend_draw_mesh(rmesh_t *mesh)
 {
-	// Select the active shader.
-	GLuint shader = mesh->shader->program;
-
-	if (shader != active_shader) {
-
-		glUseProgram(shader);
-		active_shader = shader;
-	}
-
-	// Select the active texture.
-	GLuint texture = (mesh->texture != NULL ? mesh->texture->gpu_texture : 0);
-
-	if (texture != active_texture) {
-
-		glBindTexture(GL_TEXTURE_2D, texture);
-		active_texture = texture;
-	}
-
 	// Bind the meshes vertex buffer and set vertex data pointers.
 	if (mesh->handle_vertices != 0 && mesh->handle_indices != 0) {
 
@@ -294,99 +290,8 @@ static void rend_draw_mesh(rmesh_t *mesh)
 		return;
 	}
 
-	// Set pointers to vertex attributes.
-	if (mesh->vertex_type == VERTEX_NORMAL) {
-
-		// Normal vertex attributes.
-		rend_bind_shader_attribute(mesh->shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
-                                   sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_NORMAL, 3, GL_FLOAT, GL_FALSE,
-                                   sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
-                                   sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                                   sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
-	}
-	else if (mesh->vertex_type == VERTEX_DEBUG) {
-
-		// Debug vertex attributes.
-		rend_bind_shader_attribute(mesh->shader, ATTR_VERTEX, 3, GL_FLOAT, GL_FALSE,
-		                          sizeof(vertex_debug_t), (void *)offsetof(vertex_debug_t, pos));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-		                           sizeof(vertex_debug_t), (void *)offsetof(vertex_debug_t, colour));
-	}
-	else {
-		// Particle vertex attributes.
-		rend_bind_shader_attribute(mesh->shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
-                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, pos));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_CENTRE, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, centre));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
-                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, uv));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, colour));
-
-		rend_bind_shader_attribute(mesh->shader, ATTR_SIZE, 1, GL_FLOAT, GL_FALSE,
-                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, size));
-	}
-
-
-	// Set per-draw shader globals.
-	if (shader_uses_global(mesh->shader, GLOBAL_MODEL_MATRIX)) {
-
-		glUniformMatrix4fv(
-			shader_get_global_position(mesh->shader, GLOBAL_MODEL_MATRIX),
-			1, GL_FALSE, mat_as_ptr(mesh->parent->matrix)
-		);
-	}
-
-	if (shader_uses_global(mesh->shader, GLOBAL_MVP_MATRIX)) {
-
-		glUniformMatrix4fv(
-			shader_get_global_position(mesh->shader, GLOBAL_MVP_MATRIX),
-			1, GL_FALSE, mat_as_ptr(mesh->parent->mvp)
-		);
-	}
-
-	if (shader_uses_global(mesh->shader, GLOBAL_TEXTURE)) {
-
-		glUniform1i(
-			shader_get_global_position(mesh->shader, GLOBAL_TEXTURE),
-			0
-		);
-	}
-
-	if (shader_uses_global(mesh->shader, GLOBAL_TIME)) {
-
-		vec4_t time = get_shader_time();
-
-		glUniform4fv(
-			shader_get_global_position(mesh->shader, GLOBAL_TIME),
-			1,
-			(const GLfloat *)&time
-		);
-	}
-
-	if (shader_uses_global(mesh->shader, GLOBAL_SCREEN)) {
-
-		uint16_t width, height;
-		mylly_get_resolution(&width, &height);
-
-		vec4_t screen = vec4(width, height, 0, 0);
-
-		glUniform4fv(
-			shader_get_global_position(mesh->shader, GLOBAL_SCREEN),
-			1,
-			(const GLfloat *)&screen
-		);
-	}
+	// Check whether the shader or texture needs to be changed. Bind vertex attributes.
+	rend_set_active_material(mesh->shader, mesh->texture, mesh->parent, mesh->vertex_type);
 
 	// Draw the triangles of the mesh.
 	if (mesh->vertices != NULL && mesh->indices != NULL) {
@@ -406,31 +311,12 @@ static void rend_draw_mesh(rmesh_t *mesh)
 		glDrawRangeElementsARB(mode, offset, offset + length, length,
 		                       GL_UNSIGNED_SHORT, (const GLvoid *)(sizeof(vindex_t) * offset));
 	}
-
-	// Disable vertex attributes to avoid using them when there is no such data available.
-	for (int i = 0; i < NUM_SHADER_ATTRIBUTES; i++) {
-		glDisableVertexAttribArray(i);
-	}
 }
 
-static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
-                                       GLboolean normalized, GLsizei stride, const GLvoid *pointer)
+static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent,
+                                     vertex_type_t vertex_type)
 {
-	if (!shader_uses_attribute(shader, attr_type)) {
-		return false;
-	}
-
-	int attribute = shader_get_attribute(shader, attr_type);
-
-	glEnableVertexAttribArray(attribute);
-	glVertexAttribPointer(attribute, size, type, normalized, stride, pointer);
-
-	return true;
-}
-
-static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent)
-{
-	if (shader == NULL || texture == NULL || parent == NULL) {
+	if (shader == NULL || parent == NULL) {
 		return;
 	}
 	
@@ -457,15 +343,71 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 		glDisableVertexAttribArray(i);
 	}
 
+	// Set pointers to vertex attributes.
+	switch (vertex_type) {
+
+	// Normal vertex attributes.
+	case VERTEX_NORMAL:
+
+		rend_bind_shader_attribute(shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
+
+		rend_bind_shader_attribute(shader, ATTR_NORMAL, 3, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+
+		rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
+
+		rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
+
+		break;
+
+	// Debug vertex attributes.
+	case VERTEX_DEBUG:
+
+		rend_bind_shader_attribute(shader, ATTR_VERTEX, 3, GL_FLOAT, GL_FALSE,
+		                           sizeof(vertex_debug_t), (void *)offsetof(vertex_debug_t, pos));
+
+		rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+		                           sizeof(vertex_debug_t), (void *)offsetof(vertex_debug_t, colour));
+
+		break;
+
 	// Bind vertex attributes.
-	rend_bind_shader_attribute(shader, ATTR_VERTEX, 2, GL_FLOAT, GL_FALSE,
-                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, pos));
+	case VERTEX_UI:
 
-	rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
-                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, uv));
+		rend_bind_shader_attribute(shader, ATTR_VERTEX, 2, GL_FLOAT, GL_FALSE,
+	                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, pos));
 
-	rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, colour));
+		rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+	                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, uv));
+
+		rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+	                               sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, colour));
+
+		break;
+	
+	// Particle vertex attributes.
+	case VERTEX_PARTICLE:
+		
+		rend_bind_shader_attribute(shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, pos));
+
+		rend_bind_shader_attribute(shader, ATTR_CENTRE, 3, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, centre));
+
+		rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, uv));
+
+		rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, colour));
+
+		rend_bind_shader_attribute(shader, ATTR_SIZE, 1, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, size));
+
+		break;
+	}
 
 	// Set per-draw shader globals.
 	if (shader_uses_global(shader, GLOBAL_MODEL_MATRIX)) {
@@ -516,6 +458,21 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 			(const GLfloat *)&screen
 		);
 	}
+}
+
+static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
+                                       GLboolean normalized, GLsizei stride, const GLvoid *pointer)
+{
+	if (!shader_uses_attribute(shader, attr_type)) {
+		return false;
+	}
+
+	int attribute = shader_get_attribute(shader, attr_type);
+
+	glEnableVertexAttribArray(attribute);
+	glVertexAttribPointer(attribute, size, type, normalized, stride, pointer);
+
+	return true;
 }
 
 vbindex_t rend_generate_buffer(void)
