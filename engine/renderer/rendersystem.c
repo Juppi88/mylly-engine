@@ -32,6 +32,7 @@ static robject_t ui_parent; // A virtual object to be used as the UI parent
 static void rsys_cull_object(object_t *object);
 static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t *view);
 static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view);
+static rmesh_t *rsys_create_render_mesh(mesh_t *mesh, robject_t *root);
 static void rsys_free_frame_data(void);
 
 // -------------------------------------------------------------------------------------------------
@@ -89,20 +90,18 @@ void rsys_begin_frame(void)
 
 void rsys_end_frame(void)
 {
-	// Issue the actual draw calls here.
+	// Generate and issue the actual draw calls here. All scenes and their objects ahave already
+	// been added to the views, soo all that's left are special meshes (debug primitives,
+	// UI widgets).
 
-	// First collect 3D scene debug lines.
-	debug_process_drawings(false);
+	// First collect debug primitives.
+	debug_end_frame();
 
 	// Add the UI view to the view list as last.
 	list_push(views, ui_view);
 
-	// Issue overlay debug lines.
-	debug_process_drawings(true);
-
-	// Draw all the views now.
+	// Finalize by issuing the render views to the renderer backend.
 	rend_draw_views(views.first);
-
 	rend_end_draw();
 
 	// Release all temporary data.
@@ -157,43 +156,12 @@ void rsys_render_scene(scene_t *scene)
 	}
 }
 
-void rsys_render_ui_mesh(mesh_t *mesh)
+void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh)
 {
 	if (mesh == NULL) {
 		return;
 	}
 
-	// Upload changed vertex data to the GPU.
-	if (mesh->is_vertex_data_dirty &&
-		mesh->handle_vertices != 0) {
-
-		bufcache_update(mesh->handle_vertices, mesh->ui_vertices);
-		mesh->is_vertex_data_dirty = false;
-	}
-
-	// Create a new temporary UI mesh for the renderer.
-	NEW(rmesh_t, rmesh);
-
-	rmesh->parent = &ui_parent;
-	rmesh->vertex_type = mesh->vertex_type;
-	rmesh->handle_vertices = mesh->handle_vertices;
-
-	// Here we just move the widget indices to the GPU.
-	size_t num_indices = (mesh->num_indices_to_render ?
-	                      mesh->num_indices_to_render : mesh->num_indices);
-	
-	rmesh->handle_indices = bufcache_alloc_indices(BUFIDX_UI, mesh->indices, num_indices);
-	
-	// Use default shader unless others are available.
-	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
-	rmesh->texture = mesh->texture;
-
-	// Add the mesh to the view to a render queue determined by its shader.
-	list_push(ui_view->meshes[rmesh->shader->queue], rmesh);
-}
-
-void rsys_render_mesh(mesh_t *mesh)
-{
 	rview_t *view;
 
 	// Upload changed vertex data to the GPU.
@@ -208,36 +176,41 @@ void rsys_render_mesh(mesh_t *mesh)
 			BUFFER_SET_SIZE(handle, mesh->vertex_size * mesh->num_indices_to_render);
 		}
 
-		bufcache_update(handle, mesh->debug_vertices);
+		bufcache_update(handle, mesh->vertices);
 		mesh->is_vertex_data_dirty = false;
 	}
 
 	// TODO: Cull the mesh before adding it to the views!
-	list_foreach(views, view) {
 
-		// Create a new render mesh as a copy for the renderer.
-		NEW(rmesh_t, rmesh);
+	if (is_ui_mesh) {
 
-		rmesh->parent = &view->root;
-		rmesh->vertex_type = mesh->vertex_type;
-		rmesh->handle_vertices = mesh->handle_vertices;
-		rmesh->handle_indices = mesh->handle_indices;
+		// Create a render mesh and mark the virtual UI root object as its parent.
+		rmesh_t *rmesh = rsys_create_render_mesh(mesh, &ui_parent);
 
-		// Override the number of indices to render.
-		if (mesh->num_indices_to_render != 0) {
+		// Here we just move the widget indices to the GPU. This is only done to UI
+		// widgets as their indices are recalculated each frame.
+		if (mesh->vertex_type == VERTEX_UI) {
 
-			BUFFER_SET_SIZE(
-				rmesh->handle_indices,
-				sizeof(vindex_t) * (uint64_t)mesh->num_indices_to_render
-			);
+			size_t num_indices = (mesh->num_indices_to_render ?
+			                      mesh->num_indices_to_render : mesh->num_indices);
+			
+			rmesh->handle_indices = bufcache_alloc_indices(BUFIDX_UI, mesh->indices, num_indices);
 		}
 
-		// Use default shader unless others are available.
-		rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
-		rmesh->texture = mesh->texture;
+		// Add the mesh to a render queue determined by its shader.
+		list_push(ui_view->meshes[rmesh->shader->queue], rmesh);
 
-		// Add the mesh to the view to a render queue determined by its shader.
-		list_push(view->meshes[rmesh->shader->queue], rmesh);
+	}
+	else {
+
+		list_foreach(views, view) {
+
+			// Create a separate render mesh for each view.
+			rmesh_t *rmesh = rsys_create_render_mesh(mesh, &view->root);
+			
+			// Add the mesh to a render queue determined by its shader.
+			list_push(view->meshes[rmesh->shader->queue], rmesh);
+		}
 	}
 }
 
@@ -359,6 +332,32 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 
 	// Add the mesh to the view to a render queue determined by its shader.
 	list_push(view->meshes[rmesh->shader->queue], rmesh);
+}
+
+static rmesh_t *rsys_create_render_mesh(mesh_t *mesh, robject_t *root)
+{
+	// Create a new render mesh as a copy for the renderer.
+	NEW(rmesh_t, rmesh);
+
+	rmesh->parent = root;
+	rmesh->vertex_type = mesh->vertex_type;
+	rmesh->handle_vertices = mesh->handle_vertices;
+	rmesh->handle_indices = mesh->handle_indices;
+
+	// Override the number of indices to render.
+	if (mesh->num_indices_to_render != 0) {
+
+		BUFFER_SET_SIZE(
+			rmesh->handle_indices,
+			sizeof(vindex_t) * (uint64_t)mesh->num_indices_to_render
+		);
+	}
+
+	// Use default shader unless others are available.
+	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
+	rmesh->texture = mesh->texture;
+
+	return rmesh;
 }
 
 static void rsys_free_frame_data(void)

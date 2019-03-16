@@ -152,7 +152,7 @@ void widget_process(widget_t *widget)
 	if (widget->mesh != NULL &&
 		widget->sprite != NULL) {
 
-		rsys_render_ui_mesh(widget->mesh);
+		rsys_render_mesh(widget->mesh, true);
 	}
 
 	// Render text object.
@@ -161,7 +161,7 @@ void widget_process(widget_t *widget)
 		widget->text->mesh->num_indices != 0 &&
 		widget->text->buffer_length != 0) {
 
-		rsys_render_ui_mesh(widget->text->mesh);
+		rsys_render_mesh(widget->text->mesh, true);
 	}
 
 	// Process children.

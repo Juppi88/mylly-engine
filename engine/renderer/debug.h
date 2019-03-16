@@ -14,7 +14,7 @@ void debug_initialize(void);
 void debug_shutdown(void);
 
 void debug_begin_frame(void);
-void debug_process_drawings(bool overlay);
+void debug_end_frame(void);
 
 void debug_draw_line(vec3_t start, vec3_t end, colour_t colour, bool overlay);
 void debug_draw_line_2d(vec2_t start, vec2_t end, colour_t colour, bool overlay);

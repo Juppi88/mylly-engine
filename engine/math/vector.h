@@ -19,10 +19,12 @@ typedef union vec2_t {
 	#define vec2(x, y) (vec2_t){ .vec = { x, y } }
 	#define vec2_zero() (vec2_t){ .vec = { 0, 0 } }
 	#define vec2_one() (vec2_t){ .vec = { 1, 1 } }
+	#define vec2_to_vec3(v) (vec3_t){ .vec = { (v).x, (v).y, 0 } }
 #else
 	#define vec2(x, y) { x, y }
 	#define vec2_zero() { 0, 0 }
 	#define vec2_one() { 1, 1 }
+	#define vec2_to_vec3(v) { (v).x, (v).y, 0 }
 #endif
 
 static INLINE vec2_t vector2(float x, float y)

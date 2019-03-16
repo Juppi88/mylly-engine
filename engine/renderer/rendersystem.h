@@ -20,11 +20,8 @@ void rsys_end_frame(void);
 // during this frame.
 void rsys_render_scene(scene_t *scene);
 
-// Report a UI mesh to be rendered during this frame.
-void rsys_render_ui_mesh(mesh_t *mesh);
-
-// Report a generic mesh to be rendered.
-void rsys_render_mesh(mesh_t *mesh);
+// Report a mesh to be rendered.
+void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh);
 
 END_DECLARATIONS;
 

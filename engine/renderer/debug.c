@@ -54,6 +54,7 @@ void debug_initialize(void)
 
 void debug_shutdown(void)
 {
+	// Destroy debug 
 	if (debug_mesh_scene != NULL) {
 
 		mesh_destroy(debug_mesh_scene);
@@ -74,30 +75,51 @@ void debug_begin_frame(void)
 	num_lines_overlay = 0;
 }
 
-void debug_process_drawings(bool overlay)
+void debug_end_frame(void)
 {
-	if (overlay && num_lines_overlay != 0) {
+	// Re-upload changed vertex data to the GPU.
+	mesh_refresh_vertices(debug_mesh_overlay);
+	mesh_refresh_vertices(debug_mesh_scene);
 
-		// Re-upload vertex data.
-		mesh_refresh_vertices(debug_mesh_overlay);
+	// Set the number of indices to render to each mesh in order to minimize rendered indices.
+	debug_mesh_overlay->num_indices_to_render = 2 * num_lines_overlay;
+	debug_mesh_scene->num_indices_to_render = 2 * num_lines_scene;
 
-		// Set the number of indices to render.
-		debug_mesh_overlay->num_indices_to_render = 2 * num_lines_overlay;
-
-		// Tell the renderer to draw the debug mesh.
-		rsys_render_mesh(debug_mesh_overlay);
-	}
-	else if (!overlay && num_lines_scene != 0) {
-
-		mesh_refresh_vertices(debug_mesh_scene);
-
-		debug_mesh_scene->num_indices_to_render = 2 * num_lines_scene;
-
-		rsys_render_mesh(debug_mesh_scene);
-	}
+	// Tell the renderer to draw the debug meshes.
+	rsys_render_mesh(debug_mesh_overlay, true);
+	rsys_render_mesh(debug_mesh_scene, false);
 }
 
 void debug_draw_line(vec3_t start, vec3_t end, colour_t colour, bool overlay)
+{
+	// Ensure there is enough space in the buffer.
+	if ((overlay && num_lines_overlay >= MAX_LINES) ||
+	    (!overlay && num_lines_scene >= MAX_LINES)) {
+
+		log_message("Renderer", "Exceeded maximum debug lines!");
+		return;
+	}
+
+	vertex_debug_t *vertices;
+	int base;
+
+	// Add the vertices to the correct buffer (either 3D scene or overlay).
+	if (overlay) {
+
+		vertices = debug_mesh_overlay->debug_vertices;
+		base = num_lines_overlay++;
+	}
+	else {
+
+		vertices = debug_mesh_scene->debug_vertices;
+		base = num_lines_scene++;
+	}
+
+	vertices[2 * base + 0] = vertex_debug(start, colour);
+	vertices[2 * base + 1] = vertex_debug(end, colour);
+}
+
+void debug_draw_line_2d(vec2_t start, vec2_t end, colour_t colour, bool overlay)
 {
 	if ((overlay && num_lines_overlay >= MAX_LINES) ||
 	    (!overlay && num_lines_scene >= MAX_LINES)) {
@@ -120,8 +142,8 @@ void debug_draw_line(vec3_t start, vec3_t end, colour_t colour, bool overlay)
 		base = num_lines_scene++;
 	}
 
-	vertices[2 * base + 0] = vertex_debug(start, colour);
-	vertices[2 * base + 1] = vertex_debug(end, colour);
+	vertices[2 * base + 0] = vertex_debug(vec2_to_vec3(start), colour);
+	vertices[2 * base + 1] = vertex_debug(vec2_to_vec3(end), colour);
 }
 
 void debug_draw_rect(vec2_t min, vec2_t max, colour_t colour, bool overlay)
