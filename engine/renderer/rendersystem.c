@@ -92,13 +92,13 @@ void rsys_end_frame(void)
 	// Issue the actual draw calls here.
 
 	// First collect 3D scene debug lines.
-	debug_process_3d_drawings();
+	debug_process_drawings(false);
 
 	// Add the UI view to the view list as last.
 	list_push(views, ui_view);
 
-	// Issue 2D (UI) debug lines.
-	debug_process_2d_drawings();
+	// Issue overlay debug lines.
+	debug_process_drawings(true);
 
 	// Draw all the views now.
 	rend_draw_views(views.first);

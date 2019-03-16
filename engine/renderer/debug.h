@@ -14,14 +14,11 @@ void debug_initialize(void);
 void debug_shutdown(void);
 
 void debug_begin_frame(void);
-void debug_process_2d_drawings(void);
-void debug_process_3d_drawings(void);
+void debug_process_drawings(bool overlay);
 
-void debug_draw_line(vec3_t start, vec3_t end, colour_t colour);
-void debug_draw_rect(vec2_t min, vec2_t max, colour_t colour);
-
-void debug_draw_2d_line(vec2_t start, vec2_t end, colour_t colour);
-void debug_draw_2d_rect(vec2_t min, vec2_t max, colour_t colour);
+void debug_draw_line(vec3_t start, vec3_t end, colour_t colour, bool overlay);
+void debug_draw_line_2d(vec2_t start, vec2_t end, colour_t colour, bool overlay);
+void debug_draw_rect(vec2_t min, vec2_t max, colour_t colour, bool overlay);
 
 END_DECLARATIONS;
 

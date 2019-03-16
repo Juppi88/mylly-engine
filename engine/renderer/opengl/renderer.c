@@ -145,9 +145,9 @@ void rend_shutdown(void)
 
 void rend_begin_draw(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	glEnable(GL_BLEND);
@@ -192,24 +192,38 @@ void rend_draw_views(rview_t *first_view)
 	// TODO: See rend_draw_ui_view below - don't issue any draw call as long as the objects are
 	// using the same buffer object!
 
-	// Process render queues.
-	for (int i = 0; i < NUM_QUEUES; i++) {
+	int meshes_drawn = 0;
 
-		// Disable depth testing for the overlay queue.
-		if (i == QUEUE_OVERLAY) {
-			glDisable(GL_DEPTH_TEST);
+	// Process render queues.
+	for (int queue = 0; queue < NUM_QUEUES; queue++) {
+
+		// Clear depth buffer after background and before foreground queues.
+		if (meshes_drawn != 0) {
+		
+			switch (queue) {
+
+			case QUEUE_BACKGROUND + 1:
+			case QUEUE_OVERLAY:
+
+				glClear(GL_DEPTH_BUFFER_BIT);
+				meshes_drawn = 0;
+				break;
+
+			default:
+				break;
+
+			}
 		}
 
 		// Draw meshes from each view.
 		list_foreach(views, view) {
 
-			list_foreach(view->meshes[i], mesh) {
+			list_foreach(view->meshes[queue], mesh) {
+
 				rend_draw_mesh(mesh);
+				meshes_drawn++;
 			}
 		}
-
-		// Re-enable depth testing.
-		glEnable(GL_DEPTH_TEST);
 	}
 }
 /*

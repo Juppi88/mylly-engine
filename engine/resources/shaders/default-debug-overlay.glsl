@@ -1,4 +1,4 @@
-#pragma queue TRANSPARENT
+#pragma queue OVERLAY
 
 uniform mat4 MatrixMVP;
 varying vec4 colour;

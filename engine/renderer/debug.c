@@ -7,25 +7,27 @@
 
 // -------------------------------------------------------------------------------------------------
 
-static const int MAX_LINES = 10000; // Number of maximum lines visible at once
+static const int MAX_LINES = 10000; // Number of maximum lines visible at once, ber layer
 
-static int num_lines = 0; // Number of lines added to the buffer during the current frame
-static int num_2d_lines = 0; // Number of 2D lines added to the buffer during the current frame
+// Number of lines added to each layer during the current frame
+static int num_lines_scene = 0;
+static int num_lines_overlay = 0;
 
-static mesh_t *debug_mesh; // Mesh containing all debug primitives to be rendered
-static mesh_t *debug_mesh_2d; // Mesh containing all 2D debug primitives to be rendered
+// Meshes containing the debug primitives to be rendered
+static mesh_t *debug_mesh_scene;
+static mesh_t *debug_mesh_overlay;
 
 // -------------------------------------------------------------------------------------------------
 
 void debug_initialize(void)
 {
 	// Create a mesh for storing the debug primitives into.
-	debug_mesh = mesh_create();
-	debug_mesh_2d = mesh_create();
+	debug_mesh_scene = mesh_create();
+	debug_mesh_overlay = mesh_create();
 
 	// Prealloc buffers on the GPU.
-	mesh_prealloc_vertices(debug_mesh, VERTEX_DEBUG, 2 * MAX_LINES);
-	mesh_prealloc_vertices(debug_mesh_2d, VERTEX_DEBUG, 2 * MAX_LINES);
+	mesh_prealloc_vertices(debug_mesh_scene, VERTEX_DEBUG, 2 * MAX_LINES);
+	mesh_prealloc_vertices(debug_mesh_overlay, VERTEX_DEBUG, 2 * MAX_LINES);
 
 	// Generate indices into a temporary buffer and upload them to the GPU.
 	NEW_ARRAY(vindex_t, indices, 2 * MAX_LINES);
@@ -34,135 +36,127 @@ void debug_initialize(void)
 		indices[i] = (vindex_t)i;
 	}
 
-	mesh_set_indices(debug_mesh, indices, 2 * MAX_LINES);
-	mesh_set_indices(debug_mesh_2d, indices, 2 * MAX_LINES);
+	mesh_set_indices(debug_mesh_scene, indices, 2 * MAX_LINES);
+	mesh_set_indices(debug_mesh_overlay, indices, 2 * MAX_LINES);
 
 	DESTROY(indices);
 
-	debug_mesh->handle_indices =
-		bufcache_alloc_indices(BUFIDX_DEBUG_LINE, debug_mesh->indices, debug_mesh->num_indices);
+	debug_mesh_scene->handle_indices = bufcache_alloc_indices(
+		BUFIDX_DEBUG_LINE, debug_mesh_scene->indices, debug_mesh_scene->num_indices);
 
-	debug_mesh_2d->handle_indices =
-		bufcache_alloc_indices(BUFIDX_DEBUG_LINE, debug_mesh_2d->indices, debug_mesh_2d->num_indices);
+	debug_mesh_overlay->handle_indices = bufcache_alloc_indices(
+		BUFIDX_DEBUG_LINE, debug_mesh_overlay->indices, debug_mesh_overlay->num_indices);
 
 	// Use a default shader for rendering UI primitives.
-	mesh_set_shader(debug_mesh, res_get_shader("default-debug"));
-	mesh_set_shader(debug_mesh_2d, res_get_shader("default-debug"));
+	mesh_set_shader(debug_mesh_scene, res_get_shader("default-debug"));
+	mesh_set_shader(debug_mesh_overlay, res_get_shader("default-debug-overlay"));
 }
 
 void debug_shutdown(void)
 {
-	if (debug_mesh != NULL) {
+	if (debug_mesh_scene != NULL) {
 
-		mesh_destroy(debug_mesh);
-		debug_mesh = NULL;
+		mesh_destroy(debug_mesh_scene);
+		debug_mesh_scene = NULL;
 	}
 
-	if (debug_mesh != NULL) {
+	if (debug_mesh_overlay != NULL) {
 
-		mesh_destroy(debug_mesh);
-		debug_mesh = NULL;
+		mesh_destroy(debug_mesh_overlay);
+		debug_mesh_overlay = NULL;
 	}
 }
 
 void debug_begin_frame(void)
 {
 	// Clear buffer (i.e. reset active line count).
-	num_lines = 0;
-	num_2d_lines = 0;
+	num_lines_scene = 0;
+	num_lines_overlay = 0;
 }
 
-void debug_process_2d_drawings(void)
+void debug_process_drawings(bool overlay)
 {
-	if (num_2d_lines == 0) {
-		return;
+	if (overlay && num_lines_overlay != 0) {
+
+		// Re-upload vertex data.
+		mesh_refresh_vertices(debug_mesh_overlay);
+
+		// Set the number of indices to render.
+		debug_mesh_overlay->num_indices_to_render = 2 * num_lines_overlay;
+
+		// Tell the renderer to draw the debug mesh.
+		rsys_render_mesh(debug_mesh_overlay);
 	}
+	else if (!overlay && num_lines_scene != 0) {
 
-	// Re-upload vertex data.
-	mesh_refresh_vertices(debug_mesh_2d);
+		mesh_refresh_vertices(debug_mesh_scene);
 
-	// Set the number of indices to render.
-	debug_mesh_2d->num_indices_to_render = 2 * num_2d_lines;
+		debug_mesh_scene->num_indices_to_render = 2 * num_lines_scene;
 
-	// Tell the renderer to draw the debug mesh.
-	rsys_render_mesh(debug_mesh_2d);
-}
-
-void debug_process_3d_drawings(void)
-{
-	if (num_lines == 0) {
-		return;
+		rsys_render_mesh(debug_mesh_scene);
 	}
-
-	mesh_refresh_vertices(debug_mesh);
-
-	debug_mesh->num_indices_to_render = 2 * num_lines;
-
-	rsys_render_mesh(debug_mesh);
 }
 
-void debug_draw_line(vec3_t start, vec3_t end, colour_t colour)
+void debug_draw_line(vec3_t start, vec3_t end, colour_t colour, bool overlay)
 {
-	if (num_lines >= MAX_LINES) {
+	if ((overlay && num_lines_overlay >= MAX_LINES) ||
+	    (!overlay && num_lines_scene >= MAX_LINES)) {
 
 		log_message("Renderer", "Exceeded maximum debug lines!");
 		return;
 	}
 
-	debug_mesh->debug_vertices[2 * num_lines + 0] = vertex_debug(start, colour);
-	debug_mesh->debug_vertices[2 * num_lines + 1] = vertex_debug(end, colour);
+	vertex_debug_t *vertices;
+	int base;
 
-	num_lines++;
+	if (overlay) {
+
+		vertices = debug_mesh_overlay->debug_vertices;
+		base = num_lines_overlay++;
+	}
+	else {
+
+		vertices = debug_mesh_scene->debug_vertices;
+		base = num_lines_scene++;
+	}
+
+	vertices[2 * base + 0] = vertex_debug(start, colour);
+	vertices[2 * base + 1] = vertex_debug(end, colour);
 }
 
-void debug_draw_rect(vec2_t min, vec2_t max, colour_t colour)
+void debug_draw_rect(vec2_t min, vec2_t max, colour_t colour, bool overlay)
 {
-	if (num_lines >= MAX_LINES) {
+	if ((overlay && num_lines_overlay - 3 >= MAX_LINES) ||
+	    (!overlay && num_lines_scene - 3 >= MAX_LINES)) {
 
 		log_message("Renderer", "Exceeded maximum debug lines!");
 		return;
 	}
 
-	debug_mesh->debug_vertices[2 * num_lines + 0] = vertex_debug(vec3(min.x, min.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 1] = vertex_debug(vec3(min.x, max.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 2] = vertex_debug(vec3(max.x, min.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 3] = vertex_debug(vec3(max.x, max.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 4] = vertex_debug(vec3(min.x, min.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 5] = vertex_debug(vec3(max.x, min.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 6] = vertex_debug(vec3(min.x, max.y, 0), colour);
-	debug_mesh->debug_vertices[2 * num_lines + 7] = vertex_debug(vec3(max.x, max.y, 0), colour);
-}
+	vertex_debug_t *vertices;
+	int base;
 
-void debug_draw_2d_line(vec2_t start, vec2_t end, colour_t colour)
-{
-	if (num_2d_lines >= MAX_LINES) {
+	if (overlay) {
 
-		log_message("Renderer", "Exceeded maximum debug lines!");
-		return;
+		vertices = debug_mesh_overlay->debug_vertices;
+		base = num_lines_overlay;
+
+		num_lines_overlay += 4;
+	}
+	else {
+
+		vertices = debug_mesh_scene->debug_vertices;
+		base = num_lines_scene++;
+
+		num_lines_scene += 4;
 	}
 
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 0] = vertex_debug(vec3(start.x, start.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 1] = vertex_debug(vec3(end.x, end.y, 0), colour);
-
-	num_2d_lines++;
-}
-
-void debug_draw_2d_rect(vec2_t min, vec2_t max, colour_t colour)
-{
-	if (num_2d_lines > MAX_LINES - 4) {
-
-		log_message("Renderer", "Exceeded maximum debug lines!");
-		return;
-	}
-
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 0] = vertex_debug(vec3(min.x, min.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 1] = vertex_debug(vec3(min.x, max.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 2] = vertex_debug(vec3(max.x, min.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 3] = vertex_debug(vec3(max.x, max.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 4] = vertex_debug(vec3(min.x, min.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 5] = vertex_debug(vec3(max.x, min.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 6] = vertex_debug(vec3(min.x, max.y, 0), colour);
-	debug_mesh_2d->debug_vertices[2 * num_2d_lines + 7] = vertex_debug(vec3(max.x, max.y, 0), colour);
-
-	num_2d_lines += 4;
+	vertices[2 * base + 0] = vertex_debug(vec3(min.x, min.y, 0), colour);
+	vertices[2 * base + 1] = vertex_debug(vec3(min.x, max.y, 0), colour);
+	vertices[2 * base + 2] = vertex_debug(vec3(max.x, min.y, 0), colour);
+	vertices[2 * base + 3] = vertex_debug(vec3(max.x, max.y, 0), colour);
+	vertices[2 * base + 4] = vertex_debug(vec3(min.x, min.y, 0), colour);
+	vertices[2 * base + 5] = vertex_debug(vec3(max.x, min.y, 0), colour);
+	vertices[2 * base + 6] = vertex_debug(vec3(min.x, max.y, 0), colour);
+	vertices[2 * base + 7] = vertex_debug(vec3(max.x, max.y, 0), colour);
 }
