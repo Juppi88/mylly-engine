@@ -51,8 +51,16 @@ void sprite_set(sprite_t *sprite, texture_t *texture,
 	// Sanitize sprite coordinates.
 	sprite->position.x = CLAMP(position.x, 0, texture->width);
 	sprite->position.y = CLAMP(position.y, 0, texture->height);
-	sprite->size.x = MIN(size.x, texture->width - position.x);
-	sprite->size.y = MIN(size.y, texture->height - position.y);
+
+	sprite->size.x = MIN(size.x, texture->width);
+	sprite->size.y = MIN(size.y, texture->height);
+
+	if (sprite->position.x + sprite->size.x > texture->width) {
+		sprite->position.x = texture->width - sprite->size.x;
+	}
+	if (sprite->position.y + sprite->size.y > texture->height) {
+		sprite->position.y = texture->height - sprite->size.y;
+	}
 
 	// Calculate texture coordinates.
 	sprite->uv1 = vector2(
@@ -92,8 +100,16 @@ void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice
 	// Sanitize slice coordinates.
 	sprite->slice_position.x = CLAMP(slice_position.x, 0, texture->width);
 	sprite->slice_position.y = CLAMP(slice_position.y, 0, texture->height);
-	sprite->slice_size.x = MIN(slice_size.x, texture->width - slice_position.x);
-	sprite->slice_size.y = MIN(slice_size.y, texture->height - slice_position.y);
+
+	sprite->slice_size.x = MIN(slice_size.x, texture->width);
+	sprite->slice_size.y = MIN(slice_size.y, texture->height);
+
+	if (sprite->slice_position.x + sprite->slice_size.x > texture->width) {
+		sprite->slice_position.x = texture->width - sprite->slice_size.x;
+	}
+	if (sprite->slice_position.y + sprite->slice_size.y > texture->height) {
+		sprite->slice_position.y = texture->height - sprite->slice_size.y;
+	}
 
 	// Calculate texture coordinates.
 	sprite->slice_uv1 = vector2(
