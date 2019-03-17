@@ -25,7 +25,8 @@ texture_t *texture_create(const char *name, const char *path)
 {
 	NEW(texture_t, texture);
 
-	texture->resource.name = string_duplicate(name);
+	texture->resource.res_name = string_duplicate(name);
+	texture->resource.name = texture->resource.res_name;
 
 	if (path != NULL) {
 		texture->resource.path = string_duplicate(path);
@@ -49,7 +50,7 @@ void texture_destroy(texture_t *texture)
 
 	arr_clear(texture->sprites);
 
-	DESTROY(texture->resource.name);
+	DESTROY(texture->resource.res_name);
 	DESTROY(texture->resource.path);
 	DESTROY(texture->data);
 	DESTROY(texture);

@@ -35,7 +35,8 @@ shader_t * shader_create(const char *name, const char *path)
 {
 	NEW(shader_t, shader);
 
-	shader->resource.name = string_duplicate(name);
+	shader->resource.res_name = string_duplicate(name);
+	shader->resource.name = shader->resource.res_name;
 
 	if (path != NULL) {
 		shader->resource.path = string_duplicate(path);
@@ -57,7 +58,7 @@ void shader_destroy(shader_t *shader)
 	// Destroy the GPU objects.
 	shader_destroy_program(shader);
 
-	DESTROY(shader->resource.name);
+	DESTROY(shader->resource.res_name);
 	DESTROY(shader->resource.path);
 	DESTROY(shader);
 }
@@ -79,7 +80,7 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 	if (shader->vertex == 0) {
 
 		log_warning("Renderer", "Failed to compile vertex shader '%s':\n%s",
-			shader->resource.name, log);
+			shader->resource.res_name, log);
 		
 		return false;
 	}
@@ -90,7 +91,7 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 	if (shader->fragment == 0) {
 
 		log_warning("Renderer", "Failed to compile fragment shader '%s':\n%s",
-			shader->resource.name, log);
+			shader->resource.res_name, log);
 
 		return false;
 	}
@@ -102,7 +103,7 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 
 	if (shader->program == 0) {
 
-		log_warning("Renderer", "Failed to link shader program '%s'", shader->resource.name);
+		log_warning("Renderer", "Failed to link shader program '%s'", shader->resource.res_name);
 		return false;
 	}
 

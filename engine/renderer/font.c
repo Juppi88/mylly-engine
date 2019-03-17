@@ -12,7 +12,8 @@ font_t *font_create(const char *name, const char *path)
 {
 	NEW(font_t, font);
 
-	font->resource.name = string_duplicate(name);
+	font->resource.res_name = string_duplicate(name);
+	font->resource.name = font->resource.res_name;
 
 	if (path != NULL) {
 		font->resource.path = string_duplicate(path);
@@ -36,7 +37,7 @@ void font_destroy(font_t *font)
 		DESTROY(font->glyphs);
 	}
 
-	DESTROY(font->resource.name);
+	DESTROY(font->resource.res_name);
 	DESTROY(font->resource.path);
 	DESTROY(font);
 }
@@ -110,7 +111,7 @@ bool font_load_from_file(font_t *font, FT_Library freetype,
 		if (FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT)) {
 
 			log_warning("Font", "Failed to load glyph %u of font %s (%u pt).",
-				glyph, font->resource.name, size);
+				glyph, font->resource.res_name, size);
 
 			continue;
 		}
@@ -119,7 +120,7 @@ bool font_load_from_file(font_t *font, FT_Library freetype,
 		if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) {
 
 			log_warning("Font", "Failed to render glyph %u of font %s (%u pt).",
-				glyph, font->resource.name, size);
+				glyph, font->resource.res_name, size);
 
 			continue;
 		}

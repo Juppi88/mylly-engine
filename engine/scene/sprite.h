@@ -34,7 +34,7 @@ typedef struct sprite_t {
 
 // -------------------------------------------------------------------------------------------------
 
-sprite_t *sprite_create(const char *name);
+sprite_t *sprite_create(texture_t *parent, const char *name);
 void sprite_destroy(sprite_t *sprite);
 
 void sprite_set(sprite_t *sprite, texture_t *texture,

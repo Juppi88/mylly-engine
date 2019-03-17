@@ -153,7 +153,7 @@ texture_t *res_get_texture(const char *name)
 	texture_t *texture;
 	arr_foreach(textures, texture) {
 
-		if (string_equals(texture->resource.name, name)) {
+		if (string_equals(texture->resource.res_name, name)) {
 
 			// TODO: Add reference counting to resources.
 			return texture;
@@ -170,7 +170,7 @@ sprite_t *res_get_sprite(const char *name)
 	sprite_t *sprite;
 	arr_foreach(sprites, sprite) {
 
-		if (string_equals(sprite->resource.name, name)) {
+		if (string_equals(sprite->resource.res_name, name)) {
 
 			// TODO: Add reference counting to resources.
 			return sprite;
@@ -187,7 +187,7 @@ shader_t *res_get_shader(const char *name)
 	shader_t *shader;
 	arr_foreach(shaders, shader) {
 
-		if (string_equals(shader->resource.name, name)) {
+		if (string_equals(shader->resource.res_name, name)) {
 
 			// TODO: Add reference counting to resources.
 			return shader;
@@ -204,7 +204,7 @@ sprite_anim_t *res_get_sprite_anim(const char *name)
 	sprite_anim_t *animation;
 	arr_foreach(animations, animation) {
 
-		if (string_equals(animation->resource.name, name)) {
+		if (string_equals(animation->resource.res_name, name)) {
 
 			// TODO: Add reference counting to resources.
 			return animation;
@@ -221,7 +221,7 @@ font_t *res_get_font(const char *name, uint32_t size)
 	font_t *font;
 	arr_foreach(fonts, font) {
 
-		if (string_equals(font->resource.name, name) &&
+		if (string_equals(font->resource.res_name, name) &&
 			(size == 0 || size == font->size)) {
 
 			// TODO: Add reference counting to resources.
@@ -236,11 +236,8 @@ font_t *res_get_font(const char *name, uint32_t size)
 
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
 {
-	char sprite_name[200];
-	snprintf(sprite_name, sizeof(sprite_name), "%s/%s", texture->resource.name, name);
-
 	// Create the empty sprite container.
-	sprite_t *sprite = sprite_create(sprite_name);
+	sprite_t *sprite = sprite_create(texture, name);
 	
 	// Add to resource list.
 	sprite->resource.index = arr_last_index(sprites);
@@ -304,8 +301,9 @@ static void res_load_texture(const char *file_name)
 		// Add the entire texture as a sprite as well (for easy 1-sprite sheet importing).
 		if (texture->resource.is_loaded) {
 
-			// Create a sprite and set its data.
-			sprite_t *sprite = sprite_create(name);
+			// Create a sprite for the entire texture and set its data.
+			sprite_t *sprite = sprite_create(texture, NULL);
+
 			sprite_set(sprite, texture,
 				vec2_zero(), vector2(texture->width, texture->height), vec2_zero(), 100);
 
@@ -505,12 +503,8 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 			slice_position.y = texture->height - slice_position.y;
 		}
 
-		// Sprites have formatted names such as <sheet name>/<sprite name>.
-		char sprite_name[200];
-		snprintf(sprite_name, sizeof(sprite_name), "%s/%s", texture->resource.name, name);
-
 		// Create a sprite and set its data.
-		sprite_t *sprite = sprite_create(sprite_name);
+		sprite_t *sprite = sprite_create(texture, name);
 		sprite_set(sprite, texture, position, size, pivot, pixels_per_unit);
 
 		if (is_nine_sliced) {
@@ -744,12 +738,8 @@ static void res_load_animation(res_parser_t *parser, int *next_token, const char
 
 		if (keyframes.count != 0) {
 
-			// Animations have names formatted as <group name>/<animation name>.
-			char animation_name[200];
-			snprintf(animation_name, sizeof(animation_name), "%s/%s", group_name, name);
-
 			// Create an animation and set its keyframes..
-			sprite_anim_t *animation = sprite_anim_create(animation_name);
+			sprite_anim_t *animation = sprite_anim_create(group_name, name);
 			
 			if (sprite_anim_set_frames(animation, keyframes.items, keyframes.count, anim_duration)) {
 

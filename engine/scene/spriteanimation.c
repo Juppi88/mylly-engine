@@ -2,14 +2,20 @@
 #include "core/memory.h"
 #include "core/string.h"
 #include "io/log.h"
+#include <stdio.h>
 
 // -------------------------------------------------------------------------------------------------
 
-sprite_anim_t *sprite_anim_create(const char *name)
+sprite_anim_t *sprite_anim_create(const char *group, const char *name)
 {
 	// Create a new container for a sprite animation.
 	NEW(sprite_anim_t, animation);
 
+	// Animations have names formatted as <group name>/<animation name>.
+	char animation_name[200];
+	snprintf(animation_name, sizeof(animation_name), "%s/%s", group, name);
+
+	animation->resource.res_name = string_duplicate(animation_name);
 	animation->resource.name = string_duplicate(name);
 	animation->resource.path = NULL; // The individual animation does not have a path
 
@@ -22,7 +28,7 @@ void sprite_anim_destroy(sprite_anim_t *animation)
 		return;
 	}
 
-	DESTROY(animation->resource.name);
+	DESTROY(animation->resource.res_name);
 	DESTROY(animation->resource.path);
 	DESTROY(animation->keyframes);
 	DESTROY(animation);
@@ -80,12 +86,12 @@ bool sprite_anim_set_frames(sprite_anim_t *animation,
 	if (has_zero_length_keyframes) {
 		
 		log_message("Animation", "Sprite animation '%s' has zero-length keyframes.",
-                    animation->resource.name);
+                    animation->resource.res_name);
 	}
 	if (has_missing_sprites) {
 		
 		log_message("Animation", "Sprite animation '%s' has missing sprites.",
-                    animation->resource.name);
+                    animation->resource.res_name);
 	}
 
 	// Override animation duration with total keyframe duration.

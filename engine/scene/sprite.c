@@ -12,11 +12,25 @@ static void sprite_create_mesh(sprite_t *sprite);
 
 // -------------------------------------------------------------------------------------------------
 
-sprite_t *sprite_create(const char *name)
+sprite_t *sprite_create(texture_t *parent, const char *name)
 {
+	if (parent == NULL) {
+		return NULL;
+	}
+
+	char sprite_name[200];
+
+	if (string_is_null_or_empty(name)) {
+		snprintf(sprite_name, sizeof(sprite_name), "%s", parent->resource.res_name);
+	}
+	else {
+		snprintf(sprite_name, sizeof(sprite_name), "%s/%s", parent->resource.res_name, name);	
+	}
+
 	// Create a new sprite structure.
 	NEW(sprite_t, sprite);
 
+	sprite->resource.res_name = string_duplicate(sprite_name);
 	sprite->resource.name = string_duplicate(name);
 	sprite->resource.path = NULL; // The individual sprite does not have a path (the sheet does)
 
@@ -31,7 +45,7 @@ void sprite_destroy(sprite_t *sprite)
 
 	mesh_destroy(sprite->mesh);
 
-	DESTROY(sprite->resource.name);
+	DESTROY(sprite->resource.res_name);
 	DESTROY(sprite->resource.path);
 
 	DESTROY(sprite);
