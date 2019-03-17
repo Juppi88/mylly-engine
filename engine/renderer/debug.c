@@ -77,17 +77,25 @@ void debug_begin_frame(void)
 
 void debug_end_frame(void)
 {
-	// Re-upload changed vertex data to the GPU.
-	mesh_refresh_vertices(debug_mesh_overlay);
-	mesh_refresh_vertices(debug_mesh_scene);
+	if (num_lines_overlay != 0) {
 
-	// Set the number of indices to render to each mesh in order to minimize rendered indices.
-	debug_mesh_overlay->num_indices_to_render = 2 * num_lines_overlay;
-	debug_mesh_scene->num_indices_to_render = 2 * num_lines_scene;
+		// Re-upload changed vertex data to the GPU.
+		mesh_refresh_vertices(debug_mesh_overlay);
 
-	// Tell the renderer to draw the debug meshes.
-	rsys_render_mesh(debug_mesh_overlay, true);
-	rsys_render_mesh(debug_mesh_scene, false);
+		// Set the number of indices to render to each mesh in order to minimize rendered indices.
+		debug_mesh_overlay->num_indices_to_render = 2 * num_lines_overlay;
+
+		// Tell the renderer to draw the debug meshes.
+		rsys_render_mesh(debug_mesh_overlay, true);
+	}
+
+	if (num_lines_scene != 0) {
+
+		mesh_refresh_vertices(debug_mesh_scene);
+
+		debug_mesh_scene->num_indices_to_render = 2 * num_lines_scene;
+		rsys_render_mesh(debug_mesh_scene, false);
+	}
 }
 
 void debug_draw_line(vec3_t start, vec3_t end, colour_t colour, bool overlay)
