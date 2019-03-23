@@ -53,18 +53,22 @@ static void setup(void)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	obj_set_local_position(camera, vector3(0.0f, 0.0f, 5.0f));
+	obj_set_local_position(camera, vector3(0.0f, 0.0f, 7.0f));
 	obj_look_at(camera, vec3_zero(), vec3_up());
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
-	//camera_set_perspective_projection(camera->camera, 100, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
-	camera_set_orthographic_projection(camera->camera, 20, ORTOGRAPHIC_NEAR, ORTOGRAPHIC_FAR);
+	camera_set_perspective_projection(camera->camera, 110, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
+	//camera_set_orthographic_projection(camera->camera, 20, ORTOGRAPHIC_NEAR, ORTOGRAPHIC_FAR);
 
 	// Create a test model (a quad) for testing.
-	test_model = model_create();
-	model_setup_primitive(test_model, PRIMITIVE_CUBE);
-	model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
+	//test_model = model_create(NULL, NULL);
+	//model_setup_primitive(test_model, PRIMITIVE_CUBE);
+	//model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
 	//model_set_material(test_model, -1, res_get_shader("test-animated"), res_get_texture("animtest"));
+
+	test_model = res_get_model("fighter");
+
+	//model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("fighter"));
 
 	// Create a test object and attach the model to it.
 	test = scene_create_object(scene, NULL);
@@ -77,7 +81,7 @@ static void setup(void)
 	//obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
 	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
 	//obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	obj_set_local_rotation(test, quat_from_euler_deg(45, 45, 45));
+	obj_set_local_rotation(test, quat_from_euler_deg(90, 0, 0));
 
 	// TEST CODE
 	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
@@ -211,7 +215,7 @@ int main(int argc, char **argv)
 	//
 
 	scene_destroy(scene);
-	model_destroy(test_model);
+	//model_destroy(test_model);
 
 	//
 	// END OF TEST CODE!

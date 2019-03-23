@@ -16,7 +16,7 @@ OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        renderer/fontpacker.o renderer/mesh.o renderer/rendersystem.o renderer/shader.o\
        renderer/texture.o renderer/vbcache.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
-       resources/resourceparser.o resources/resources.o\
+       resources/objparser.o resources/resourceparser.o resources/resources.o\
        scene/animator.o scene/camera.o scene/emitter.o scene/model.o scene/object.o scene/scene.o\
        scene/sprite.o scene/spriteanimation.o
 DEPS =

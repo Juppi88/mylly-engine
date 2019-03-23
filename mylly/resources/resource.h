@@ -13,6 +13,7 @@ typedef enum {
 	RES_SHADER,
 	RES_ANIMATION,
 	RES_FONT,
+	RES_MODEL,
 
 } res_type_t;
 

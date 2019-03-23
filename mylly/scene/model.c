@@ -1,4 +1,5 @@
 #include "model.h"
+#include "core/string.h"
 
 // -------------------------------------------------------------------------------------------------
 //
@@ -61,9 +62,19 @@ static vindex_t cube_indices[] = {
 
 // -------------------------------------------------------------------------------------------------
 
-model_t *model_create(void)
+model_t *model_create(const char *name, const char *path)
 {
 	NEW(model_t, model);
+
+	if (name != NULL) {
+		model->resource.res_name = string_duplicate(name);
+		model->resource.name = string_duplicate(name);
+	}
+	
+	if (path != NULL) {
+		model->resource.path = string_duplicate(path);
+	}
+
 	return model;
 }
 
@@ -75,6 +86,9 @@ void model_destroy(model_t *model)
 
 	// Remove all sub-meshes first.
 	model_remove_meshes(model);
+
+	DESTROY(model->resource.res_name);
+	DESTROY(model->resource.path);
 
 	DESTROY(model);
 }

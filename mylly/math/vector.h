@@ -65,6 +65,7 @@ typedef union vec3_t {
 	#define vec3_right() (vec3_t){ .vec = { 1, 0, 0 } }
 	#define vec3_up() (vec3_t){ .vec = { 0, 1, 0 } }
 	#define vec3_forward() (vec3_t){ .vec = { 0, 0, 1 } }
+	#define vec3_to_vec4(v) (vec4_t){ .vec = { (v).x, (v).y, (v).z, 1 } }
 #else
 	#define vec3(x, y, z) { x, y, z }
 	#define vec3_zero() { 0, 0, 0 }
@@ -72,6 +73,7 @@ typedef union vec3_t {
 	#define vec3_right() { 1, 0, 0 }
 	#define vec3_up() { 0, 1, 0 }
 	#define vec3_forward() { 0, 0, 1 }
+	#define vec3_to_vec4(v) { (v).x, (v).y, (v).z, 1 }
 #endif
 
 static INLINE vec3_t vector3(float x, float y, float z)

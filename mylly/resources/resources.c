@@ -1,5 +1,6 @@
 #include "resources.h"
 #include "resourceparser.h"
+#include "objparser.h"
 #include "collections/array.h"
 #include "core/string.h"
 #include "io/file.h"
@@ -9,6 +10,7 @@
 #include "renderer/shader.h"
 #include "renderer/font.h"
 #include "renderer/fontpacker.h"
+#include "scene/model.h"
 #include "scene/sprite.h"
 #include "scene/spriteanimation.h"
 #include "math/math.h"
@@ -23,6 +25,7 @@ static arr_t(sprite_t*) sprites;
 static arr_t(shader_t*) shaders;
 static arr_t(sprite_anim_t*) animations;
 static arr_t(font_t*) fonts;
+static arr_t(model_t*) models;
 
 static const char *parsed_file_name;
 
@@ -49,6 +52,9 @@ static void res_parse_font_entry(char *line, size_t length, void *context);
 static void res_load_font(FT_Library freetype, const char *file_name,
                           uint8_t font_size, uint32_t first_glyph, uint32_t last_glyph);
 
+static void res_load_obj_model(const char *file_name);
+static void res_parse_obj_model_line(char *line, size_t length, void *context);
+
 // -------------------------------------------------------------------------------------------------
 
 void res_initialize(void)
@@ -70,6 +76,7 @@ void res_initialize(void)
 	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
+	res_load_all_in_directory("./models", ".obj", RES_MODEL);
 	
 	// Initialize FreeType.
 	FT_Library freetype;
@@ -139,11 +146,22 @@ void res_shutdown(void)
 		}
 	}
 
+	model_t *model;
+	arr_foreach(models, model) {
+
+		if (model != NULL) {
+
+			// TODO: Add reference counting to resources.
+			model_destroy(model);
+		}
+	}
+
 	arr_clear(shaders);
 	arr_clear(sprites);
 	arr_clear(textures);
 	arr_clear(animations);
 	arr_clear(fonts);
+	arr_clear(models);
 }
 
 // TODO: Load unloaded resources when requested.
@@ -234,6 +252,23 @@ font_t *res_get_font(const char *name, uint32_t size)
 	return NULL;
 }
 
+model_t *res_get_model(const char *name)
+{
+	model_t *model;
+	arr_foreach(models, model) {
+
+		if (string_equals(model->resource.res_name, name)) {
+
+			// TODO: Add reference counting to resources.
+			return model;
+		}
+	}
+
+	log_warning("Resources", "Could not find a model named '%s'.", name);
+
+	return NULL;
+}
+
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
 {
 	// Create the empty sprite container.
@@ -269,6 +304,10 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 
 		case RES_ANIMATION:
 			file_for_each_in_directory(path, extension, res_load_animation_group);
+			break;
+
+		case RES_MODEL:
+			file_for_each_in_directory(path, extension, res_load_obj_model);
 			break;
 
 		default:
@@ -948,4 +987,37 @@ static void res_load_font(FT_Library freetype, const char *file_name,
 	// Add to resource list.
 	arr_push(fonts, font);
 	font->resource.index = arr_last_index(fonts);
+}
+
+static void res_load_obj_model(const char *file_name)
+{
+	// Set up a parser for .obj files.
+	obj_parser_t parser;
+	obj_parser_init(&parser);
+
+	// Read the file line by line and feed it to the parser.
+	file_for_each_line(file_name, res_parse_obj_model_line, &parser, false);
+
+	// Create a model from the parser's data.
+	char name[260];
+	string_get_file_name_without_extension(file_name, name, sizeof(name));
+
+	model_t *model = obj_parser_create_model(&parser, name, file_name);
+
+	// Add the model to the resource handler.
+	if (model != NULL) {
+		arr_push(models, model);
+	}
+
+	// Release the temporary parser data.
+	obj_parser_destroy(&parser);
+}
+
+static void res_parse_obj_model_line(char *line, size_t length, void *context)
+{
+	UNUSED(length);
+
+	// Feed the .obj file line to the parser.
+	obj_parser_t *parser = (obj_parser_t *)context;
+	obj_parser_process_line(parser, line);
 }
