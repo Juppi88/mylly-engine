@@ -6,7 +6,7 @@
 #include "scene/object.h"
 #include "scene/camera.h"
 #include "math/math.h"
-#include "input/input.h"
+#include "io/input.h"
 
 // --------------------------------------------------------------------------------
 
@@ -53,10 +53,12 @@ static void setup(void)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	obj_set_local_position(camera, vector3(0.0f, 0.0f, -4.0f));
+	obj_set_local_position(camera, vector3(0.0f, 0.0f, 5.0f));
+	obj_look_at(camera, vec3_zero(), vec3_up());
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
-	camera_set_perspective_projection(camera->camera, 100, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
+	//camera_set_perspective_projection(camera->camera, 100, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
+	camera_set_orthographic_projection(camera->camera, 20, ORTOGRAPHIC_NEAR, ORTOGRAPHIC_FAR);
 
 	// Create a test model (a quad) for testing.
 	test_model = model_create();
@@ -66,12 +68,16 @@ static void setup(void)
 
 	// Create a test object and attach the model to it.
 	test = scene_create_object(scene, NULL);
-	test->model = test_model;
+	obj_set_model(test, test_model);
+
+	//sprite_t *sprite = res_get_sprite("pico");
+
+	//obj_set_sprite(test, sprite);
 
 	//obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
 	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
 	//obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	obj_set_local_rotation(test, quat_from_euler(0, DEG_TO_RAD(45), 0));
+	obj_set_local_rotation(test, quat_from_euler_deg(45, 45, 45));
 
 	// TEST CODE
 	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
@@ -111,7 +117,7 @@ static void setup(void)
 	input_bind_button(BUTTON_BACKWARD, 'Q');
 
 	// Exit the program when escape is pressed.
-	input_bind_key(MKEY_ESCAPE, exit_app);
+	input_bind_key(MKEY_ESCAPE, exit_app, NULL);
 
 	mylly_set_scene(scene);
 

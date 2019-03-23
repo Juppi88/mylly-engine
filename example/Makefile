@@ -1,8 +1,12 @@
 .DEFAULT_GOAL := all
 .PHONY: all clean
 CC = clang
-CFLAGS = -Wall -g -I../engine -DCGLM_ALL_UNALIGNED
+CFLAGS = -Wall -g -I../engine
 LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng
+
+# Include library dependencies.
+LDFLAGS += -L../external/jsmn
+include ../engine/deps.mk
 
 OBJS = main/main.o
 DEPS =
