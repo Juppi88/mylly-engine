@@ -1,12 +1,12 @@
 .DEFAULT_GOAL := all
-.PHONY: all clean
+.PHONY: all builddirs clean
 CC = clang
-CFLAGS = -Wall -g -I../engine
-LDFLAGS = -L../engine/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng
+CFLAGS = -Wall -g -I../mylly
+LDFLAGS = -L../mylly/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng
 
 # Include library dependencies.
 LDFLAGS += -L../external/jsmn
-include ../engine/deps.mk
+include ../mylly/deps.mk
 
 OBJS = main/main.o
 DEPS =
@@ -16,18 +16,18 @@ builddirs:
 	mkdir -p build/bin
 
 clean:
-	$(MAKE) -C ../engine clean
+	$(MAKE) -C ../mylly clean
 	rm -rf build/objs/*.o build/bin/shaders/ build/bin/mylly.bin
 
-mylly.bin: $(OBJS)
+game.bin: $(OBJS)
 	$(CC) $(addprefix build/objs/, $^) $(LDFLAGS) -o build/bin/$@
-	cp -r ../engine/resources/shaders/ build/bin/
+	cp -r ../mylly/resources/shaders/ build/bin/
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)
 
 all:
-	$(MAKE) -C ../engine builddirs
-	$(MAKE) -C ../engine
+	$(MAKE) -C ../mylly builddirs
+	$(MAKE) -C ../mylly
 	make builddirs
-	make mylly.bin
+	make game.bin
