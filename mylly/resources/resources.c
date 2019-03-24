@@ -82,8 +82,8 @@ void res_initialize(void)
 	// - Materials should be loaded before shaders and models
 	// - Sprites should be loaded before animations
 	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
-	res_load_all_in_directory("./models", ".mtl", RES_MATERIAL);
 	res_load_all_in_directory("./shaders", ".glsl", RES_SHADER);
+	res_load_all_in_directory("./models", ".mtl", RES_MATERIAL);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
 	res_load_all_in_directory("./models", ".obj", RES_MODEL);
@@ -1051,7 +1051,7 @@ static void res_load_obj_model(const char *file_name)
 
 		model->resource.index = arr_last_index(models);
 		model->resource.is_loaded = true;
-		
+
 		arr_push(models, model);
 	}
 
@@ -1088,6 +1088,10 @@ static void res_load_material(const char *file_name)
 
 		material->resource.index = arr_last_index(materials);
 		material->resource.is_loaded = true;
+
+		// TODO: Add shader definitions to materials as an extension of .mtl file.
+		// For now just use the default textured material shader.
+		material->shader = res_get_shader("default-textured");
 
 		arr_push(materials, material);
 	}

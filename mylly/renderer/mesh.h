@@ -47,9 +47,9 @@ typedef struct mesh_t {
 	buffer_handle_t handle_vertices;
 	buffer_handle_t handle_indices;
 
-	// TODO: Move these to a customizable material structure.
-	shader_t *shader; // Shader used for rendering this mesh
-	texture_t *texture; // Texture on this mesh
+	material_t *material; // A material used for rendering the mesh
+	shader_t *shader; // Shader used for rendering this mesh. Overrides the material shader.
+	texture_t *texture; // Texture on this mesh. Overrides the material diffuse map texture.
 
 } mesh_t;
 
@@ -69,7 +69,7 @@ void mesh_refresh_vertices(mesh_t *mesh);
 
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices);
 
-void mesh_set_material(mesh_t *mesh, shader_t *shader, texture_t *texture);
+void mesh_set_material(mesh_t *mesh, material_t *material);
 void mesh_set_shader(mesh_t *mesh, shader_t *shader);
 void mesh_set_texture(mesh_t *mesh, texture_t *texture);
 

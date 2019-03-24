@@ -37,8 +37,6 @@ mesh_t *model_add_mesh(model_t *model,
 
 void model_remove_meshes(model_t *model);
 
-void model_set_material(model_t *model, int mesh, shader_t *shader, texture_t *texture);
-
 void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type);
 
 END_DECLARATIONS;

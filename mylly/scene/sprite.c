@@ -100,7 +100,9 @@ void sprite_set(sprite_t *sprite, texture_t *texture,
 
 	sprite_create_mesh(sprite);
 
-	mesh_set_material(sprite->mesh, res_get_shader("default-sprite"), texture);
+	// Sprites don't have a material by default, so shader and texture need to be set separately.
+	mesh_set_shader(sprite->mesh, res_get_shader("default-sprite"));
+	mesh_set_texture(sprite->mesh, texture);
 }
 
 void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice_size)

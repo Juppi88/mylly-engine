@@ -7,6 +7,7 @@
 #include "texture.h"
 #include "vertexbuffer.h"
 #include "buffercache.h"
+#include "material.h"
 #include "debug.h"
 #include "scene/scene.h"
 #include "scene/object.h"
@@ -329,9 +330,21 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 	rmesh->vertices = mesh->vertex_buffer;
 	rmesh->indices = mesh->index_buffer;
 
-	// Use default shader until others are available.
-	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
-	rmesh->texture = mesh->texture;
+	// Set shader and texture from material.
+	if (mesh->material != NULL) {
+
+		rmesh->shader = mesh->material->shader;
+		rmesh->texture = mesh->material->diffuse_map;
+	}
+
+	// If the mesh defines override texture or shader, use them.
+	rmesh->shader = (mesh->shader != NULL ? mesh->shader : rmesh->shader);
+	rmesh->texture = (mesh->texture != NULL ? mesh->texture : rmesh->texture);
+
+	// Use default shader which renders the mesh in purple if no other shader is defined.
+	if (rmesh->shader == NULL) {
+		rmesh->shader = default_shader;
+	}
 
 	// Add the mesh to the view to a render queue determined by its shader.
 	list_push(view->meshes[rmesh->shader->queue], rmesh);
@@ -356,9 +369,21 @@ static rmesh_t *rsys_create_render_mesh(mesh_t *mesh, robject_t *root)
 		);
 	}
 
-	// Use default shader unless others are available.
-	rmesh->shader = (mesh->shader != NULL ? mesh->shader : default_shader);
-	rmesh->texture = mesh->texture;
+	// Set shader and texture from material.
+	if (mesh->material != NULL) {
+
+		rmesh->shader = mesh->material->shader;
+		rmesh->texture = mesh->material->diffuse_map;
+	}
+
+	// If the mesh defines override texture or shader, use them.
+	rmesh->shader = (mesh->shader != NULL ? mesh->shader : rmesh->shader);
+	rmesh->texture = (mesh->texture != NULL ? mesh->texture : rmesh->texture);
+
+	// Use default shader which renders the mesh in purple if no other shader is defined.
+	if (rmesh->shader == NULL) {
+		rmesh->shader = default_shader;
+	}
 
 	return rmesh;
 }

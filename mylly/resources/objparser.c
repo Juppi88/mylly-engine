@@ -26,6 +26,8 @@ void obj_parser_init(obj_parser_t *parser)
 	arr_init(parser->vertices);
 
 	parser->object_name = NULL;
+	parser->material_library = NULL;
+	parser->material = NULL;
 }
 
 void obj_parser_destroy(obj_parser_t *parser)
@@ -40,6 +42,8 @@ void obj_parser_destroy(obj_parser_t *parser)
 	arr_clear(parser->vertices);
 
 	DESTROY(parser->object_name);
+	DESTROY(parser->material_library);
+	DESTROY(parser->material);
 }
 
 void obj_parser_process_line(obj_parser_t *parser, const char *line)
@@ -131,6 +135,35 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 	else if (*type == 's') { // s = smooth shading
 		// Smooth shading is currently not supported by the parser.
 	}
+	else if (string_equals(type, "mtllib")) { // mtllib = the .mtl file associated with this object
+
+		if (!string_is_null_or_empty(parser->material_library)) {
+
+			log_warning(".obj parser", "Multiple material libraries defined.");
+			return;
+		}
+
+		char mtl[128];
+		char name[128];
+
+		string_tokenize(NULL, ' ', mtl, sizeof(mtl));
+		string_get_file_name_without_extension(mtl, name, sizeof(name));
+
+		parser->material_library = string_duplicate(name);
+	}
+	else if (string_equals(type, "usemtl")) { // usemtl = use a material from the .mtl file
+
+		if (!string_is_null_or_empty(parser->material)) {
+
+			log_warning(".obj parser", "Multiple materials used! This is currently not supported.");
+			return;
+		}
+
+		char mtl[128];
+		string_tokenize(NULL, ' ', mtl, sizeof(mtl));
+
+		parser->material = string_duplicate(mtl);
+	}
 	else {
 		// The line contains some type of data not handled by this parser, warn the user about it.
 		log_warning(".obj parser", "Unhandled data line: %s.", type);
@@ -144,23 +177,28 @@ model_t *obj_parser_create_model(obj_parser_t *parser, const char *name, const c
 	}
 
 	// Create a mesh from the vertex data.
-	mesh_t *mesh = mesh_create();
-
 	vertex_t vertices[parser->vertices.count];
 	obj_parser_collect_vertex_data(parser, vertices);
 
 	vindex_t indices[parser->vertices.count];
 	obj_parser_collect_index_data(parser, indices);
 
-	mesh_set_vertices(mesh, vertices, parser->vertices.count);
-	mesh_set_indices(mesh, indices, parser->vertices.count);
-
-	// TODO: Add material data from the .mtl file here!
-	mesh_set_material(mesh, NULL, NULL);
-
 	// Create a model structure and add the mesh to it.
 	model_t *model = model_create(name, path);
 	model_add_mesh(model, vertices, parser->vertices.count, indices, parser->vertices.count);
+
+	// Add material data from the .mtl file to the mesh.
+	if (!string_is_null_or_empty(parser->material_library) &&
+		!string_is_null_or_empty(parser->material)) {
+
+		mesh_t *mesh = model->meshes.items[arr_last_index(model->meshes)];
+
+		char material_name[1000];
+		snprintf(material_name, sizeof(material_name), "%s/%s",
+		         parser->material_library, parser->material);
+
+		mesh_set_material(mesh, res_get_material(material_name));
+	}
 
 	return model;
 }

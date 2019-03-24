@@ -130,33 +130,6 @@ void model_remove_meshes(model_t *model)
 	arr_clear(model->meshes);
 }
 
-void model_set_material(model_t *model, int mesh, shader_t *shader, texture_t *texture)
-{
-	if (model == NULL) {
-		return;
-	}
-
-
-	if (mesh < 0) {
-
-		// Set the material for every submesh of the model.
-		mesh_t *submesh;
-
-		arr_foreach(model->meshes, submesh) {
-			mesh_set_material(submesh, shader, texture);
-		}
-	}
-	else if (mesh >= 0 && (size_t)mesh < model->meshes.count) {
-
-		// Set the material of a specific submesh.
-		mesh_t *submesh = model->meshes.items[mesh];
-
-		if (submesh != NULL) {
-			mesh_set_material(submesh, shader, texture);
-		}
-	}
-}
-
 void model_setup_primitive(model_t *model, PRIMITIVE_TYPE type)
 {
 	if (model == NULL) {

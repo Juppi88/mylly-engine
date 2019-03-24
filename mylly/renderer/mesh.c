@@ -258,14 +258,17 @@ void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 	mesh->num_indices = num_indices;
 }
 
-void mesh_set_material(mesh_t *mesh, shader_t *shader, texture_t *texture)
+void mesh_set_material(mesh_t *mesh, material_t *material)
 {
 	if (mesh == NULL) {
 		return;
 	}
 
-	mesh->texture = texture;
-	mesh->shader = shader;
+	mesh->material = material;
+
+	// Reset override shader and texture when setting a material.
+	mesh->shader = NULL;
+	mesh->texture = NULL;
 }
 
 void mesh_set_shader(mesh_t *mesh, shader_t *shader)

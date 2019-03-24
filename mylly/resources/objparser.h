@@ -30,7 +30,9 @@ typedef struct obj_parser_t {
 	// Face/vertex definitions with indices to the arrays above.
 	arr_t(obj_vertex_t) vertices;
 
-	char *object_name;
+	char *object_name; // Name of the object being parsed
+	char *material_library; // Name of the material library the object uses
+	char *material; // Name of the material used by the current submesh
 
 } obj_parser_t;
 

@@ -39,6 +39,8 @@ typedef struct material_t {
 	resource_t resource; // Resource info
 
 	arr_t(material_param_t) parameters; // List of shader parameters defined by this material
+
+	shader_t *shader; // Material shader
 	texture_t *diffuse_map; // Diffuse map texture. This is the main texture of the material
 	texture_t *ambient_map; // Ambient map texture
 
