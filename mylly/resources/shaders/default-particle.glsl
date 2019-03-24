@@ -9,11 +9,11 @@ varying vec4 colour;
 
 void main()
 {
-	vec3 position = Vertex.xyz;
+	vec3 position = Vertex;
 	position *= ParticleSize;
 	position += ParticleCentre;
 
-	gl_Position = MatrixMVP * vec4(position, 1);
+	gl_Position = toclipspace(position);
 
 	// TODO: Orient towards the camera!
 	

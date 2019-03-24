@@ -19,6 +19,10 @@ clean:
 	$(MAKE) -C ../mylly clean
 	rm -rf build/objs/*.o build/bin/shaders/ build/bin/mylly.bin
 
+engine:
+	$(MAKE) -C ../mylly builddirs
+	$(MAKE) -C ../mylly
+
 game.bin: $(OBJS)
 	$(CC) $(addprefix build/objs/, $^) $(LDFLAGS) -o build/bin/$@
 	cp -r ../mylly/resources/shaders/ build/bin/
@@ -27,7 +31,6 @@ game.bin: $(OBJS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)
 
 all:
-	$(MAKE) -C ../mylly builddirs
-	$(MAKE) -C ../mylly
+	make engine
 	make builddirs
 	make game.bin

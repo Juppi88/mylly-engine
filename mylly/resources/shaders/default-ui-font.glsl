@@ -9,8 +9,7 @@ varying vec4 colour;
 
 void main()
 {
-	gl_Position = MatrixMVP * vec4(Vertex, 0, 1);
-	gl_Position = pixelsnap(gl_Position);
+	gl_Position = pixelsnap(toclipspace2(Vertex));
 	
 	texCoord = TexCoord;
 	colour = Colour;

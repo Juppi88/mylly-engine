@@ -1,20 +1,29 @@
 #ifndef MYLLY_GLINC
 #define MYLLY_GLINC
 
+// -------------------------------------------------------------------------------------------------
 // Render queues
+// -------------------------------------------------------------------------------------------------
+
 #define BACKGROUND 0
 #define GEOMETRY 1
 #define TRANSPARENT 2
 #define OVERLAY 3
 
+// -------------------------------------------------------------------------------------------------
 // Shader constants
+// -------------------------------------------------------------------------------------------------
+
 uniform mat4 MatrixModel;
 uniform mat4 MatrixMVP;
 uniform sampler2D Texture;
 uniform vec4 Time; // time, cosTime, sinTime, deltaTime
 uniform vec4 Screen; // screenWidth, screenHeight
 
+// -------------------------------------------------------------------------------------------------
 // Vertex attributes
+// -------------------------------------------------------------------------------------------------
+
 #if defined(VERTEX_SHADER)
 
 #ifdef VERTEX_UI
@@ -24,22 +33,29 @@ uniform vec4 Screen; // screenWidth, screenHeight
 	attribute vec2 TexCoord;
 #else
 	// Attributes for normal vertices
-	attribute vec4 Vertex;
+	attribute vec3 Vertex;
 	attribute vec3 Normal;
-	attribute vec4 Colour;
 	attribute vec2 TexCoord;
 #endif
 
 #ifdef VERTEX_PARTICLE
 	// Attributes for particles
 	attribute vec3 ParticleCentre;
+	attribute vec4 Colour;
 	attribute float ParticleSize;
 #endif
 
 #endif
 
+// -------------------------------------------------------------------------------------------------
 // Utility macros and functions
-#define alphacut(a, cutoff) if ((a) < (cutoff)) { discard; }
+// -------------------------------------------------------------------------------------------------
+
+// Alpha cutout macro.
+#define alphacut(a, cutoff)\
+{\
+	if ((a) < (cutoff)) { discard; }\
+}
 
 // Snap vertices to match the pixels on the screen to avoid sub-pixel wiggling.
 vec4 pixelsnap(vec4 pos)
@@ -54,4 +70,17 @@ vec4 pixelsnap(vec4 pos)
 	return pos;
 }
 
-#endif
+// Helper method to convert an object space position to clip space homogenous coordinates.
+vec4 toclipspace(vec3 vertex)
+{
+	return MatrixMVP * vec4(vertex, 1.0);
+}
+
+// Same as above but for 2D screen space coordinates (UI).
+vec4 toclipspace2(vec2 vertex)
+{
+	return MatrixMVP * vec4(vertex, 0.0, 1.0);
+}
+
+#endif // MYLLY_GLINC
+#line 1

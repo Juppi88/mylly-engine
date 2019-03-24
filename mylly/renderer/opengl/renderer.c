@@ -363,7 +363,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 	// Normal vertex attributes.
 	case VERTEX_NORMAL:
 
-		rend_bind_shader_attribute(shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
+		rend_bind_shader_attribute(shader, ATTR_VERTEX, 3, GL_FLOAT, GL_FALSE,
                                    sizeof(vertex_t), (void *)offsetof(vertex_t, pos));
 
 		rend_bind_shader_attribute(shader, ATTR_NORMAL, 3, GL_FLOAT, GL_FALSE,
@@ -371,9 +371,6 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 
 		rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
                                    sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
-
-		rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
-                                   sizeof(vertex_t), (void *)offsetof(vertex_t, colour));
 
 		break;
 
@@ -405,7 +402,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 	// Particle vertex attributes.
 	case VERTEX_PARTICLE:
 		
-		rend_bind_shader_attribute(shader, ATTR_VERTEX, 4, GL_FLOAT, GL_FALSE,
+		rend_bind_shader_attribute(shader, ATTR_VERTEX, 3, GL_FLOAT, GL_FALSE,
                         sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, pos));
 
 		rend_bind_shader_attribute(shader, ATTR_CENTRE, 3, GL_FLOAT, GL_FALSE,

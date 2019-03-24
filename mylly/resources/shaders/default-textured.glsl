@@ -7,10 +7,10 @@ varying vec4 colour;
 
 void main()
 {
-	gl_Position = MatrixMVP * Vertex;
+	gl_Position = toclipspace(Vertex);
 	
 	texCoord = TexCoord;
-	colour = Colour;
+	colour = vec4(1, 1, 1, 1);
 }
 
 #elif defined(FRAGMENT_SHADER)

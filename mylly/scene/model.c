@@ -12,10 +12,10 @@
 
 static vertex_t quad_vertices[] = {
 
-	{ .pos = { .vec = { -0.5f, -0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, -0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { -0.5f, 0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, 0.5f, 0.0f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } }, .colour = { 255, 255, 255, 255 } }
+	{ .pos = { .vec = { -0.5f, -0.5f, 0.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } } },
+	{ .pos = { .vec = { 0.5f, -0.5f, 0.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } } },
+	{ .pos = { .vec = { -0.5f, 0.5f, 0.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } } },
+	{ .pos = { .vec = { 0.5f, 0.5f, 0.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } } }
 	
 };
 
@@ -27,27 +27,27 @@ static vindex_t quad_indices[] = {
 static vertex_t cube_vertices[] = {
 
 	// Side vertices
-	{ .pos = { .vec = { -0.5f, -0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, -0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { -0.5f, 0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, 0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } } },
+	{ .pos = { .vec = { 0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } } },
+	{ .pos = { .vec = { -0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } } },
+	{ .pos = { .vec = { 0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } } },
 
-	{ .pos = { .vec = { -0.5f, -0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, -0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { -0.5f, 0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, 0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } } },
+	{ .pos = { .vec = { 0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } } },
+	{ .pos = { .vec = { -0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } } },
+	{ .pos = { .vec = { 0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } } },
 
 	// Bottom vertices
-	{ .pos = { .vec = { -0.5f, -0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, -0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { -0.5f, -0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, -0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } } },
+	{ .pos = { .vec = { 0.5f, -0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } } },
+	{ .pos = { .vec = { -0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } } },
+	{ .pos = { .vec = { 0.5f, -0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } } },
 
 	// Top vertices
-	{ .pos = { .vec = { -0.5f, 0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, 0.5f, -0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { -0.5f, 0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } }, .colour = { 255, 255, 255, 255 } },
-	{ .pos = { .vec = { 0.5f, 0.5f, 0.5f, 1.0f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } }, .colour = { 255, 255, 255, 255 } },
+	{ .pos = { .vec = { -0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 0 } } },
+	{ .pos = { .vec = { 0.5f, 0.5f, -0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 0 } } },
+	{ .pos = { .vec = { -0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 0, 1 } } },
+	{ .pos = { .vec = { 0.5f, 0.5f, 0.5f } }, .normal = { .vec = { 0, 0, 1 } }, .uv = { .vec = { 1, 1 } } },
 
 };
 

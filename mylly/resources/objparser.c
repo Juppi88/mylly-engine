@@ -248,10 +248,9 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *verti
 
 		// Create the renderer vertex and add it to the vertex array.
 		vertices[i] = vertex(
-			vec3_to_vec4(parser->positions.items[position_idx]),
+			parser->positions.items[position_idx],
 			parser->normals.items[normal_idx],
-			parser->texcoords.items[texcoord_idx],
-			COL_WHITE
+			parser->texcoords.items[texcoord_idx]
 		);
 	}
 }

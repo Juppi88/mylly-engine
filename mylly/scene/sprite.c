@@ -152,28 +152,24 @@ static void sprite_create_mesh(sprite_t *sprite)
 	// Create the vertices and indices for the sprite mesh (currenty a quad, could be optimized)
 	vertex_t vertices[] = {
 		{
-			.pos = vec4(-width - pivot_x, -height - pivot_y, 0.0f, 1.0f),
+			.pos = vec3(-width - pivot_x, -height - pivot_y, 0.0f),
 			.normal = vec3(0, 0, 1),
-			.uv = vec2(sprite->uv1.x, sprite->uv1.y),
-			.colour = COL_WHITE
+			.uv = vec2(sprite->uv1.x, sprite->uv1.y)
 		},
 		{
-			.pos = vec4(width - pivot_x, -height - pivot_y, 0.0f, 1.0f),
+			.pos = vec3(width - pivot_x, -height - pivot_y, 0.0f),
 			.normal = vec3(0, 0, 1),
-			.uv = vec2(sprite->uv2.x, sprite->uv1.y),
-			.colour = COL_WHITE
+			.uv = vec2(sprite->uv2.x, sprite->uv1.y)
 		},
 		{
-			.pos = vec4(-width - pivot_x, height - pivot_y, 0.0f, 1.0f),
+			.pos = vec3(-width - pivot_x, height - pivot_y, 0.0f),
 			.normal = vec3(0, 0, 1),
-			.uv = vec2(sprite->uv1.x, sprite->uv2.y),
-			.colour = COL_WHITE
+			.uv = vec2(sprite->uv1.x, sprite->uv2.y)
 		},
 		{
-			.pos = vec4(width - pivot_x, height - pivot_y, 0.0f, 1.0f),
+			.pos = vec3(width - pivot_x, height - pivot_y, 0.0f),
 			.normal = vec3(0, 0, 1),
-			.uv = vec2(sprite->uv2.x, sprite->uv2.y),
-			.colour = COL_WHITE
+			.uv = vec2(sprite->uv2.x, sprite->uv2.y)
 		}
 	};
 

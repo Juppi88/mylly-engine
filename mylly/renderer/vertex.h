@@ -26,19 +26,16 @@ typedef enum {
 
 typedef struct vertex_t {
 
-	vec4_t pos;
+	vec3_t pos;
 	vec3_t normal;
 	vec2_t uv;
-	colour_t colour;
 
 } vertex_t;
 
 #ifndef __cplusplus
-#define vertex_empty() { .colour = COL_WHITE }
-#define vertex(pos, normal, uv, colour) (vertex_t){ pos, normal, uv, colour }
+#define vertex(pos, normal, uv) (vertex_t){ pos, normal, uv }
 #else
-#define vertex_empty() { vec4p(0, 0, 0, 1), vec3_zero(), vec2_zero(), COL_WHITE }
-#define vertex(pos, normal, uv, colour) { pos, normal, uv, colour }
+#define vertex(pos, normal, uv) { pos, normal, uv }
 #endif
 
 // -------------------------------------------------------------------------------------------------
@@ -46,7 +43,7 @@ typedef struct vertex_t {
 // Vertex definition for particles. These have particle specific attricutes which replace normals.
 typedef struct vertex_particle_t {
 
-	vec4_t pos; // Position of the vertex
+	vec3_t pos; // Position of the vertex
 	vec3_t centre; // Centre of the particle
 	vec2_t uv; // Texture coordinates for the particle texture
 	colour_t colour; // Colour of the particle

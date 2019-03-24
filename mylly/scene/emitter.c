@@ -236,7 +236,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 		// Setup vertices with initial data (including completely transparent colour).
 		vertices[0 + 4 * i] = vertex_particle(
 
-			vec4(-0.5f, -0.5f, 0, 1),
+			vec3(-0.5f, -0.5f, 0),
 			vec3_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
@@ -245,7 +245,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 		vertices[1 + 4 * i] = vertex_particle(
 
-			vec4(0.5f, -0.5f, 0, 1),
+			vec3(0.5f, -0.5f, 0),
 			vec3_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
@@ -254,7 +254,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 		vertices[2 + 4 * i] = vertex_particle(
 
-			vec4(-0.5f, 0.5f, 0, 1),
+			vec3(-0.5f, 0.5f, 0),
 			vec3_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
@@ -263,7 +263,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 		vertices[3 + 4 * i] = vertex_particle(
 
-			vec4(0.5f, 0.5f, 0, 1),
+			vec3(0.5f, 0.5f, 0),
 			vec3_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
