@@ -9,10 +9,6 @@ static arr_t(shader_uniform_t) uniforms;
 
 // -------------------------------------------------------------------------------------------------
 
-static bool shader_data_uniform_exists(const char *name, uint32_t *out_index);
-
-// -------------------------------------------------------------------------------------------------
-
 void shader_data_initialize(void)
 {
 	arr_init(uniforms);
@@ -71,13 +67,16 @@ const shader_uniform_t *shader_data_get_uniform_by_index(uint32_t index)
 	return &uniforms.items[index];
 }
 
-static bool shader_data_uniform_exists(const char *name, uint32_t *out_index)
+bool shader_data_uniform_exists(const char *name, uint32_t *out_index)
 {
 	for (size_t i = 0; i < uniforms.count; i++) {
 
 		if (string_equals(uniforms.items[i].name, name)) {
 
-			*out_index = i;
+			if (out_index != NULL) {
+				*out_index = i;
+			}
+			
 			return true;
 		}
 	}

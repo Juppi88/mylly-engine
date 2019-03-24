@@ -14,6 +14,7 @@ typedef enum {
 	RES_ANIMATION,
 	RES_FONT,
 	RES_MODEL,
+	RES_MATERIAL,
 
 } res_type_t;
 

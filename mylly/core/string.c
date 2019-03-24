@@ -281,6 +281,19 @@ bool string_is_numeric(const char *text)
 	return true;
 }
 
+bool string_is_decimal(const char *text)
+{
+	while (*text) {
+		if (*text < '0' || *text > '9' || *text != '.') {
+			return false;
+		}
+
+		++text;
+	}
+
+	return true;
+}
+
 void string_get_file_name_without_extension(const char *text, char *dst, size_t dst_len)
 {
 	*dst = 0;

@@ -58,6 +58,9 @@ uint32_t shader_data_add_uniform(const char *name, shader_data_type_t type);
 // Return shader uniform data for a uniform defined by index.
 const shader_uniform_t *shader_data_get_uniform_by_index(uint32_t index);
 
+// Check whether a uniform by the given name exists, and return its index if so.
+bool shader_data_uniform_exists(const char *name, uint32_t *out_index);
+
 END_DECLARATIONS;
 
 #endif

@@ -129,7 +129,7 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 		parser->object_name = string_duplicate(name);
 	}
 	else if (*type == 's') { // s = smooth shading
-		// Smooth shading is currently not supported by the parser.bt
+		// Smooth shading is currently not supported by the parser.
 	}
 	else {
 		// The line contains some type of data not handled by this parser, warn the user about it.

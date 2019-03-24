@@ -1,6 +1,7 @@
 #include "resources.h"
 #include "resourceparser.h"
 #include "objparser.h"
+#include "mtlparser.h"
 #include "collections/array.h"
 #include "core/string.h"
 #include "io/file.h"
@@ -10,6 +11,7 @@
 #include "renderer/shader.h"
 #include "renderer/font.h"
 #include "renderer/fontpacker.h"
+#include "renderer/material.h"
 #include "scene/model.h"
 #include "scene/sprite.h"
 #include "scene/spriteanimation.h"
@@ -26,6 +28,7 @@ static arr_t(shader_t*) shaders;
 static arr_t(sprite_anim_t*) animations;
 static arr_t(font_t*) fonts;
 static arr_t(model_t*) models;
+static arr_t(material_t*) materials;
 
 static const char *parsed_file_name;
 
@@ -55,6 +58,9 @@ static void res_load_font(FT_Library freetype, const char *file_name,
 static void res_load_obj_model(const char *file_name);
 static void res_parse_obj_model_line(char *line, size_t length, void *context);
 
+static void res_load_material(const char *file_name);
+static void res_parse_material_line(char *line, size_t length, void *context);
+
 // -------------------------------------------------------------------------------------------------
 
 void res_initialize(void)
@@ -71,9 +77,13 @@ void res_initialize(void)
 	arr_push(shaders, default_shader);
 	default_shader->resource.index = arr_last_index(shaders);
 
-	// Load custom resources.
-	res_load_all_in_directory("./shaders", ".glsl", RES_SHADER);
+	// Load custom resources. There are some order requirements due to cross-dependencies:
+	// - Textures should be loaded before materials and sprites
+	// - Materials should be loaded before shaders and models
+	// - Sprites should be loaded before animations
 	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
+	res_load_all_in_directory("./models", ".mtl", RES_MATERIAL);
+	res_load_all_in_directory("./shaders", ".glsl", RES_SHADER);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
 	res_load_all_in_directory("./models", ".obj", RES_MODEL);
@@ -156,12 +166,23 @@ void res_shutdown(void)
 		}
 	}
 
+	material_t *material;
+	arr_foreach(materials, material) {
+
+		if (material != NULL) {
+
+			// TODO: Add reference counting to resources.
+			material_destroy(material);
+		}
+	}
+
 	arr_clear(shaders);
 	arr_clear(sprites);
 	arr_clear(textures);
 	arr_clear(animations);
 	arr_clear(fonts);
 	arr_clear(models);
+	arr_clear(materials);
 }
 
 // TODO: Load unloaded resources when requested.
@@ -269,6 +290,23 @@ model_t *res_get_model(const char *name)
 	return NULL;
 }
 
+material_t *res_get_material(const char *name)
+{
+	material_t *material;
+	arr_foreach(materials, material) {
+
+		if (string_equals(material->resource.res_name, name)) {
+
+			// TODO: Add reference counting to resources.
+			return material;
+		}
+	}
+
+	log_warning("Resources", "Could not find a material named '%s'.", name);
+
+	return NULL;
+}
+
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
 {
 	// Create the empty sprite container.
@@ -310,6 +348,10 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 			file_for_each_in_directory(path, extension, res_load_obj_model);
 			break;
 
+		case RES_MATERIAL:
+			file_for_each_in_directory(path, extension, res_load_material);
+			break;
+
 		default:
 			log_warning("Resources", "Unhandled resource type %u.", type);
 			break;
@@ -333,25 +375,9 @@ static void res_load_texture(const char *file_name)
 			texture->resource.is_loaded = true;
 		}
 
-		// Add to resource list.
+		// Add the texture to resource list.
 		arr_push(textures, texture);
 		texture->resource.index = arr_last_index(textures);
-
-		// Add the entire texture as a sprite as well (for easy 1-sprite sheet importing).
-		if (texture->resource.is_loaded) {
-
-			// Create a sprite for the entire texture and set its data.
-			sprite_t *sprite = sprite_create(texture, NULL);
-
-			sprite_set(sprite, texture,
-				vec2_zero(), vector2(texture->width, texture->height), vec2_zero(), 100);
-
-			// Add to resource list.
-			sprite->resource.index = arr_last_index(sprites);
-			sprite->resource.is_loaded = true;
-
-			arr_push(sprites, sprite);
-		}
 	}
 }
 
@@ -370,6 +396,22 @@ static void res_load_sprite_sheet(const char *file_name)
 
 		log_warning("Resources", "Could not find a texture for spritesheet '%s'.", name);
 		return;
+	}
+
+	// Add the entire texture as a sprite as well (for easy 1-sprite sheet importing).
+	if (texture->resource.is_loaded) {
+
+		// Create a sprite for the entire texture and set its data.
+		sprite_t *sprite = sprite_create(texture, NULL);
+
+		sprite_set(sprite, texture,
+			vec2_zero(), vector2(texture->width, texture->height), vec2_zero(), 100);
+
+		// Add to resource list.
+		sprite->resource.index = arr_last_index(sprites);
+		sprite->resource.is_loaded = true;
+
+		arr_push(sprites, sprite);
 	}
 
 	char *text;
@@ -1006,6 +1048,10 @@ static void res_load_obj_model(const char *file_name)
 
 	// Add the model to the resource handler.
 	if (model != NULL) {
+
+		model->resource.index = arr_last_index(models);
+		model->resource.is_loaded = true;
+		
 		arr_push(models, model);
 	}
 
@@ -1020,4 +1066,41 @@ static void res_parse_obj_model_line(char *line, size_t length, void *context)
 	// Feed the .obj file line to the parser.
 	obj_parser_t *parser = (obj_parser_t *)context;
 	obj_parser_process_line(parser, line);
+}
+
+static void res_load_material(const char *file_name)
+{
+	// Set up a parser for .mtl files.
+	mtl_parser_t parser;
+	mtl_parser_init(&parser, file_name);
+
+	// Read the file line by line and feed it to the parser.
+	file_for_each_line(file_name, res_parse_material_line, &parser, false);
+
+	// Tell the parser the file end has been reached. This will flush all parsed materials into
+	// the materials array within the parser.
+	mtl_parser_end_file(&parser);
+
+	// Add all the parsed materials into the resource system.
+	material_t *material;
+
+	arr_foreach(parser.materials, material) {
+
+		material->resource.index = arr_last_index(materials);
+		material->resource.is_loaded = true;
+
+		arr_push(materials, material);
+	}
+
+	// Release the temporary parser data.
+	mtl_parser_destroy(&parser);
+}
+
+static void res_parse_material_line(char *line, size_t length, void *context)
+{
+	UNUSED(length);
+
+	// Feed the .mtl file line to the parser.
+	mtl_parser_t *parser = (mtl_parser_t *)context;
+	mtl_parser_process_line(parser, line);
 }
