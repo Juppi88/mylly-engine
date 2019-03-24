@@ -420,54 +420,45 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 		break;
 	}
 
-	// Set per-draw shader globals.
-	if (shader_uses_global(shader, GLOBAL_MODEL_MATRIX)) {
+	// Set per-draw shader uniforms.
+	vec4_t vector;
+	uint16_t width, height;
 
-		glUniformMatrix4fv(
-			shader_get_global_position(shader, GLOBAL_MODEL_MATRIX),
-			1, GL_FALSE, mat_as_ptr(parent->matrix)
-		);
-	}
+	for (uint32_t i = 0, c = shader->uniforms.count; i < c; i++) {
 
-	if (shader_uses_global(shader, GLOBAL_MVP_MATRIX)) {
+		int position = shader->uniforms.items[i].position;
+		const shader_uniform_t *uniform = shader->uniforms.items[i].uniform;
 
-		glUniformMatrix4fv(
-			shader_get_global_position(shader, GLOBAL_MVP_MATRIX),
-			1, GL_FALSE, mat_as_ptr(parent->mvp)
-		);
-	}
+		switch (uniform->index) {
 
-	if (shader_uses_global(shader, GLOBAL_TEXTURE)) {
+			case UNIFORM_MODEL_MATRIX:
+				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(parent->matrix));
+				break;
 
-		glUniform1i(
-			shader_get_global_position(shader, GLOBAL_TEXTURE),
-			0
-		);
-	}
+			case UNIFORM_MVP_MATRIX:
+				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(parent->mvp));
+				break;
 
-	if (shader_uses_global(shader, GLOBAL_TIME)) {
+			case UNIFORM_TEXTURE:
+				glUniform1i(position, 0);
+				break;
 
-		vec4_t time = get_shader_time();
+			case UNIFORM_TIME:
+				vector = get_shader_time();
+				glUniform4fv(position, 1, (const GLfloat *)&vector);
+				break;
 
-		glUniform4fv(
-			shader_get_global_position(shader, GLOBAL_TIME),
-			1,
-			(const GLfloat *)&time
-		);
-	}
+			case UNIFORM_SCREEN:
+				mylly_get_resolution(&width, &height);
+				vector = vec4(width, height, 0, 0);
 
-	if (shader_uses_global(shader, GLOBAL_SCREEN)) {
+				glUniform4fv(position, 1, (const GLfloat *)&vector);
+				break;
 
-		uint16_t width, height;
-		mylly_get_resolution(&width, &height);
-
-		vec4_t screen = vec4(width, height, 0, 0);
-
-		glUniform4fv(
-			shader_get_global_position(shader, GLOBAL_SCREEN),
-			1,
-			(const GLfloat *)&screen
-		);
+			default:
+				// TODO: Add custom material uniforms here
+				break;
+		}
 	}
 }
 

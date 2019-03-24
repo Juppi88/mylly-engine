@@ -3,6 +3,7 @@
 #include "vbcache.h"
 #include "renderview.h"
 #include "shader.h"
+#include "shaderdata.h"
 #include "texture.h"
 #include "vertexbuffer.h"
 #include "buffercache.h"
@@ -43,6 +44,7 @@ void rsys_initialize(void)
 	rend_initialize();
 	vbcache_initialize();
 	bufcache_initialize();
+	shader_data_initialize();
 
 	// Initialize UI parent objects.
 	ui_parent.matrix = mat_identity();
@@ -64,6 +66,7 @@ void rsys_initialize(void)
 
 void rsys_shutdown(void)
 {
+	shader_data_shutdown();
 	bufcache_shutdown();
 	vbcache_shutdown();
 	rend_shutdown();

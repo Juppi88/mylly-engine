@@ -10,15 +10,6 @@ static void shader_destroy_program(shader_t *shader);
 
 // -------------------------------------------------------------------------------------------------
 
-// Shader global variable names, used for getting the position of the variable in a shader.
-static const char *shader_global_names[NUM_SHADER_GLOBALS] = {
-	"MatrixModel",
-	"MatrixMVP",
-	"Texture",
-	"Time",
-	"Screen"
-};
-
 // Shader vertex attribute names.
 static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 	"Vertex",
@@ -46,17 +37,21 @@ shader_t * shader_create(const char *name, const char *path)
 	shader->fragment = 0;
 	shader->program = 0;
 
-	for (uint32_t i = 0; i < NUM_SHADER_GLOBALS; ++i) {
-		shader->globals[i] = -1;
-	}
+	arr_init(shader->uniforms);
 
 	return shader;
 }
 
 void shader_destroy(shader_t *shader)
 {
+	if (shader == NULL) {
+		return;
+	}
+
 	// Destroy the GPU objects.
 	shader_destroy_program(shader);
+
+	arr_clear(shader->uniforms);
 
 	DESTROY(shader->resource.res_name);
 	DESTROY(shader->resource.path);
@@ -108,14 +103,27 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 	}
 
 	// Get and cache shader uniform locations.
-	for (uint32_t i = 0; i < NUM_SHADER_GLOBALS; ++i) {
+	for (uint32_t i = 0, c = shader_data_get_uniform_count(); i < c; i++) {
 
-		int global = rend_get_program_uniform_location(
+		const shader_uniform_t *data = shader_data_get_uniform_by_index(i);
+
+		// Query uniform position in the program.
+		int uniform = rend_get_program_uniform_location(
 			shader->program,
-			shader_global_names[i]
+			data->name
 		);
 
-		shader->globals[i] = global;
+		// If the position is non-negative, the uniform is used by the program. Store the reference
+		// for future use along with a reference to the uniform data.
+		if (uniform >= 0) {
+
+			shader_uniform_position_t position = {
+				uniform,
+				data
+			};
+
+			arr_push(shader->uniforms, position);
+		}
 	}
 
 	// Get and cache vertex attribute indices.

@@ -3,6 +3,8 @@
 #define __SHADER_H
 
 #include "core/defines.h"
+#include "renderer/shaderdata.h"
+#include "collections/array.h"
 #include "resources/resource.h"
 
 BEGIN_DECLARATIONS;
@@ -16,20 +18,7 @@ typedef uint32_t shader_program_t;
 
 typedef enum {
 
-	GLOBAL_MODEL_MATRIX,
-	GLOBAL_MVP_MATRIX,
-	GLOBAL_TEXTURE,
-	GLOBAL_TIME,
-	GLOBAL_SCREEN,
-	NUM_SHADER_GLOBALS
-
-} SHADER_GLOBAL;
-
-// -------------------------------------------------------------------------------------------------
-
-typedef enum {
-
-	ATTR_VERTEX,
+	ATTR_VERTEX,                                                             
 	ATTR_NORMAL,
 	ATTR_TEXCOORD,
 	ATTR_COLOUR,
@@ -62,6 +51,16 @@ typedef enum {
 
 // -------------------------------------------------------------------------------------------------
 
+// Stores a position of a uniform in a shader program along with a reference to uniform data.
+typedef struct shader_uniform_position_t {
+
+	int position;
+	const shader_uniform_t *uniform;
+
+} shader_uniform_position_t;
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct shader_t {
 
 	resource_t resource; // Resource info
@@ -71,8 +70,9 @@ typedef struct shader_t {
 	shader_program_t program; // Combined shader program
 
 	int queue; // Render queue used by this shader - see enum SHADER_QUEUE above
-	int globals[NUM_SHADER_GLOBALS]; // List of shader constants used by the program
 	int attributes[NUM_SHADER_ATTRIBUTES]; // List of vertex attributes used by the program
+
+	arr_t(shader_uniform_position_t) uniforms; // A list of uniforms used by the shader program.
 
 } shader_t;
 
@@ -85,13 +85,6 @@ void shader_destroy(shader_t *shader);
 bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines);
 
 // -------------------------------------------------------------------------------------------------
-
-#define shader_uses_global(shader, global)\
-	((shader)->globals[(global)] >= 0)
-
-#define shader_get_global_position(shader, global)\
-	((shader)->globals[(global)])
-
 
 #define shader_uses_attribute(shader, attribute)\
 	((shader)->attributes[(attribute)] >= 0)
