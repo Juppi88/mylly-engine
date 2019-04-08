@@ -49,10 +49,10 @@ static const char *default_shader_source =
 
 // --------------------------------------------------------------------------------
 
-static void rend_draw_mesh(rmesh_t *mesh);
+static void rend_draw_mesh(rview_t *view, rmesh_t *mesh);
 
-static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent,
-                                     vertex_type_t vertex_type);
+static void rend_set_active_material(shader_t *shader, texture_t *texture, rview_t *view,
+                                     robject_t *parent, vertex_type_t vertex_type);
 
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
@@ -220,7 +220,7 @@ void rend_draw_views(rview_t *first_view)
 
 			list_foreach(view->meshes[queue], mesh) {
 
-				rend_draw_mesh(mesh);
+				rend_draw_mesh(view, mesh);
 				meshes_drawn++;
 			}
 		}
@@ -281,7 +281,7 @@ void rend_draw_ui_view(rview_ui_t *view)
 	}
 }
 */
-static void rend_draw_mesh(rmesh_t *mesh)
+static void rend_draw_mesh(rview_t *view, rmesh_t *mesh)
 {
 	// Bind the meshes vertex buffer and set vertex data pointers.
 	if (mesh->handle_vertices != 0 && mesh->handle_indices != 0) {
@@ -305,7 +305,7 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	}
 
 	// Check whether the shader or texture needs to be changed. Bind vertex attributes.
-	rend_set_active_material(mesh->shader, mesh->texture, mesh->parent, mesh->vertex_type);
+	rend_set_active_material(mesh->shader, mesh->texture, view, mesh->parent, mesh->vertex_type);
 
 	// Draw the triangles of the mesh.
 	if (mesh->vertices != NULL && mesh->indices != NULL) {
@@ -327,8 +327,8 @@ static void rend_draw_mesh(rmesh_t *mesh)
 	}
 }
 
-static void rend_set_active_material(shader_t *shader, texture_t *texture, robject_t *parent,
-                                     vertex_type_t vertex_type)
+static void rend_set_active_material(shader_t *shader, texture_t *texture, rview_t *view,
+                                     robject_t *parent, vertex_type_t vertex_type)
 {
 	if (shader == NULL || parent == NULL) {
 		return;
@@ -435,8 +435,20 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, robje
 				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(parent->matrix));
 				break;
 
+			case UNIFORM_VIEW_MATRIX:
+				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(view->view));
+				break;
+
+			case UNIFORM_PROJECTION_MATRIX:
+				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(view->projection));
+				break;
+
 			case UNIFORM_MVP_MATRIX:
 				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(parent->mvp));
+				break;
+
+			case UNIFORM_VIEW_POSITION:
+				glUniform4fv(position, 1, (const GLfloat *)&view->view_position);
 				break;
 
 			case UNIFORM_TEXTURE:

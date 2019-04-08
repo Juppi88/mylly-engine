@@ -15,10 +15,13 @@ void shader_data_initialize(void)
 
 	// Create definitions for built-in, material independent uniforms.
 	shader_data_add_uniform("MatrixModel", DATATYPE_MATRIX); // 0
-	shader_data_add_uniform("MatrixMVP", DATATYPE_MATRIX); // 1
-	shader_data_add_uniform("Texture", DATATYPE_INT); // 2
-	shader_data_add_uniform("Time", DATATYPE_VECTOR4); // 3
-	shader_data_add_uniform("Screen", DATATYPE_VECTOR4); // 4
+	shader_data_add_uniform("MatrixView", DATATYPE_MATRIX); // 1
+	shader_data_add_uniform("MatrixProjection", DATATYPE_MATRIX); // 2
+	shader_data_add_uniform("MatrixMVP", DATATYPE_MATRIX); // 3
+	shader_data_add_uniform("ViewPosition", DATATYPE_VECTOR4); // 4
+	shader_data_add_uniform("Texture", DATATYPE_INT); // 5
+	shader_data_add_uniform("Time", DATATYPE_VECTOR4); // 6
+	shader_data_add_uniform("Screen", DATATYPE_VECTOR4); // 7
 }
 
 void shader_data_shutdown(void)

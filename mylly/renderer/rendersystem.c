@@ -89,7 +89,8 @@ void rsys_begin_frame(void)
 	NEW(rview_t, view);
 	ui_view = view;
 
-	mat_cpy(&ui_view->projection, &ui_parent.mvp);
+	mat_cpy(&ui_view->view_projection, &ui_parent.mvp);
+	ui_view->view_position = vec4(0, 0, 0, 1);
 }
 
 void rsys_end_frame(void)
@@ -137,12 +138,18 @@ void rsys_render_scene(scene_t *scene)
 
 		NEW(rview_t, view);
 
+		// Copy camera matrices.
+		mat_cpy(&view->projection, camera_get_projection_matrix(camera->camera));
+		mat_cpy(&view->view, camera_get_view_matrix(camera->camera));
+
 		// Calculate view-projection matrix for the camera.
 		mat_multiply(
-			*camera_get_projection_matrix(camera->camera),
-			*camera_get_view_matrix(camera->camera),
-			&view->projection
+			view->projection,
+			view->view,
+			&view->view_projection
 		);
+
+		view->view_position = vec3_to_vec4(obj_get_position(camera));
 
 		// Initialize a virtual root object.
 		view->root.matrix = mat_identity();
@@ -240,7 +247,7 @@ static void rsys_cull_object(object_t *object)
 			mat_cpy(&obj->matrix, obj_get_transform(object));
 
 			mat_multiply(
-				view->projection,
+				view->view_projection,
 				obj->matrix,
 				&obj->mvp);
 

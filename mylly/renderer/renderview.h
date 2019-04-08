@@ -59,7 +59,10 @@ typedef struct rview_t {
 
 	list_entry(rview_t);
 
-	mat_t projection; // View-projection matrix
+	mat_t view; // View matrix
+	mat_t projection; // Projection matrix
+	mat_t view_projection; // View-projection matrix
+	vec4_t view_position; // Position of the view (camera)
 
 	// List of visible objects in the view
 	list_t(robject_t) objects;
