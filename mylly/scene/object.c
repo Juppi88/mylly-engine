@@ -1,6 +1,7 @@
 #include "object.h"
 #include "scene.h"
 #include "camera.h"
+#include "light.h"
 #include "animator.h"
 #include "emitter.h"
 #include "ai/ai.h"
@@ -70,6 +71,9 @@ void obj_destroy(object_t *obj)
 	// Destroy components.
 	if (obj->camera != NULL) {
 		camera_destroy(obj->camera);
+	}
+	if (obj->light != NULL) {
+		light_destroy(obj->light);
 	}
 	if (obj->animator != NULL) {
 		animator_destroy(obj->animator);
@@ -160,6 +164,31 @@ camera_t *obj_add_camera(object_t *obj)
 	}
 
 	return obj->camera;
+}
+
+light_t *obj_add_light(object_t *obj)
+{
+	if (obj == NULL) {
+		return NULL;
+	}
+
+	// Allow only one light per object.
+	if (obj->light != NULL) {
+
+		log_warning("Scene", "Object already has a light attached to it.");
+		return obj->light;
+	}
+
+	// Create a new light component.
+	obj->light = light_create(obj);
+
+	// All active lights must be registered to the object's parent scene in order to have them
+	// affect the visible meshes in the scene.
+	if (obj->scene != NULL) {
+		scene_register_light(obj->scene, obj);
+	}
+
+	return obj->light;
 }
 
 animator_t *obj_add_animator(object_t *obj)

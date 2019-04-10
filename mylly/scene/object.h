@@ -2,12 +2,12 @@
 #ifndef __OBJECT_H
 #define __OBJECT_H
 
+// -------------------------------------------------------------------------------------------------
+
 #include "collections/array.h"
 #include "math/matrix.h"
 #include "math/quaternion.h"
 #include "core/defines.h"
-
-BEGIN_DECLARATIONS;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -44,11 +44,14 @@ typedef struct object_t {
 	animator_t *animator; // Animator attached to this object
 	emitter_t *emitter; // Particle emitter attached to this object
 	camera_t *camera; // Camera attached to the object
+	light_t *light; // Light attached to the object
 	ai_t *ai; // An AI attached to this object, executing a behaviour tree
 	
 } object_t;
 
 // -------------------------------------------------------------------------------------------------
+
+BEGIN_DECLARATIONS;
 
 // Create a new object.
 // NOTE: Please do not use this method directly, use scene_create_object() instead.
@@ -60,6 +63,7 @@ void obj_set_parent(object_t *obj, object_t *parent);
 void obj_process(object_t *obj);
 
 camera_t *obj_add_camera(object_t *object);
+light_t *obj_add_light(object_t *object);
 animator_t *obj_add_animator(object_t *object);
 emitter_t *obj_add_emitter(object_t *object);
 ai_t *obj_add_ai(object_t *object);
