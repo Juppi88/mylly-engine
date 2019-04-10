@@ -11,17 +11,36 @@
 #define OVERLAY 3
 
 // -------------------------------------------------------------------------------------------------
-// Shader constants
+// Shader uniforms
 // -------------------------------------------------------------------------------------------------
 
-uniform mat4 MatrixModel;
-uniform mat4 MatrixView;
-uniform mat4 MatrixProjection;
-uniform mat4 MatrixMVP;
-uniform vec3 ViewPosition;
-uniform sampler2D Texture;
-uniform vec4 Time; // time, cosTime, sinTime, deltaTime
-uniform vec4 Screen; // screenWidth, screenHeight
+#define MAT_MVP	0 // Model-view-projection matrix
+#define MAT_MODEL 1 // Model matrix
+#define MAT_VIEW 2 // View matrix
+#define MAT_PROJECTION 3 // Projection matrix
+#define MAT_USER 4 // User defined uniform matrices
+#define MAT_USER2 5
+#define MAT_USER3 6
+#define MAT_USER4 7
+#define NUM_MAT_UNIFORMS 8
+
+#define VEC_VIEW_POSITION 0 // The position of the rendered view (camera)
+#define VEC_TIME 1 // 4-element vector containing time (see core/time.h)
+#define VEC_SCREEN 2 // Screen size in pixels
+#define VEC_USER1 3 // User defined uniform data vectors
+#define VEC_USER2 4
+#define VEC_USER3 5
+#define VEC_USER4 6
+#define VEC_USER5 7
+#define VEC_USER6 8
+#define NUM_VEC_UNIFORMS 9
+
+#define SAMPLER_MAIN 0 // Main sampler (usually diffuse texture)
+#define NUM_SAMPLER_UNIFORMS 1
+
+uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
+uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
+uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 
 // -------------------------------------------------------------------------------------------------
 // Vertex attributes
@@ -64,7 +83,7 @@ uniform vec4 Screen; // screenWidth, screenHeight
 vec4 pixelsnap(vec4 pos)
 {
 	// Convert vertex position to pixels and round the result.
-	vec2 halfScreen = 0.5 * Screen.xy;
+	vec2 halfScreen = 0.5 * VectorArr[VEC_SCREEN].xy;
 	vec2 pixelPos = round((pos.xy / pos.w) * halfScreen);
 
 	// Convert back to normalized coordinates.
@@ -76,13 +95,13 @@ vec4 pixelsnap(vec4 pos)
 // Helper method to convert an object space position to clip space homogenous coordinates.
 vec4 toclipspace(vec3 vertex)
 {
-	return MatrixMVP * vec4(vertex, 1.0);
+	return MatrixArr[MAT_MVP] * vec4(vertex, 1.0);
 }
 
 // Same as above but for 2D screen space coordinates (UI).
 vec4 toclipspace2(vec2 vertex)
 {
-	return MatrixMVP * vec4(vertex, 0.0, 1.0);
+	return MatrixArr[MAT_MVP] * vec4(vertex, 0.0, 1.0);
 }
 
 // Transpose a matrix.

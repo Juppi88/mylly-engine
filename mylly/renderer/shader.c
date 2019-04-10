@@ -20,6 +20,11 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 	"ParticleSize"
 };
 
+// Shader uniform array names.
+static const char *matrix_array_name = "MatrixArr";
+static const char *vector_array_name = "VectorArr";
+static const char *sampler_array_name = "SamplerArr";
+
 // -------------------------------------------------------------------------------------------------
 
 shader_t * shader_create(const char *name, const char *path)
@@ -37,7 +42,9 @@ shader_t * shader_create(const char *name, const char *path)
 	shader->fragment = 0;
 	shader->program = 0;
 
-	arr_init(shader->uniforms);
+	shader->matrix_array = -1;
+	shader->vector_array = -1;
+	shader->sampler_array = -1;
 
 	return shader;
 }
@@ -50,8 +57,6 @@ void shader_destroy(shader_t *shader)
 
 	// Destroy the GPU objects.
 	shader_destroy_program(shader);
-
-	arr_clear(shader->uniforms);
 
 	DESTROY(shader->resource.res_name);
 	DESTROY(shader->resource.path);
@@ -103,28 +108,9 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 	}
 
 	// Get and cache shader uniform locations.
-	for (uint32_t i = 0, c = shader_data_get_uniform_count(); i < c; i++) {
-
-		const shader_uniform_t *data = shader_data_get_uniform_by_index(i);
-
-		// Query uniform position in the program.
-		int uniform = rend_get_program_uniform_location(
-			shader->program,
-			data->name
-		);
-
-		// If the position is non-negative, the uniform is used by the program. Store the reference
-		// for future use along with a reference to the uniform data.
-		if (uniform >= 0) {
-
-			shader_uniform_position_t position = {
-				uniform,
-				data
-			};
-
-			arr_push(shader->uniforms, position);
-		}
-	}
+	shader->matrix_array = rend_get_program_uniform_location(shader->program, matrix_array_name);
+	shader->vector_array = rend_get_program_uniform_location(shader->program, vector_array_name);
+	shader->sampler_array = rend_get_program_uniform_location(shader->program, sampler_array_name);
 
 	// Get and cache vertex attribute indices.
 	for (uint32_t i = 0; i < NUM_SHADER_ATTRIBUTES; ++i) {

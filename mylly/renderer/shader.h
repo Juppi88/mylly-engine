@@ -16,17 +16,13 @@ typedef uint32_t shader_program_t;
 
 // -------------------------------------------------------------------------------------------------
 
-typedef enum {
-
-	ATTR_VERTEX,                                                             
-	ATTR_NORMAL,
-	ATTR_TEXCOORD,
-	ATTR_COLOUR,
-	ATTR_CENTRE,
-	ATTR_SIZE,
-	NUM_SHADER_ATTRIBUTES
-
-} SHADER_ATTRIBUTE;
+// - Create arrays for matrix and vec4 uniforms, get their locations and use glUniform4fv
+//   and the matrix one to upload the data
+// - Have fixed indices to the uniform arrays represent certain types of data.
+// - Have a few custom user data entries at the end of the array
+// - Define the indices in mylly.gcing or similar
+// - Have static arrays in renderer.c and update them before committing arrays to program
+// - Colours should be vec4's
 
 // -------------------------------------------------------------------------------------------------
 
@@ -34,6 +30,7 @@ typedef enum {
 
 	SHADER_VERTEX,
 	SHADER_FRAGMENT,
+	NUM_SHADER_TYPES
 
 } SHADER_TYPE;
 
@@ -51,13 +48,57 @@ typedef enum {
 
 // -------------------------------------------------------------------------------------------------
 
-// Stores a position of a uniform in a shader program along with a reference to uniform data.
-typedef struct shader_uniform_position_t {
+typedef enum {
 
-	int position;
-	const shader_uniform_t *uniform;
+	ATTR_VERTEX,                                                             
+	ATTR_NORMAL,
+	ATTR_TEXCOORD,
+	ATTR_COLOUR,
+	ATTR_CENTRE,
+	ATTR_SIZE,
+	NUM_SHADER_ATTRIBUTES
 
-} shader_uniform_position_t;
+} SHADER_ATTRIBUTE;
+
+// -------------------------------------------------------------------------------------------------
+
+// Uniform array indices.
+
+typedef enum {
+
+	UNIFORM_MAT_MVP, // Model-view-projection matrix
+	UNIFORM_MAT_MODEL, // Model matrix
+	UNIFORM_MAT_VIEW, // View matrix
+	UNIFORM_MAT_PROJECTION, // Projection matrix
+	UNIFORM_MAT_USER1, // User defined uniform matrices
+	UNIFORM_MAT_USER2,
+	UNIFORM_MAT_USER3,
+	UNIFORM_MAT_USER4,
+	NUM_MAT_UNIFORMS
+
+} SHADER_MAT_UNIFORM;
+
+typedef enum {
+
+	UNIFORM_VEC_VIEW_POSITION, // The position of the rendered view (camera)
+	UNIFORM_VEC_TIME, // 4-element vector containing time (see core/time.h)
+	UNIFORM_VEC_SCREEN, // Screen size in pixels
+	UNIFORM_VEC_USER1, // User defined uniform data vectors
+	UNIFORM_VEC_USER2,
+	UNIFORM_VEC_USER3,
+	UNIFORM_VEC_USER4,
+	UNIFORM_VEC_USER5,
+	UNIFORM_VEC_USER6,
+	NUM_VEC_UNIFORMS
+
+} SHADER_VEC_UNIFORM;
+
+typedef enum {
+
+	UNIFORM_SAMPLER_MAIN, // Main sampler (usually diffuse texture)
+	NUM_SAMPLER_UNIFORMS
+
+} SHADER_SAMPLER_UNIFORM;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -72,7 +113,10 @@ typedef struct shader_t {
 	int queue; // Render queue used by this shader - see enum SHADER_QUEUE above
 	int attributes[NUM_SHADER_ATTRIBUTES]; // List of vertex attributes used by the program
 
-	arr_t(shader_uniform_position_t) uniforms; // A list of uniforms used by the shader program.
+	// Uniform array positions
+	int matrix_array;
+	int vector_array;
+	int sampler_array;
 
 } shader_t;
 

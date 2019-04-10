@@ -14,7 +14,7 @@ typedef enum shader_uniform_index_t {
 	UNIFORM_MODEL_MATRIX, // The model matrix
 	UNIFORM_VIEW_MATRIX, // The view matrix
 	UNIFORM_PROJECTION_MATRIX, // The projection matrix
-	UNIFORM_MVP_MATRIX, // Model-view-projection matrix
+	UNIFORM_MVP_MATRIX, 
 	UNIFORM_VIEW_POSITION, // The position of the rendered view (camera)
 	UNIFORM_TEXTURE, // Texture unit
 	UNIFORM_TIME, // 4-element vector containing time (see core/time.h)

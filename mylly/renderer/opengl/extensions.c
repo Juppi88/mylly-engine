@@ -32,11 +32,12 @@ PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocation;
 PFNGLUSEPROGRAMPROC glUseProgram;
 
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+PFNGLUNIFORM1IARBPROC glUniform1i;
+PFNGLUNIFORM1IVPROC glUniform1iv;
 PFNGLUNIFORM1FPROC glUniform1f;
 PFNGLUNIFORM3FVPROC glUniform3fv;
 PFNGLUNIFORM4FVPROC glUniform4fv;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
-PFNGLUNIFORM1IARBPROC glUniform1i;
 PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointer;
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArray;
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
@@ -94,11 +95,12 @@ bool glext_initialize(void)
 	glUseProgram = (PFNGLUSEPROGRAMPROC)glext_get_method("glUseProgram");
 
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)glext_get_method("glGetUniformLocation");
+	glUniform1i = (PFNGLUNIFORM1IARBPROC)glext_get_method("glUniform1i");
+	glUniform1iv = (PFNGLUNIFORM1IVPROC)glext_get_method("glUniform1iv");
 	glUniform1f = (PFNGLUNIFORM1FPROC)glext_get_method("glUniform1f");
 	glUniform3fv = (PFNGLUNIFORM3FVPROC)glext_get_method("glUniform3fv");
 	glUniform4fv = (PFNGLUNIFORM4FVPROC)glext_get_method("glUniform4fv");
 	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)glext_get_method("glUniformMatrix4fv");
-	glUniform1i = (PFNGLUNIFORM1IARBPROC)glext_get_method("glUniform1i");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERARBPROC)glext_get_method("glVertexAttribPointer");
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glEnableVertexAttribArray");
 	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glDisableVertexAttribArray");

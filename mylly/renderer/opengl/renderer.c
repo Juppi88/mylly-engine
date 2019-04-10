@@ -21,13 +21,18 @@ static GLXContext gl_context;
 static GLuint active_shader = -1;
 static GLuint active_texture = -1;
 
+// Uniform arrays.
+static mat_t matrix_array[NUM_MAT_UNIFORMS];
+static vec4_t vector_array[NUM_VEC_UNIFORMS];
+static int sampler_array[NUM_SAMPLER_UNIFORMS];
+
 // --------------------------------------------------------------------------------
 
 // The source code for a default GLSL shader which renders everything in purple.
 // Used when no valid shaders are available.
 static const char *default_shader_source =
 
-"uniform mat4 MatrixMVP;\n"
+"uniform mat4 MatrixArr[1];\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
 "\n"
@@ -35,7 +40,7 @@ static const char *default_shader_source =
 "\n"
 "void main()\n"
 "{\n"
-"	gl_Position = MatrixMVP * vec4(Vertex, 1.0);\n"
+"	gl_Position = MatrixArr[0] * vec4(Vertex, 1.0);\n"
 "}\n"
 "\n"
 "#elif defined(FRAGMENT_SHADER)\n"
@@ -56,6 +61,9 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
+
+static void rend_commit_uniforms(shader_t *shader);
+static void rend_clear_uniforms(void);
 
 // --------------------------------------------------------------------------------
 
@@ -167,6 +175,8 @@ void rend_begin_draw(void)
 
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	rend_clear_uniforms();
 }
 
 void rend_end_draw(void)
@@ -426,57 +436,22 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 	}
 
 	// Set per-draw shader uniforms.
-	vec4_t vector;
+	// TODO: See if this can be optimized by setting per-view matrices separately.
+	matrix_array[UNIFORM_MAT_MVP] = parent->mvp;
+	matrix_array[UNIFORM_MAT_MODEL] = parent->matrix;
+	matrix_array[UNIFORM_MAT_VIEW] = view->view;
+	matrix_array[UNIFORM_MAT_PROJECTION] = view->projection;
+
+	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
+	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
+
 	uint16_t width, height;
+	mylly_get_resolution(&width, &height);
+	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, 0, 0);
 
-	for (uint32_t i = 0, c = shader->uniforms.count; i < c; i++) {
+	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
 
-		int position = shader->uniforms.items[i].position;
-		const shader_uniform_t *uniform = shader->uniforms.items[i].uniform;
-
-		switch (uniform->index) {
-
-			case UNIFORM_MODEL_MATRIX:
-				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(parent->matrix));
-				break;
-
-			case UNIFORM_VIEW_MATRIX:
-				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(view->view));
-				break;
-
-			case UNIFORM_PROJECTION_MATRIX:
-				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(view->projection));
-				break;
-
-			case UNIFORM_MVP_MATRIX:
-				glUniformMatrix4fv(position, 1, GL_FALSE, mat_as_ptr(parent->mvp));
-				break;
-
-			case UNIFORM_VIEW_POSITION:
-				glUniform4fv(position, 1, (const GLfloat *)&view->view_position);
-				break;
-
-			case UNIFORM_TEXTURE:
-				glUniform1i(position, 0);
-				break;
-
-			case UNIFORM_TIME:
-				vector = get_shader_time();
-				glUniform4fv(position, 1, (const GLfloat *)&vector);
-				break;
-
-			case UNIFORM_SCREEN:
-				mylly_get_resolution(&width, &height);
-				vector = vec4(width, height, 0, 0);
-
-				glUniform4fv(position, 1, (const GLfloat *)&vector);
-				break;
-
-			default:
-				// TODO: Add custom material uniforms here
-				break;
-		}
-	}
+	rend_commit_uniforms(shader);
 }
 
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
@@ -684,4 +659,26 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height, t
 void rend_delete_texture(texture_name_t texture)
 {
 	glDeleteTextures(1, &texture);
+}
+
+static void rend_commit_uniforms(shader_t *shader)
+{
+	glUniformMatrix4fv(shader->matrix_array, NUM_MAT_UNIFORMS, false, &matrix_array[0].col[0][0]);
+	glUniform4fv(shader->vector_array, NUM_VEC_UNIFORMS, &vector_array[0].vec[0]);
+	glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
+}
+
+static void rend_clear_uniforms(void)
+{
+	for (int i = 0; i < NUM_MAT_UNIFORMS; i++) {
+		matrix_array[i] = mat_identity();
+	}
+
+	for (int i = 0; i < NUM_VEC_UNIFORMS; i++) {
+		vector_array[i] = vec4_zero();
+	}
+
+	for (int i = 0; i < NUM_SAMPLER_UNIFORMS; i++) {
+		sampler_array[i] = -1;
+	}
 }
