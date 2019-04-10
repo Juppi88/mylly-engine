@@ -121,6 +121,11 @@ bool rend_initialize(void)
 		return false;	
 	}
 
+	log_message("Renderer", "Renderer initialization complete.");
+	log_message("Renderer", "GPU: %s", glGetString(GL_RENDERER));
+	log_message("Renderer", "OpenGL version: %s", glGetString(GL_VERSION));
+	log_message("Renderer", "GLSL version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+
 	glEnable(GL_DEPTH_TEST);
 
 	return true;
