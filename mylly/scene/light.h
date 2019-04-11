@@ -4,6 +4,7 @@
 
 #include "core/types.h"
 #include "math/vector.h"
+#include "math/matrix.h"
 #include "renderer/colour.h"
 
 BEGIN_DECLARATIONS;
@@ -34,12 +35,28 @@ typedef struct light_t {
 	float angle;
 	vec3_t direction;
 
+	// Light information as a matrix to be passed to a shader.
+	mat_t shader_params;
+	bool is_dirty;
+
 } light_t;
 
 // -------------------------------------------------------------------------------------------------
 
 light_t *light_create(object_t *parent);
 void light_destroy(light_t *light);
+
+void light_set_type(light_t *light, light_type_t type);
+void light_set_colour(light_t *light, colour_t colour);
+void light_set_intensity(light_t *light, float intensity);
+void light_set_range(light_t *light, float range);
+
+// Spotlight only methods.
+void light_set_spotlight_angle(light_t *light, float angle);
+void light_set_spotlight_direction(light_t *light, vec3_t direction);
+
+// Render system methods.
+mat_t light_get_shader_params(light_t *light);
 
 END_DECLARATIONS;
 

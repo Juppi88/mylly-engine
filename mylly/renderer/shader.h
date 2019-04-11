@@ -64,41 +64,37 @@ typedef enum {
 
 // Uniform array indices.
 
-typedef enum {
+enum {
+	UNIFORM_MAT_MVP = 0, // Model-view-projection matrix
+	UNIFORM_MAT_MODEL = 1, // Model matrix
+	UNIFORM_MAT_VIEW = 2, // View matrix
+	UNIFORM_MAT_PROJECTION = 3, // Projection matrix
+	UNIFORM_MAT_USER1 = 4, // User defined uniform matrices
+	UNIFORM_MAT_USER2 = 5,
+	UNIFORM_MAT_USER3 = 6,
+	UNIFORM_MAT_USER4 = 7,
 
-	UNIFORM_MAT_MVP, // Model-view-projection matrix
-	UNIFORM_MAT_MODEL, // Model matrix
-	UNIFORM_MAT_VIEW, // View matrix
-	UNIFORM_MAT_PROJECTION, // Projection matrix
-	UNIFORM_MAT_USER1, // User defined uniform matrices
-	UNIFORM_MAT_USER2,
-	UNIFORM_MAT_USER3,
-	UNIFORM_MAT_USER4,
 	NUM_MAT_UNIFORMS
+};
 
-} SHADER_MAT_UNIFORM;
+enum {
+	UNIFORM_VEC_VIEW_POSITION = 0, // The position of the rendered view (camera)
+	UNIFORM_VEC_TIME = 1, // 4-element vector containing time (see core/time.h)
+	UNIFORM_VEC_SCREEN = 2, // Screen size in pixels
+	UNIFORM_VEC_USER1 = 3, // User defined uniform data vectors
+	UNIFORM_VEC_USER2 = 4,
+	UNIFORM_VEC_USER3 = 5,
+	UNIFORM_VEC_USER4 = 6,
+	UNIFORM_VEC_USER5 = 7,
+	UNIFORM_VEC_USER6 = 8,
 
-typedef enum {
-
-	UNIFORM_VEC_VIEW_POSITION, // The position of the rendered view (camera)
-	UNIFORM_VEC_TIME, // 4-element vector containing time (see core/time.h)
-	UNIFORM_VEC_SCREEN, // Screen size in pixels
-	UNIFORM_VEC_USER1, // User defined uniform data vectors
-	UNIFORM_VEC_USER2,
-	UNIFORM_VEC_USER3,
-	UNIFORM_VEC_USER4,
-	UNIFORM_VEC_USER5,
-	UNIFORM_VEC_USER6,
 	NUM_VEC_UNIFORMS
+};
 
-} SHADER_VEC_UNIFORM;
-
-typedef enum {
-
-	UNIFORM_SAMPLER_MAIN, // Main sampler (usually diffuse texture)
+enum {
+	UNIFORM_SAMPLER_MAIN = 0, // Main sampler (usually diffuse texture)
 	NUM_SAMPLER_UNIFORMS
-
-} SHADER_SAMPLER_UNIFORM;
+};
 
 // -------------------------------------------------------------------------------------------------
 
