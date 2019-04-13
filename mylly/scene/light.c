@@ -122,7 +122,7 @@ static void light_update_shader_params(light_t *light)
 	light->shader_params.col[0][0] = position.x;
 	light->shader_params.col[0][1] = position.y;
 	light->shader_params.col[0][2] = position.z;
-	light->shader_params.col[0][3] = light->type;
+	light->shader_params.col[0][3] = (light->type == LIGHT_DIRECTIONAL ? 0 : 1);
 
 	light->shader_params.col[1][0] = light->colour.r / 255.0f;
 	light->shader_params.col[1][1] = light->colour.g / 255.0f;

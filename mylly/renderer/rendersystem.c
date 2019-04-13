@@ -435,7 +435,7 @@ static void rsys_collect_mesh_lights(rmesh_t *render_mesh, object_t *parent)
 	// objects have bounding boxes, see whether the light even reaches the mesh at all.
 	rlight_t *contributing_lights[100];
 	uint32_t num_lights = 0;
-printf("COLLECTING\n");
+
 	vec3_t position = obj_get_position(parent);
 	rlight_t *light;
 

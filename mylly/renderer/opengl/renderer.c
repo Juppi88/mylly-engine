@@ -694,7 +694,6 @@ static void rend_commit_uniforms(shader_t *shader)
 		}
 		if (shader->num_lights_position >= 0) {
 			glUniform1i(shader->num_lights_position, num_mesh_lights);
-			printf("Committing %d lights\n", num_mesh_lights);
 		}
 	}
 }

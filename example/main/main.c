@@ -89,12 +89,30 @@ static void setup(void)
 	object_t *light = scene_create_object(scene, NULL);
 	obj_add_light(light);
 
-	obj_set_position(light, vec3(0, 5, 10)); // 10*sin, 10*sin, 5
+	obj_set_position(light, vec3(0, 10, 5)); // 10*sin, 10*sin, 5
 
-	light_set_type(light->light, LIGHT_DIRECTIONAL);
-	light_set_colour(light->light, COL_RED);
+	light_set_type(light->light, LIGHT_SPOT);
+	light_set_colour(light->light, COL_BLUE);
 	light_set_intensity(light->light, 3.0f);
 	light_set_range(light->light, 50.0f);
+
+/*
+	float x = 10 * cos(2 * VectorArr[VEC_TIME].x);
+	float y = 10 * sin(2 * VectorArr[VEC_TIME].x);
+
+	// Red light
+	lights[0].position = vec3(x, y, 5);
+	lights[0].colour = vec3(0.1, 0.3, 1);
+	lights[0].range = 15;
+	lights[0].intensity = 3;
+
+	// Static white light
+	lights[1].position = vec3(0, 5, 10);
+	//lights[1].colour = vec3(1, 1, 0.8);
+	lights[1].colour = vec3(1, 1, 0.8);
+	lights[1].range = 15;
+	lights[1].intensity = 1.5;
+*/
 
 	// TEST CODE
 	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
