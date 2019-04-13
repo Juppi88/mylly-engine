@@ -114,6 +114,10 @@ typedef struct shader_t {
 	int vector_array;
 	int sampler_array;
 
+	// Light array
+	int light_array;
+	int num_lights_position;
+
 } shader_t;
 
 // -------------------------------------------------------------------------------------------------
@@ -131,6 +135,9 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 
 #define shader_get_attribute(shader, attribute)\
 	((shader)->attributes[(attribute)])
+
+#define shader_is_affected_by_light(shader)\
+	((shader)->light_array >= 0 && (shader)->num_lights_position >= 0)
 
 END_DECLARATIONS;
 

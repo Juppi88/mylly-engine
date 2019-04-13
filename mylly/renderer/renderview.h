@@ -2,6 +2,7 @@
 #ifndef __RENDERVIEW_H
 #define __RENDERVIEW_H
 
+#include "core/defines.h"
 #include "collections/list.h"
 #include "math/matrix.h"
 #include "renderer/shader.h"
@@ -10,10 +11,9 @@
 
 // -------------------------------------------------------------------------------------------------
 
-typedef struct model_t model_t;
-typedef struct vertexbuffer_t vertexbuffer_t;
-typedef struct shader_t shader_t;
-typedef struct texture_t texture_t;
+// The maximum number of lights that can affect a single mesh at a time.
+// NOTE: If this value is changed, it has to be changed in the shader code as well (mylly.cging)!
+#define MAX_LIGHTS_PER_MESH 4
 
 // -------------------------------------------------------------------------------------------------
 // robject_t is a structure which contains data about an object which is visible
@@ -27,6 +27,19 @@ typedef struct robject_t {
 	mat_t mvp; // Model-view-projection matrix
 
 } robject_t;
+
+// -------------------------------------------------------------------------------------------------
+// rlight_t contains the data of a single light in the scene.
+// -------------------------------------------------------------------------------------------------
+typedef struct rlight_t {
+
+	mat_t shader_params; // Light parameters to be sent to the shader
+
+	// These are used to find the objects affected by the light and are not used by the renderer.
+	light_t *light; // The light component in the scene
+	float dist_sq; // Squared distance to a mesh being processed
+
+} rlight_t;
 
 // -------------------------------------------------------------------------------------------------
 // rmesh_t is a structure which contains the vertices and indices of a single mesh.
@@ -47,10 +60,14 @@ typedef struct rmesh_t {
 	shader_t *shader; // The shader used for rendering this mesh
 	texture_t *texture; // The texture applied to this mesh.
 
+	// Lights affecting this mesh
+	uint32_t num_lights;
+	rlight_t *lights[MAX_LIGHTS_PER_MESH];
+
 } rmesh_t;
 
 // -------------------------------------------------------------------------------------------------
-// view_t consists of everything that a single camera renders during the current
+// rview_t consists of everything that a single camera renders during the current
 // frame. After the frame has been rendered, the rview_t object is invalidated and
 // destroyed. This is so in the future we can do view processing and rendering in
 // parallel.

@@ -21,9 +21,11 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 };
 
 // Shader uniform array names.
-static const char *matrix_array_name = "MatrixArr";
-static const char *vector_array_name = "VectorArr";
-static const char *sampler_array_name = "SamplerArr";
+#define MATRIX_ARRAY_NAME "MatrixArr"
+#define VECTOR_ARRAY_NAME "VectorArr"
+#define SAMPLER_ARRAY_NAME "SamplerArr"
+#define LIGHT_ARRAY_NAME "LightArr"
+#define NUM_LIGHTS_NAME "NumLights"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -45,6 +47,9 @@ shader_t * shader_create(const char *name, const char *path)
 	shader->matrix_array = -1;
 	shader->vector_array = -1;
 	shader->sampler_array = -1;
+
+	shader->light_array = -1;
+	shader->num_lights_position = -1;
 
 	return shader;
 }
@@ -108,9 +113,12 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 	}
 
 	// Get and cache shader uniform locations.
-	shader->matrix_array = rend_get_program_uniform_location(shader->program, matrix_array_name);
-	shader->vector_array = rend_get_program_uniform_location(shader->program, vector_array_name);
-	shader->sampler_array = rend_get_program_uniform_location(shader->program, sampler_array_name);
+	shader->matrix_array = rend_get_program_uniform_location(shader->program, MATRIX_ARRAY_NAME);
+	shader->vector_array = rend_get_program_uniform_location(shader->program, VECTOR_ARRAY_NAME);
+	shader->sampler_array = rend_get_program_uniform_location(shader->program, SAMPLER_ARRAY_NAME);
+
+	shader->light_array = rend_get_program_uniform_location(shader->program, LIGHT_ARRAY_NAME);
+	shader->num_lights_position = rend_get_program_uniform_location(shader->program, NUM_LIGHTS_NAME);
 
 	// Get and cache vertex attribute indices.
 	for (uint32_t i = 0; i < NUM_SHADER_ATTRIBUTES; ++i) {

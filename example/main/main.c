@@ -94,7 +94,7 @@ static void setup(void)
 	light_set_type(light->light, LIGHT_DIRECTIONAL);
 	light_set_colour(light->light, COL_RED);
 	light_set_intensity(light->light, 3.0f);
-	light_set_range(light->light, 20.0f);
+	light_set_range(light->light, 50.0f);
 
 	// TEST CODE
 	/*printf("Rot set: "); quat_print(quat_from_euler(0, 0, DEG_TO_RAD(45)));
@@ -121,10 +121,6 @@ static void setup(void)
 	obj_set_local_scale(test2, vector3(0.75f, 0.5f, 0.5f));
 	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 	*/
-
-	// Create a camera object and add it to the scene.
-	camera = scene_create_object(scene, NULL);
-	obj_add_camera(camera);
 
 	// Get initial cursor position.
 	input_get_cursor_position(&mouse_x, &mouse_y);

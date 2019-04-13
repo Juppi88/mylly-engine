@@ -30,6 +30,8 @@
 
 #define IS_ZERO(x) (fabs(x) < 0.00000001f)
 
+#define SQUARED(x) ((x) * (x))
+
 // -------------------------------------------------------------------------------------------------
 
 static INLINE void math_sincos(float angle, float *s, float *c)

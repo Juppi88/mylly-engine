@@ -107,6 +107,15 @@ vec3_t vec3_cross(vec3_t a, vec3_t b)
 	return result;
 }
 
+float vec3_distance_sq(vec3_t a, vec3_t b)
+{
+	float dx = (b.x - a.x);
+	float dy = (b.y - a.y);
+	float dz = (b.z - a.z);
+
+	return (dx * dx + dy * dy + dz * dz);
+}
+
 float vec3_normalize(vec3_t *v)
 {
 	float length = glm_vec_norm(v->vec);

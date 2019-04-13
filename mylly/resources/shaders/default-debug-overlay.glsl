@@ -1,6 +1,5 @@
 #pragma queue OVERLAY
 
-uniform mat4 MatrixMVP;
 varying vec4 colour;
 
 #if defined(VERTEX_SHADER)
@@ -9,9 +8,11 @@ varying vec4 colour;
 attribute vec3 Vertex;
 attribute vec4 Colour;
 
+uniform mat4 MatrixArr[1];
+
 void main()
 {
-	gl_Position = MatrixMVP * vec4(Vertex, 1);
+	gl_Position = MatrixArr[0] * vec4(Vertex, 1);
 	gl_Position.z = -1.0; // Render the line on top of everything.
 
 	colour = Colour;

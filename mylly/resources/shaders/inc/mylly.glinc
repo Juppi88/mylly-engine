@@ -70,6 +70,19 @@ uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 #endif
 
 // -------------------------------------------------------------------------------------------------
+// Lighting variables and helpers
+// -------------------------------------------------------------------------------------------------
+
+#ifdef APPLY_LIGHTING
+
+#define MAX_LIGHTS_PER_MESH 4
+
+uniform int NumLights;
+uniform mat4 LightArr[MAX_LIGHTS_PER_MESH];
+
+#endif
+
+// -------------------------------------------------------------------------------------------------
 // Utility macros and functions
 // -------------------------------------------------------------------------------------------------
 

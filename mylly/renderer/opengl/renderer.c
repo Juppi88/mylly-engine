@@ -26,6 +26,9 @@ static mat_t matrix_array[NUM_MAT_UNIFORMS];
 static vec4_t vector_array[NUM_VEC_UNIFORMS];
 static int sampler_array[NUM_SAMPLER_UNIFORMS];
 
+static int num_mesh_lights;
+static mat_t light_array[MAX_LIGHTS_PER_MESH];
+
 // --------------------------------------------------------------------------------
 
 // The source code for a default GLSL shader which renders everything in purple.
@@ -57,7 +60,7 @@ static const char *default_shader_source =
 static void rend_draw_mesh(rview_t *view, rmesh_t *mesh);
 
 static void rend_set_active_material(shader_t *shader, texture_t *texture, rview_t *view,
-                                     robject_t *parent, vertex_type_t vertex_type);
+                                     rmesh_t *mesh, vertex_type_t vertex_type);
 
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
@@ -320,7 +323,7 @@ static void rend_draw_mesh(rview_t *view, rmesh_t *mesh)
 	}
 
 	// Check whether the shader or texture needs to be changed. Bind vertex attributes.
-	rend_set_active_material(mesh->shader, mesh->texture, view, mesh->parent, mesh->vertex_type);
+	rend_set_active_material(mesh->shader, mesh->texture, view, mesh, mesh->vertex_type);
 
 	// Draw the triangles of the mesh.
 	if (mesh->vertices != NULL && mesh->indices != NULL) {
@@ -343,9 +346,9 @@ static void rend_draw_mesh(rview_t *view, rmesh_t *mesh)
 }
 
 static void rend_set_active_material(shader_t *shader, texture_t *texture, rview_t *view,
-                                     robject_t *parent, vertex_type_t vertex_type)
+                                     rmesh_t *mesh, vertex_type_t vertex_type)
 {
-	if (shader == NULL || parent == NULL) {
+	if (shader == NULL || mesh == NULL) {
 		return;
 	}
 	
@@ -437,8 +440,8 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 
 	// Set per-draw shader uniforms.
 	// TODO: See if this can be optimized by setting per-view matrices separately.
-	matrix_array[UNIFORM_MAT_MVP] = parent->mvp;
-	matrix_array[UNIFORM_MAT_MODEL] = parent->matrix;
+	matrix_array[UNIFORM_MAT_MVP] = mesh->parent->mvp;
+	matrix_array[UNIFORM_MAT_MODEL] = mesh->parent->matrix;
 	matrix_array[UNIFORM_MAT_VIEW] = view->view;
 	matrix_array[UNIFORM_MAT_PROJECTION] = view->projection;
 
@@ -451,6 +454,17 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
 
+	// Copy lighting info.
+	if (shader_is_affected_by_light(shader)) {
+
+		num_mesh_lights = mesh->num_lights;
+
+		for (uint32_t i = 0; i < mesh->num_lights; i++) {
+			mat_cpy(&light_array[i], &mesh->lights[i]->shader_params);
+		}
+	}
+
+	// Commit uniforms to shader program.
 	rend_commit_uniforms(shader);
 }
 
@@ -663,9 +677,26 @@ void rend_delete_texture(texture_name_t texture)
 
 static void rend_commit_uniforms(shader_t *shader)
 {
-	glUniformMatrix4fv(shader->matrix_array, NUM_MAT_UNIFORMS, false, &matrix_array[0].col[0][0]);
-	glUniform4fv(shader->vector_array, NUM_VEC_UNIFORMS, &vector_array[0].vec[0]);
-	glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
+	if (shader->matrix_array >= 0) {
+		glUniformMatrix4fv(shader->matrix_array, NUM_MAT_UNIFORMS, false, &matrix_array[0].col[0][0]);
+	}
+	if (shader->vector_array >= 0) {
+		glUniform4fv(shader->vector_array, NUM_VEC_UNIFORMS, &vector_array[0].vec[0]);
+	}
+	if (shader->sampler_array >= 0) {
+		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
+	}
+	
+	if (shader_is_affected_by_light(shader)) {
+	
+		if (shader->light_array >= 0 && num_mesh_lights > 0) {
+			glUniformMatrix4fv(shader->light_array, num_mesh_lights, false, &light_array[0].col[0][0]);
+		}
+		if (shader->num_lights_position >= 0) {
+			glUniform1i(shader->num_lights_position, num_mesh_lights);
+			printf("Committing %d lights\n", num_mesh_lights);
+		}
+	}
 }
 
 static void rend_clear_uniforms(void)
@@ -681,4 +712,10 @@ static void rend_clear_uniforms(void)
 	for (int i = 0; i < NUM_SAMPLER_UNIFORMS; i++) {
 		sampler_array[i] = -1;
 	}
+
+	for (int i = 0; i < MAX_LIGHTS_PER_MESH; i++) {
+		light_array[i] = mat_identity();
+	}
+
+	num_mesh_lights = 0;
 }

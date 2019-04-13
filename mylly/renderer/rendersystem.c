@@ -15,15 +15,19 @@
 #include "scene/sprite.h"
 #include "scene/emitter.h"
 #include "scene/camera.h"
+#include "scene/light.h"
 #include "resources/resources.h"
 #include "core/mylly.h"
 #include "io/log.h"
+#include "math/math.h"
+#include <stdlib.h>
 
 // -------------------------------------------------------------------------------------------------
 
 static int frames_rendered; // Number of frames rendered so far
 static shader_t *default_shader; // Default shader used for rendering when a mesh has no shader
 
+static arr_t(rlight_t*) lights; // All the lights affecting the scene
 static list_t(rview_t) views; // List of views to be rendered this frame
 
 static rview_t *ui_view; // A dedicated view for UI widgets due to UI not needing a camera
@@ -33,8 +37,10 @@ static robject_t ui_parent; // A virtual object to be used as the UI parent
 
 static void rsys_cull_object(object_t *object);
 static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t *view);
-static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view);
+static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *parent, rview_t *view);
 static rmesh_t *rsys_create_render_mesh(mesh_t *mesh, robject_t *root);
+static void rsys_collect_mesh_lights(rmesh_t *render_mesh, object_t *parent);
+static int rsys_sort_lights_by_distance(const void *p1, const void *p2);
 static void rsys_free_frame_data(void);
 
 // -------------------------------------------------------------------------------------------------
@@ -82,6 +88,8 @@ void rsys_begin_frame(void)
 
 	vbcache_set_current_frame(frames_rendered);
 
+	arr_init(lights);
+
 	rend_begin_draw();
 	debug_begin_frame();
 
@@ -126,6 +134,26 @@ void rsys_render_scene(scene_t *scene)
 
 	// Collect info about the objects in the scene before rendering anything and process culling etc.
 	// TODO: Also use a proper temp allocator because this is alloc heavy!
+
+	// Collect all the lights affecting the scene.
+	object_t *light;
+
+	arr_foreach(scene->lights, light) {
+
+		if (light == NULL) {
+			continue;
+		}
+
+		NEW(rlight_t, render_light);
+
+		render_light->light = light->light;
+
+		// Update and create a copy of light shader parameters for this frame.
+		light_get_shader_params(light->light);
+		mat_cpy(&render_light->shader_params, &light->light->shader_params);
+
+		arr_push(lights, render_light);
+	}
 
 	// Create a separate render view for every camera in the scene.
 	object_t *camera;
@@ -277,23 +305,23 @@ static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t
 		arr_foreach(object->model->meshes, mesh) {
 
 			if (mesh != NULL) {
-				rsys_add_mesh_to_view(mesh, parent, view);
+				rsys_add_mesh_to_view(mesh, object, parent, view);
 			}
 		}
 	}
 
 	// 2D sprite mesh
 	if (object->sprite != NULL && object->sprite->mesh != NULL) {
-		rsys_add_mesh_to_view(object->sprite->mesh, parent, view);
+		rsys_add_mesh_to_view(object->sprite->mesh, object, parent, view);
 	}
 
 	// Particle emitter mesh
 	if (object->emitter != NULL && object->emitter->mesh != NULL) {
-		rsys_add_mesh_to_view(object->emitter->mesh, parent, view);
+		rsys_add_mesh_to_view(object->emitter->mesh, object, parent, view);
 	}
 }
 
-static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view)
+static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *parent, rview_t *view)
 {
 	// Upload vertex and data to the GPU. If the data is already copied to buffer objects,
 	// refresh them to avoid automatic cleanup.
@@ -353,6 +381,12 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, robject_t *parent, rview_t *view
 		rmesh->shader = default_shader;
 	}
 
+	// If the material used by the mesh is affected by lighting, collect all the lights contributing
+	// to the mesh.
+	if (shader_is_affected_by_light(rmesh->shader)) {
+		rsys_collect_mesh_lights(rmesh, object);
+	}
+
 	// Add the mesh to the view to a render queue determined by its shader.
 	list_push(view->meshes[rmesh->shader->queue], rmesh);
 }
@@ -395,6 +429,84 @@ static rmesh_t *rsys_create_render_mesh(mesh_t *mesh, robject_t *root)
 	return rmesh;
 }
 
+static void rsys_collect_mesh_lights(rmesh_t *render_mesh, object_t *parent)
+{
+	// TODO: This part currently adds all the nearest lights to the mesh. Once the meshes and
+	// objects have bounding boxes, see whether the light even reaches the mesh at all.
+	rlight_t *contributing_lights[100];
+	uint32_t num_lights = 0;
+printf("COLLECTING\n");
+	vec3_t position = obj_get_position(parent);
+	rlight_t *light;
+
+	arr_foreach(lights, light) {
+
+		light_t *scene_light = light->light;
+
+		if (scene_light->type == LIGHT_DIRECTIONAL) {
+
+			// Directional lights will always affect the mesh.
+			light->dist_sq = 0;
+		}
+		else {
+
+			// Calculate the (squared) distance of the light to the mesh.
+			// TODO: Take into account the cone of a spotlight!
+			vec3_t light_position = obj_get_position(scene_light->parent);
+			light->dist_sq = vec3_distance_sq(position, light_position);
+		}
+		
+		// If the mesh is within the light's range, add the light to the list of potential
+		// light sources.
+		if (light->dist_sq < SQUARED(scene_light->range)) {
+
+			contributing_lights[num_lights++] = light;
+
+			if (num_lights >= 100) {
+				break;
+			}
+		}
+	}
+
+	// No lights contributing to the lighting of the mesh.
+	if (num_lights == 0) {
+
+		render_mesh->num_lights = 0;
+		return;
+	}
+
+	// If there are more lights contributing to the lighting of the mesh than our shaders would
+	// support, select only the closest ones.
+	// TODO: Select only the highest intensity ones?
+	if (num_lights > MAX_LIGHTS_PER_MESH) {
+
+		qsort(contributing_lights,
+		      num_lights,
+		      sizeof(contributing_lights[0]),
+		      rsys_sort_lights_by_distance
+		);
+	}
+
+	uint32_t count = MIN(num_lights, MAX_LIGHTS_PER_MESH);
+
+	render_mesh->num_lights = count;
+
+	// Copy references to the contributing render lights to the mesh.
+	for (uint32_t i = 0; i < count; i++) {
+		render_mesh->lights[i] = contributing_lights[i];
+	}
+}
+
+static int rsys_sort_lights_by_distance(const void *p1, const void *p2)
+{
+	const rlight_t *light1 = *(const rlight_t **)p1;
+	const rlight_t *light2 = *(const rlight_t **)p2;
+
+	if (light1->dist_sq < light2->dist_sq) return -1;
+	if (light1->dist_sq > light2->dist_sq) return 1;
+	return 0;
+}
+
 static void rsys_free_frame_data(void)
 {
 	// Remove all regular render views.
@@ -428,4 +540,13 @@ static void rsys_free_frame_data(void)
 
 	// Clear the UI index buffer for rebuilding during the next frame.
 	bufcache_clear_all_indices(BUFIDX_UI);
+
+	// Clear light data.
+	rlight_t *light;
+
+	arr_foreach(lights, light) {
+		DESTROY(light);
+	}
+
+	arr_clear(lights);
 }
