@@ -28,7 +28,7 @@ void mtl_parser_init(mtl_parser_t *parser, const char *file)
 	parser->material = NULL;
 
 	parser->diffuse_map = NULL;
-	parser->ambient_map = NULL;
+	parser->normal_map = NULL;
 }
 
 void mtl_parser_destroy(mtl_parser_t *parser)
@@ -109,12 +109,12 @@ void mtl_parser_process_line(mtl_parser_t *parser, const char *line)
 
 		parser->diffuse_map = res_get_texture(texture_name);
 	}
-	else if (string_equals(type, "map_Ka")) { // map_Ka = ambient map texture
+	else if (string_equals(type, "norm")) { // norm = normal map texture
 
 		string_tokenize(NULL, ' ', text, sizeof(text));
 		string_get_file_name_without_extension(text, texture_name, sizeof(texture_name));
 
-		parser->ambient_map = res_get_texture(texture_name);
+		parser->normal_map = res_get_texture(texture_name);
 	}
 	else {
 		// The line contains some type of data not handled by this parser, warn the user about it.
@@ -256,8 +256,8 @@ static void mtl_parser_save_material(mtl_parser_t *parser)
 		}
 
 		// Copy texture references.
-		material->diffuse_map = parser->diffuse_map;
-		material->ambient_map = parser->ambient_map;
+		material->texture = parser->diffuse_map;
+		material->normal_map = parser->normal_map;
 
 		// Add to an array of materials parsed from this .mtl file.
 		arr_push(parser->materials, material);
@@ -268,5 +268,5 @@ static void mtl_parser_save_material(mtl_parser_t *parser)
 	DESTROY(parser->material);
 
 	parser->diffuse_map = NULL;
-	parser->ambient_map = NULL;
+	parser->normal_map = NULL;
 }

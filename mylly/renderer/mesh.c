@@ -163,6 +163,66 @@ void mesh_set_debug_vertices(mesh_t *mesh, const vertex_debug_t *vertices, size_
 	mesh->is_vertex_data_dirty = true;
 }
 
+void mesh_calculate_tangents(mesh_t *mesh)
+{
+	if (mesh == NULL) {
+		return;
+	}
+
+	for (uint32_t i = 0; i < mesh->num_indices; i += 3) {
+
+		vindex_t i0 = mesh->indices[i + 0];
+		vindex_t i1 = mesh->indices[i + 1];
+		vindex_t i2 = mesh->indices[i + 2];
+
+		vec3_t vertex0 = mesh->vertices[i0].pos;
+		vec3_t vertex1 = mesh->vertices[i1].pos;
+		vec3_t vertex2 = mesh->vertices[i2].pos;
+
+		vec3_t diff1 = vec3_subtract(vertex1, vertex0);
+		vec3_t diff2 = vec3_subtract(vertex2, vertex0);
+
+		vec3_t normal = vec3_cross(
+			diff1,
+			diff2
+		);
+
+		vec3_t delta_pos;
+
+		if (vec3_equals(vertex0, vertex1)) {
+			delta_pos = vec3_subtract(vertex2, vertex0);
+		}
+		else {
+			delta_pos = vec3_subtract(vertex1, vertex0);
+		}
+
+		vec2_t uv0 = mesh->vertices[i0].uv;
+		vec2_t uv1 = mesh->vertices[i1].uv;
+		vec2_t uv2 = mesh->vertices[i2].uv;
+
+		vec2_t delta_uv1 = vec2_subtract(uv1, uv0);
+		vec2_t delta_uv2 = vec2_subtract(uv2, uv0);
+
+		vec3_t tan;
+
+		// Avoid division by zero.
+		if (delta_uv1.x != 0) {
+			tan = vec3_multiply(delta_pos, 1.0f / delta_uv1.x);
+		}
+		else {
+			tan = delta_pos;
+		}
+
+		vec3_normalize(&tan);
+
+		mesh->vertices[i0].tangent = tan;
+		mesh->vertices[i1].tangent = tan;
+		mesh->vertices[i2].tangent = tan;
+	}
+
+	mesh->is_vertex_data_dirty = true;
+}
+
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices)
 {
 	if (mesh == NULL) {

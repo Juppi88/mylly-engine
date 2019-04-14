@@ -58,7 +58,8 @@ typedef struct rmesh_t {
 	buffer_handle_t handle_indices; // Handle to index data
 	
 	shader_t *shader; // The shader used for rendering this mesh
-	texture_t *texture; // The texture applied to this mesh.
+	texture_t *texture; // The texture applied to the mesh
+	texture_t *normal_map; // Normal map applied to the mesh
 
 	// Lights affecting this mesh
 	uint32_t num_lights;

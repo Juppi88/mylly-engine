@@ -56,6 +56,7 @@ typedef enum {
 	ATTR_COLOUR,
 	ATTR_CENTRE,
 	ATTR_SIZE,
+	ATTR_TANGENT,
 	NUM_SHADER_ATTRIBUTES
 
 } SHADER_ATTRIBUTE;
@@ -84,6 +85,7 @@ enum {
 
 enum {
 	UNIFORM_SAMPLER_MAIN = 0, // Main sampler (usually diffuse texture)
+	UNIFORM_SAMPLER_NORMAL = 1, // Normal map texture
 	NUM_SAMPLER_UNIFORMS
 };
 

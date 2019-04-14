@@ -20,6 +20,7 @@ static GLXContext gl_context;
 // Currently used shader and texture object.
 static GLuint active_shader = -1;
 static GLuint active_texture = -1;
+static GLuint active_normal_map = -1;
 
 // Uniform arrays.
 static mat_t matrix_array[NUM_MAT_UNIFORMS];
@@ -59,8 +60,8 @@ static const char *default_shader_source =
 
 static void rend_draw_mesh(rview_t *view, rmesh_t *mesh);
 
-static void rend_set_active_material(shader_t *shader, texture_t *texture, rview_t *view,
-                                     rmesh_t *mesh, vertex_type_t vertex_type);
+static void rend_set_active_material(shader_t *shader, texture_t *texture, texture_t *normal_map,
+                                     rview_t *view, rmesh_t *mesh, vertex_type_t vertex_type);
 
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
@@ -323,7 +324,8 @@ static void rend_draw_mesh(rview_t *view, rmesh_t *mesh)
 	}
 
 	// Check whether the shader or texture needs to be changed. Bind vertex attributes.
-	rend_set_active_material(mesh->shader, mesh->texture, view, mesh, mesh->vertex_type);
+	rend_set_active_material(mesh->shader, mesh->texture, mesh->normal_map,
+	                         view, mesh, mesh->vertex_type);
 
 	// Draw the triangles of the mesh.
 	if (mesh->vertices != NULL && mesh->indices != NULL) {
@@ -345,8 +347,8 @@ static void rend_draw_mesh(rview_t *view, rmesh_t *mesh)
 	}
 }
 
-static void rend_set_active_material(shader_t *shader, texture_t *texture, rview_t *view,
-                                     rmesh_t *mesh, vertex_type_t vertex_type)
+static void rend_set_active_material(shader_t *shader, texture_t *texture, texture_t *normal_map,
+                                     rview_t *view, rmesh_t *mesh, vertex_type_t vertex_type)
 {
 	if (shader == NULL || mesh == NULL) {
 		return;
@@ -366,8 +368,20 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 
 	if (texture_id != active_texture) {
 
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_id);
+
 		active_texture = texture_id;
+	}
+
+	// Select normal map.
+	GLuint normal_map_id = (normal_map != NULL ? normal_map->gpu_texture : 0);
+
+	if (normal_map_id != active_normal_map) {
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, normal_map_id);
+		active_normal_map = normal_map_id;
 	}
 
 	// Disable vertex attributes to avoid using them when there is no such data available.
@@ -386,6 +400,9 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 
 		rend_bind_shader_attribute(shader, ATTR_NORMAL, 3, GL_FLOAT, GL_FALSE,
                                    sizeof(vertex_t), (void *)offsetof(vertex_t, normal));
+
+		rend_bind_shader_attribute(shader, ATTR_TANGENT, 3, GL_FLOAT, GL_FALSE,
+                                   sizeof(vertex_t), (void *)offsetof(vertex_t, tangent));
 
 		rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
                                    sizeof(vertex_t), (void *)offsetof(vertex_t, uv));
@@ -454,6 +471,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, 0, 0);
 
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
+	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
 
 	// Copy lighting info.
 	if (shader_is_affected_by_light(shader)) {
@@ -640,7 +658,6 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height, t
 
 	// Upload the texture to the GPU.
 	glEnable(GL_TEXTURE_2D);
-
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	switch (fmt) {

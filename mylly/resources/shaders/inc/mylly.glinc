@@ -27,7 +27,8 @@
 #define NUM_VEC_UNIFORMS 4
 
 #define SAMPLER_MAIN 0 // Main sampler (usually diffuse texture)
-#define NUM_SAMPLER_UNIFORMS 1
+#define SAMPLER_NORMAL 1 // Normal map texture
+#define NUM_SAMPLER_UNIFORMS 2
 
 uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
 uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
@@ -48,6 +49,7 @@ uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 	// Attributes for normal vertices
 	attribute vec3 Vertex;
 	attribute vec3 Normal;
+	attribute vec3 Tangent;
 	attribute vec2 TexCoord;
 #endif
 

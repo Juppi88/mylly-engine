@@ -97,6 +97,9 @@ void vec3_orthonormalize(vec3_t *a, vec3_t *b);
 
 vec3_t vec3_sanitize_rotation(vec3_t v);
 
+bool vec3_is_zero(vec3_t v);
+bool vec3_equals(vec3_t a, vec3_t b);
+
 static INLINE void vec3_print(vec3_t vec)
 {
 	printf("%.2f  %.2f  %.2f\n", vec.x, vec.y, vec.z);

@@ -14,8 +14,8 @@ typedef struct mtl_parser_t {
 	const char *material; // Name of the material being parsed, NULL if not parsing a material
 
 	arr_t(material_param_t) parameters; // An array of parameters parsed for the current material
-	texture_t *diffuse_map; // Diffuse map texture used by the current material
-	texture_t *ambient_map; // Diffuse map texture used by the current material
+	texture_t *diffuse_map; // Default texture/diffuse map used by the current material
+	texture_t *normal_map; // Normal map texture used by the current material
 
 	arr_t(material_t*) materials; // An array of material instances parsed from the file
 

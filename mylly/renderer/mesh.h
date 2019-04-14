@@ -64,6 +64,8 @@ void mesh_set_particle_vertices(mesh_t *mesh, const vertex_particle_t *vertices,
 void mesh_set_ui_vertices(mesh_t *mesh, const vertex_ui_t *vertices, size_t num_vertices);
 void mesh_set_debug_vertices(mesh_t *mesh, const vertex_debug_t *vertices, size_t num_vertices);
 
+void mesh_calculate_tangents(mesh_t *mesh);
+
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices);
 void mesh_refresh_vertices(mesh_t *mesh);
 

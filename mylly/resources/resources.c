@@ -1091,8 +1091,13 @@ static void res_load_material(const char *file_name)
 
 		// TODO: Add shader definitions to materials as an extension of .mtl file.
 		// For now just use the default textured material shader.
-		material->shader = res_get_shader("default-phong");
-
+		if (material->normal_map != NULL) {
+			material->shader = res_get_shader("default-phong-normal");
+		}
+		else {
+			material->shader = res_get_shader("default-phong");
+		}
+		
 		arr_push(materials, material);
 	}
 

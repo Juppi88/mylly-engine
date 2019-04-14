@@ -28,14 +28,15 @@ typedef struct vertex_t {
 
 	vec3_t pos;
 	vec3_t normal;
+	vec3_t tangent;
 	vec2_t uv;
 
 } vertex_t;
 
 #ifndef __cplusplus
-#define vertex(pos, normal, uv) (vertex_t){ pos, normal, uv }
+#define vertex(pos, normal, uv) (vertex_t){ pos, normal, vec3_forward(), uv }
 #else
-#define vertex(pos, normal, uv) { pos, normal, uv }
+#define vertex(pos, normal, uv) { pos, normal, vec3_forward(), uv }
 #endif
 
 // -------------------------------------------------------------------------------------------------

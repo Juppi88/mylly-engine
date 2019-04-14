@@ -372,7 +372,8 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
 	if (mesh->material != NULL) {
 
 		rmesh->shader = mesh->material->shader;
-		rmesh->texture = mesh->material->diffuse_map;
+		rmesh->texture = mesh->material->texture;
+		rmesh->normal_map = mesh->material->normal_map;
 	}
 
 	// If the mesh defines override texture or shader, use them.
@@ -417,7 +418,8 @@ static rmesh_t *rsys_create_render_mesh(mesh_t *mesh, robject_t *root)
 	if (mesh->material != NULL) {
 
 		rmesh->shader = mesh->material->shader;
-		rmesh->texture = mesh->material->diffuse_map;
+		rmesh->texture = mesh->material->texture;
+		rmesh->normal_map = mesh->material->normal_map;
 	}
 
 	// If the mesh defines override texture or shader, use them.

@@ -3,6 +3,9 @@
 varying vec3 worldPosition;
 varying vec3 worldNormal;
 varying vec2 texCoord;
+varying mat3 tangentMatrix;
+
+varying vec3 blah;
 
 #if defined(VERTEX_SHADER)
 
@@ -20,6 +23,19 @@ void main()
 	// Calculate world space normal.
 	mat3 normalMatrix = transpose(inverse(mat3(MatrixArr[MAT_MODEL])));
 	worldNormal = normalize(normalMatrix * Normal);
+
+	// Calculate tangent matrix for normal map calculations.
+	vec3 tangentVec = normalize(vec3(MatrixArr[MAT_MODEL] * vec4(Tangent, 0.0)));
+	vec3 normalVec = normalize(vec3(MatrixArr[MAT_MODEL] * vec4(Normal, 0.0)));
+	vec3 biTangentVec = normalize(vec3(MatrixArr[MAT_MODEL] * vec4(cross(normalVec, tangentVec), 0.0)));
+
+	tangentVec = normalize(tangentVec-dot(normalVec,tangentVec)*normalVec);
+	biTangentVec = normalize(biTangentVec-dot(normalVec,biTangentVec)*normalVec);
+
+
+	tangentMatrix = mat3(tangentVec, biTangentVec, normalVec);
+
+	blah = abs(Tangent);
 }
 
 #elif defined(FRAGMENT_SHADER)
@@ -32,9 +48,13 @@ vec3 ApplyLight(int light)
 {
 	// Calculate light intensity at the fragment.
 	vec3 position = lightPosition(light).xyz;
-	vec3 normal = normalize(worldNormal);
 	vec3 direction;
 	float intensity;
+
+	// Get normal from normal map.
+	vec3 normal = texture(SamplerArr[SAMPLER_NORMAL], texCoord).rgb;
+	normal = normalize(normal * 2.0 - 1.0);
+	normal = normalize(tangentMatrix * normal);
 
 	// Directional light, no attenuation.
 	if (lightPosition(light).w == 0) {
@@ -87,6 +107,12 @@ void main()
 
 	// Apply fragment colour.
 	gl_FragColor = vec4(colour, 1.0) * texture(SamplerArr[SAMPLER_MAIN], texCoord.st);
-}
+
+	vec3 normal = texture(SamplerArr[SAMPLER_NORMAL], texCoord).rgb;
+	normal = normalize(normal * 2.0 - 1.0);   
+	normal = normalize(tangentMatrix * normal); 
+	//gl_FragColor = vec4(blah, 1.0);
+	//gl_FragColor = vec4(normal, 1.0);
+ }
 
 #endif

@@ -200,6 +200,13 @@ model_t *obj_parser_create_model(obj_parser_t *parser, const char *name, const c
 		mesh_set_material(mesh, res_get_material(material_name));
 	}
 
+	// Calculate tangents for normal map.
+	mesh_t *mesh;
+
+	arr_foreach(model->meshes, mesh) {
+		mesh_calculate_tangents(mesh);
+	}
+
 	return model;
 }
 

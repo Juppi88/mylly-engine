@@ -154,6 +154,16 @@ vec3_t vec3_sanitize_rotation(vec3_t v)
 	return vec;
 }
 
+bool vec3_is_zero(vec3_t v)
+{
+	return IS_ZERO(v.x) && IS_ZERO(v.y) && IS_ZERO(v.z);
+}
+
+bool vec3_equals(vec3_t a, vec3_t b)
+{
+	return IS_ZERO(b.x - a.x) && IS_ZERO(b.y - a.y) && IS_ZERO(b.z - a.z);
+}
+
 // --------------------------------------------------------------------------------
 
 float vec4_normalize(vec4_t v)
