@@ -8,16 +8,17 @@ varying vec2 texCoord;
 
 void main()
 {
-	mat4 modelView = MatrixArr[MAT_VIEW] * MatrixArr[MAT_MODEL];
-	vec4 position = modelView * vec4(Vertex, 1);
+	// Calculate vertex clip position.
+	gl_Position = toclipspace(Vertex);
 
 	// Varyuing arguments to fragment shader.
-	gl_Position = toclipspace(Vertex);// MatrixArr[MAT_PROJECTION] * position;
+	vec4 position = MatrixArr[MAT_MODEL] * vec4(Vertex, 1);
+	
 	worldPosition = position.xyz;
 	texCoord = TexCoord;
 
 	// Calculate world space normal.
-	mat3 normalMatrix = transpose(inverse(mat3(modelView)));
+	mat3 normalMatrix = transpose(inverse(mat3(MatrixArr[MAT_MODEL])));
 	worldNormal = normalize(normalMatrix * Normal);
 }
 
@@ -35,36 +36,43 @@ vec3 ApplyLight(int light)
 	vec3 direction;
 	float intensity;
 
+	// Directional light, no attenuation.
 	if (lightPosition(light).w == 0) {
 
-		// Directional light, no attenuation.
 		intensity = lightIntensity(light);
 		direction = normalize(position);
 	}
+
+	// Spot or point light.
 	else {
-
-		// Spot or point light.
 		float distance = length(position - worldPosition);
-
 		float r = distance / lightRange(light);
-		intensity = lightIntensity(light) * 1.0 / (1.0 + 25.0 * r * r);
 
-		//intensity = lightIntensity(light) * (lightRange(light) / distance - 1);
+		intensity = lightIntensity(light) * 1.0 / (1.0 + 25.0 * r * r);
 		direction = normalize(position - worldPosition);
 	}
 
 	// Apply diffuse lighting.
-	float diff = max(dot(normal, direction), 0.0);
-	vec3 diffuse = diff * DiffuseColour * lightColour(light) * intensity;
+	float diffuseStrength = max(dot(normal, direction), 0.0);
+	vec3 diffuse = diffuseStrength * DiffuseColour;
 
 	// Apply specular lighting.
 	vec3 viewDirection = normalize(VectorArr[VEC_VIEW_POSITION].xyz - worldPosition);
 	vec3 reflectDirection = reflect(-direction, normal);
-	float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), Shininess);
-	vec3 specular = spec * SpecularColour * lightColour(light) * intensity;
+	float specularStrength = pow(max(dot(viewDirection, reflectDirection), 0.0), Shininess);
+	vec3 specular = specularStrength * SpecularColour;
+
+	// Spotlight attenuation.
+	if (lightCutoffAngle(light) > 0) {
+
+		float theta = dot(-direction, normalize(lightDirection(light)));
+		float epsilon = lightCutoffAngle(light) - lightCutoffOuterAngle(light);
+		
+		intensity *= clamp((theta - lightCutoffOuterAngle(light)) / epsilon, 0.0, 1.0);
+	}
 
 	// Return combined diffuse and specular lighting caused by the light instance.
-	return diffuse + specular;
+	return intensity * (diffuse + specular) * lightColour(light);
 }
 
 void main()
@@ -76,6 +84,8 @@ void main()
 	for (int i = 0; i < NumLights; i++) {
 		colour += ApplyLight(i);
 	}
+
+	if (lightPosition(1).y > 5) discard;
 
 	// Apply fragment colour.
 	gl_FragColor = vec4(colour, 1.0) * texture(SamplerArr[SAMPLER_MAIN], texCoord.st);

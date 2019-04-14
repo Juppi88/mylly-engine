@@ -16,6 +16,7 @@ static object_t *camera;
 static model_t *test_model;
 static object_t *test, *test2;
 static uint16_t mouse_x, mouse_y;
+static object_t *spotlight;
 
 // --------------------------------------------------------------------------------
 
@@ -54,8 +55,8 @@ static void setup(void)
 	camera = scene_create_object(scene, NULL);
 	obj_add_camera(camera);
 
-	obj_set_local_position(camera, vector3(0.0f, 0.0f, 5.0f));
-	obj_look_at(camera, vec3_zero(), vec3_up());
+	obj_set_local_position(camera, vector3(0.0f, 5.0f, 0.0f));
+	obj_look_at(camera, vec3_zero(), vec3_right());
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
 	camera_set_perspective_projection(camera->camera, 90, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
@@ -82,7 +83,7 @@ static void setup(void)
 	//obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
 	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
 	//obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	obj_set_local_rotation(test, quat_from_euler_deg(0, 90, 90));
+	obj_set_local_rotation(test, quat_from_euler_deg(0, 0, 0));
 	obj_set_local_scale(test, vec3(0.01f, 0.01f, 0.01f));
 
 	// Create a light object and add it to the scene.
@@ -91,11 +92,25 @@ static void setup(void)
 
 	obj_set_position(light, vec3(0, 10, 5)); // 10*sin, 10*sin, 5
 
-	light_set_type(light->light, LIGHT_SPOT);
+	light_set_type(light->light, LIGHT_POINT);
 	light_set_colour(light->light, COL_BLUE);
 	light_set_intensity(light->light, 3.0f);
 	light_set_range(light->light, 50.0f);
 
+	// Create a spotlight.
+	spotlight = scene_create_object(scene, NULL);
+	obj_add_light(spotlight);
+
+	obj_set_position(spotlight, vec3(0, 2, 0)); // 10*sin, 10*sin, 5
+
+	light_set_type(spotlight->light, LIGHT_SPOT);
+	light_set_colour(spotlight->light, COL_WHITE);
+	light_set_intensity(spotlight->light, 2.0f);
+	light_set_range(spotlight->light, 20.0f);
+	light_set_spotlight_cutoff_angle(spotlight->light, 10.0f, 15.0f);
+	light_set_spotlight_direction(spotlight->light, vec3_subtract(vec3_zero(), obj_get_position(spotlight)));
+
+	// Adjust ambient lighting.
 	scene_set_ambient_light(scene, col(100, 100, 100));
 
 /*
@@ -141,7 +156,12 @@ static void setup(void)
 	obj_set_local_scale(test2, vector3(0.75f, 0.5f, 0.5f));
 	obj_set_local_rotation(test2, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 	*/
-
+/*
+	model_t *model = model_create("", "");
+	model_setup_primitive(model, PRIMITIVE_CUBE);
+	test2 = scene_create_object(scene, NULL);
+	obj_set_model(test2, model);
+*/
 	// Get initial cursor position.
 	input_get_cursor_position(&mouse_x, &mouse_y);
 
@@ -226,7 +246,11 @@ static void main_loop(void)
 		printf("Camera rot: %f %f %f\n", position.x, position.y, position.z);
 	}
 
-	
+	vec3_t world = camera_screen_to_world(camera->camera, vec3(x, y, 4));
+
+	world.y = 5;
+	obj_set_position(spotlight, world);
+
 
 	//
 	// END OF TEST CODE!

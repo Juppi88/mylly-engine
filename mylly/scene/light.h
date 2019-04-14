@@ -31,8 +31,9 @@ typedef struct light_t {
 	float range;
 	float intensity;
 
-	// Spot light properties
-	float angle;
+	// Spotlight properties
+	float cutoff_angle;
+	float cutoff_angle_outer;
 	vec3_t direction;
 
 	// Light information as a matrix to be passed to a shader.
@@ -52,7 +53,7 @@ void light_set_intensity(light_t *light, float intensity);
 void light_set_range(light_t *light, float range);
 
 // Spotlight only methods.
-void light_set_spotlight_angle(light_t *light, float angle);
+void light_set_spotlight_cutoff_angle(light_t *light, float angle, float outer_angle);
 void light_set_spotlight_direction(light_t *light, vec3_t direction);
 
 // Render system methods.

@@ -73,6 +73,9 @@ vec4  lightPosition(int light) { return LightArr[light][0]; }
 vec3  lightColour(int light) { return LightArr[light][1].xyz; }
 float lightRange(int light) { return LightArr[light][3][0]; }
 float lightIntensity(int light) { return LightArr[light][3][1]; }
+vec3  lightDirection(int light) { return LightArr[light][2].xyz; }
+float lightCutoffAngle(int light) { return LightArr[light][3][2]; }
+float lightCutoffOuterAngle(int light) { return LightArr[light][3][3]; }
 
 vec3  ambientLightColour() { return VectorArr[VEC_COLOUR].xyz; }
 

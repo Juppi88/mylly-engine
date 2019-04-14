@@ -245,8 +245,6 @@ void camera_update_projection_matrix(camera_t *camera)
 		);
 	}
 
-	mat_print(camera->projection);
-
 	camera->state &= ~CAMSTATE_PROJ_DIRTY;
 }
 

@@ -321,6 +321,10 @@ void obj_set_dirty(object_t *obj)
 		);
 	}
 
+	if (obj->light != NULL) {
+		obj->light->is_dirty = true;
+	}
+
 	// Do the same to each child object.
 	object_t *child;
 

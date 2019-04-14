@@ -51,7 +51,7 @@ void mesh_set_vertices(mesh_t *mesh, const vertex_t *vertices, size_t num_vertic
 	for (size_t i = 0; i < num_vertices; ++i) {
 		mesh->vertices[i] = vertices[i];
 	}
-	
+
 	mesh->is_vertex_data_dirty = true;
 }
 

@@ -2,6 +2,7 @@
 #include "object.h"
 #include "core/memory.h"
 #include "collections/array.h"
+#include "math/math.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -21,7 +22,8 @@ light_t *light_create(object_t *parent)
 	light->range = 1.0f;
 	light->intensity = 1.0f;
 
-	light->angle = 1.0f;
+	light->cutoff_angle = 0;
+	light->cutoff_angle_outer = 0;
 	light->direction = vec3_up();
 
 	light->is_dirty = true;
@@ -46,6 +48,12 @@ void light_set_type(light_t *light, light_type_t type)
 
 	light->type = type;
 	light->is_dirty = true;
+
+	// Set light cutoff angle to zero for all non-spotlights.
+	if (type != LIGHT_SPOT) {
+		light->cutoff_angle = 0;
+		light->cutoff_angle_outer = 0;
+	}
 }
 
 void light_set_colour(light_t *light, colour_t colour)
@@ -78,13 +86,14 @@ void light_set_range(light_t *light, float range)
 	light->is_dirty = true;
 }
 
-void light_set_spotlight_angle(light_t *light, float angle)
+void light_set_spotlight_cutoff_angle(light_t *light, float angle, float outer_angle)
 {
 	if (light == NULL) {
 		return;
 	}
 
-	light->angle = angle;
+	light->cutoff_angle = cosf(DEG_TO_RAD(angle));
+	light->cutoff_angle_outer = cosf(DEG_TO_RAD(outer_angle));
 	light->is_dirty = true;
 }
 
@@ -132,12 +141,12 @@ static void light_update_shader_params(light_t *light)
 	light->shader_params.col[2][0] = light->direction.x;
 	light->shader_params.col[2][1] = light->direction.y;
 	light->shader_params.col[2][2] = light->direction.z;
-	light->shader_params.col[2][3] = light->angle;
+	light->shader_params.col[2][3] = 0.0f;
 
 	light->shader_params.col[3][0] = light->range;
 	light->shader_params.col[3][1] = light->intensity;
-	light->shader_params.col[3][2] = 0.0f;
-	light->shader_params.col[3][3] = 0.0f;
+	light->shader_params.col[3][2] = (light->type == LIGHT_SPOT ? light->cutoff_angle : 0);
+	light->shader_params.col[3][3] = (light->type == LIGHT_SPOT ? light->cutoff_angle_outer : 0);
 
 	light->is_dirty = false;
 }
