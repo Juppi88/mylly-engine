@@ -96,6 +96,8 @@ static void setup(void)
 	light_set_intensity(light->light, 3.0f);
 	light_set_range(light->light, 50.0f);
 
+	scene_set_ambient_light(scene, col(100, 100, 100));
+
 /*
 	float x = 10 * cos(2 * VectorArr[VEC_TIME].x);
 	float y = 10 * sin(2 * VectorArr[VEC_TIME].x);

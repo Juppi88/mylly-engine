@@ -1,4 +1,3 @@
-#define APPLY_LIGHTING
 #pragma include inc/mylly.glinc
 
 varying vec3 worldPosition;
@@ -23,8 +22,6 @@ void main()
 }
 
 #elif defined(FRAGMENT_SHADER)
-
-vec3 AmbientLight = vec3(0.5, 0.5, 0.5);
 
 vec3 DiffuseColour = vec3(0.6, 0.6, 0.6);
 vec3 SpecularColour = vec3(0.9, 0.9, 0.9);
@@ -73,7 +70,7 @@ vec3 ApplyLight(int light)
 void main()
 {
 	// Apply ambient lighting.
-	vec3 colour = AmbientLight * DiffuseColour;
+	vec3 colour = ambientLightColour() * DiffuseColour;
 
 	// Apply each light affecting this fragment.
 	for (int i = 0; i < NumLights; i++) {

@@ -69,10 +69,6 @@ enum {
 	UNIFORM_MAT_MODEL = 1, // Model matrix
 	UNIFORM_MAT_VIEW = 2, // View matrix
 	UNIFORM_MAT_PROJECTION = 3, // Projection matrix
-	UNIFORM_MAT_USER1 = 4, // User defined uniform matrices
-	UNIFORM_MAT_USER2 = 5,
-	UNIFORM_MAT_USER3 = 6,
-	UNIFORM_MAT_USER4 = 7,
 
 	NUM_MAT_UNIFORMS
 };
@@ -81,13 +77,8 @@ enum {
 	UNIFORM_VEC_VIEW_POSITION = 0, // The position of the rendered view (camera)
 	UNIFORM_VEC_TIME = 1, // 4-element vector containing time (see core/time.h)
 	UNIFORM_VEC_SCREEN = 2, // Screen size in pixels
-	UNIFORM_VEC_USER1 = 3, // User defined uniform data vectors
-	UNIFORM_VEC_USER2 = 4,
-	UNIFORM_VEC_USER3 = 5,
-	UNIFORM_VEC_USER4 = 6,
-	UNIFORM_VEC_USER5 = 7,
-	UNIFORM_VEC_USER6 = 8,
-
+	UNIFORM_VEC_COLOUR = 3, // Colour of the mesh. For lit materials this is the ambient colour
+	
 	NUM_VEC_UNIFORMS
 };
 

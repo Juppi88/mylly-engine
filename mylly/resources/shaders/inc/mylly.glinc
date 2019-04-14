@@ -18,22 +18,13 @@
 #define MAT_MODEL 1 // Model matrix
 #define MAT_VIEW 2 // View matrix
 #define MAT_PROJECTION 3 // Projection matrix
-#define MAT_USER 4 // User defined uniform matrices
-#define MAT_USER2 5
-#define MAT_USER3 6
-#define MAT_USER4 7
-#define NUM_MAT_UNIFORMS 8
+#define NUM_MAT_UNIFORMS 4
 
 #define VEC_VIEW_POSITION 0 // The position of the rendered view (camera)
 #define VEC_TIME 1 // 4-element vector containing time (see core/time.h)
 #define VEC_SCREEN 2 // Screen size in pixels
-#define VEC_USER1 3 // User defined uniform data vectors
-#define VEC_USER2 4
-#define VEC_USER3 5
-#define VEC_USER4 6
-#define VEC_USER5 7
-#define VEC_USER6 8
-#define NUM_VEC_UNIFORMS 9
+#define VEC_COLOUR 3 // Colour of the mesh. For lit materials this is the ambient colour
+#define NUM_VEC_UNIFORMS 4
 
 #define SAMPLER_MAIN 0 // Main sampler (usually diffuse texture)
 #define NUM_SAMPLER_UNIFORMS 1
@@ -70,10 +61,8 @@ uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 #endif
 
 // -------------------------------------------------------------------------------------------------
-// Lighting variables and helpers
+// Lighting uniforms and helper methods
 // -------------------------------------------------------------------------------------------------
-
-#ifdef APPLY_LIGHTING
 
 #define MAX_LIGHTS_PER_MESH 4
 
@@ -85,7 +74,7 @@ vec3  lightColour(int light) { return LightArr[light][1].xyz; }
 float lightRange(int light) { return LightArr[light][3][0]; }
 float lightIntensity(int light) { return LightArr[light][3][1]; }
 
-#endif
+vec3  ambientLightColour() { return VectorArr[VEC_COLOUR].xyz; }
 
 // -------------------------------------------------------------------------------------------------
 // Utility macros and functions

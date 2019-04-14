@@ -80,6 +80,7 @@ typedef struct rview_t {
 	mat_t projection; // Projection matrix
 	mat_t view_projection; // View-projection matrix
 	vec4_t view_position; // Position of the view (camera)
+	vec4_t ambient_light; // Colour of ambient light in the scene
 
 	// List of visible objects in the view
 	list_t(robject_t) objects;

@@ -95,7 +95,9 @@ void rsys_begin_frame(void)
 
 	// Setup a per-frame view object for the UI.
 	NEW(rview_t, view);
+
 	ui_view = view;
+	ui_view->ambient_light = col_to_vec4(COL_WHITE);
 
 	mat_cpy(&ui_view->view_projection, &ui_parent.mvp);
 	ui_view->view_position = vec4(0, 0, 0, 1);
@@ -178,6 +180,7 @@ void rsys_render_scene(scene_t *scene)
 		);
 
 		view->view_position = vec3_to_vec4(obj_get_position(camera));
+		view->ambient_light = col_to_vec4(scene->ambient_light);
 
 		// Initialize a virtual root object.
 		view->root.matrix = mat_identity();

@@ -447,6 +447,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, rview
 
 	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
 	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
+	vector_array[UNIFORM_VEC_COLOUR] = view->ambient_light;
 
 	uint16_t width, height;
 	mylly_get_resolution(&width, &height);
