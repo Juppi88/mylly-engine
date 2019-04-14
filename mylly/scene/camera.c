@@ -71,41 +71,58 @@ void camera_set_perspective_projection(camera_t *camera, float fov, float near, 
 	camera->state |= (CAMSTATE_PROJ_DIRTY | CAMSTATE_VIEWPROJ_DIRTY | CAMSTATE_VIEWPROJ_INV_DIRTY);
 }
 
-vec2_t camera_world_to_screen(camera_t *camera, vec3_t position)
-{
-	if (camera == NULL) {
-		return vec2_zero();
-	}
-
-	vec3_t projected = mat_multiply3(*camera_get_view_projection_matrix(camera), position);
-
-	// The projected position is in normalized -1...1 coordinates, translate them to screen units.
-	uint16_t screen_width, screen_height;
-	mylly_get_resolution(&screen_width, &screen_height);
-
-	return vec2(
-		screen_width * (projected.x + 1.0f) / 2.0f,
-		screen_height * (1.0f - (projected.y + 1.0f) / 2.0f)
-	);
-}
-
-vec3_t camera_screen_to_world(camera_t *camera, vec2_t position)
+vec3_t camera_world_to_screen(camera_t *camera, vec3_t position)
 {
 	if (camera == NULL) {
 		return vec3_zero();
 	}
 
+	vec4_t projected = mat_multiply4(
+		*camera_get_view_projection_matrix(camera),
+		vec3_to_vec4(position)
+	);
+
+	// The projected position is in normalized -1...1 coordinates, translate them to screen units.
+	// Also calculate and return the depth value as the z-coordinate.
+	uint16_t screen_width, screen_height;
+	mylly_get_resolution(&screen_width, &screen_height);
+
+	return vec3(
+		screen_width * (projected.x + 1.0f) / 2.0f,
+		screen_height * (1.0f - (projected.y + 1.0f) / 2.0f),
+		projected.z / projected.w
+	);
+}
+
+vec3_t camera_screen_to_world(camera_t *camera, vec3_t position)
+{
+	if (camera == NULL) {
+		return vec3_zero();
+	}
+
+	// Calculate depth (and screen position) at the camera's position, moved position.z units away
+	// towards the forward vector.
+	vec3_t direction = vec3_multiply(obj_get_forward_vector(camera->parent), position.z);
+	vec3_t target_depth_pos = vec3_add(obj_get_position(camera->parent), direction);
+
+	vec3_t target_depth_screen = camera_world_to_screen(camera, target_depth_pos);
+
 	// Normalize screen coordinates to a -1...1 range.
 	uint16_t screen_width, screen_height;
 	mylly_get_resolution(&screen_width, &screen_height);
 
-	vec3_t normalized = vec3(
+	vec4_t normalized = vec4(
 		2.0f * position.x / screen_width - 1.0f,
 		2.0f * (1.0f - position.y / screen_height) - 1.0f,
-		0
+		target_depth_screen.z,
+		1.0f
 	);
 
-	return mat_multiply3(*camera_get_view_projection_matrix_inverse(camera), normalized);
+	// Calculate world position at the screen position and desired depth.
+	vec4_t world = mat_multiply4(*camera_get_view_projection_matrix_inverse(camera), normalized);
+
+	// Take into account the perspective projection.
+	return vec3(world.x / world.w, world.y / world.w, world.z / world.w);
 }
 
 void camera_update_view_matrix(camera_t *camera)
@@ -227,6 +244,8 @@ void camera_update_projection_matrix(camera_t *camera)
 			0
 		);
 	}
+
+	mat_print(camera->projection);
 
 	camera->state &= ~CAMSTATE_PROJ_DIRTY;
 }

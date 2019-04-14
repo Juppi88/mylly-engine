@@ -58,8 +58,12 @@ void camera_set_orthographic_projection(camera_t *camera, float size, float near
 // Set up a perspective projection.
 void camera_set_perspective_projection(camera_t *camera, float fov, float near, float far);
 
-vec2_t camera_world_to_screen(camera_t *camera, vec3_t position);
-vec3_t camera_screen_to_world(camera_t *camera, vec2_t position);
+// Convert coordinates from world space to screen space and vice versa. The Z coordinate in
+// world-to-screen conversion return value is the depth value. When doing a screen-to-world
+// conversion, the Z value in the screen coordinate is the distance from the camera towards
+// the forward vector.
+vec3_t camera_world_to_screen(camera_t *camera, vec3_t position);
+vec3_t camera_screen_to_world(camera_t *camera, vec3_t position);
 
 static INLINE const mat_t *camera_get_view_matrix(camera_t *camera);
 static INLINE const mat_t *camera_get_projection_matrix(camera_t *camera);
