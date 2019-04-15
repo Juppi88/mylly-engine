@@ -1,6 +1,7 @@
 #include "vector.h"
 #include "math.h"
 #include <cglm/cglm.h>
+#include <math.h>
 
 // --------------------------------------------------------------------------------
 
@@ -90,6 +91,14 @@ vec3_t vec3_multiply(vec3_t v, float value)
 {
 	vec3_t result;
 	glm_vec_scale(v.vec, value, result.vec);
+
+	return result;
+}
+
+vec3_t vec3_divide(vec3_t v, float value)
+{
+	vec3_t result;
+	glm_vec_scale(v.vec, 1.0f / value, result.vec);
 
 	return result;
 }
