@@ -58,6 +58,20 @@ extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointer;
 extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArray;
 extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 
+// Render buffers
+extern PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbuffer;
+extern PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffers;
+extern PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffers;
+extern PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorage;
+
+// Frame buffers
+extern PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebuffer;
+extern PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffers;
+extern PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffers;
+extern PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2D;
+extern PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbuffer;
+extern PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatus;
+
 // Misc functions
 extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 

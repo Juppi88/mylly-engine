@@ -42,6 +42,20 @@ PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointer;
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArray;
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray;
 
+// Render buffers
+PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbuffer;
+PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffers;
+PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffers;
+PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorage;
+
+// Frame buffers
+PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebuffer;
+PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffers;
+PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffers;
+PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2D;
+PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbuffer;
+PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatus;
+
 PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
@@ -105,6 +119,21 @@ bool glext_initialize(void)
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glEnableVertexAttribArray");
 	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)glext_get_method("glDisableVertexAttribArray");
 
+	// Render buffers
+	glBindRenderbuffer = (PFNGLBINDRENDERBUFFEREXTPROC)glext_get_method("glBindRenderbuffer");
+	glGenRenderbuffers = (PFNGLGENRENDERBUFFERSEXTPROC)glext_get_method("glGenRenderbuffers");
+	glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSEXTPROC)glext_get_method("glDeleteRenderbuffers");
+	glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEEXTPROC)glext_get_method("glRenderbufferStorage");
+
+	// Frame buffers
+	glBindFramebuffer = (PFNGLBINDFRAMEBUFFEREXTPROC)glext_get_method("glBindFramebuffer");
+	glGenFramebuffers = (PFNGLGENFRAMEBUFFERSEXTPROC)glext_get_method("glGenFramebuffers");
+	glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSEXTPROC)glext_get_method("glDeleteFramebuffers");
+	glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)glext_get_method("glFramebufferTexture2D");
+	glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)glext_get_method("glFramebufferRenderbuffer");
+	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)glext_get_method("glCheckFramebufferStatus");
+
+	// Misc methods
 	glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)glext_get_method("glBlendFuncSeparate");
 
 	glDrawRangeElementsARB = (PFNGLDRAWRANGEELEMENTSPROC)glext_get_method("glDrawRangeElements");
