@@ -3,11 +3,10 @@
 #define __CAMERA_H
 
 #include "core/defines.h"
+#include "collections/array.h"
 #include "math/matrix.h"
 
-BEGIN_DECLARATIONS;
-
-typedef struct object_t object_t;
+// -------------------------------------------------------------------------------------------------
 
 #define PERSPECTIVE_NEAR -0.1f
 #define PERSPECTIVE_FAR -1000
@@ -45,9 +44,14 @@ typedef struct camera_t {
 	float size; // Size of the camera when ortographic
 	float fov; // Field of view
 
+	// List of post processing shaders to be applied to the camera's result image.
+	arr_t(shader_t*) post_processing_effects;
+
 } camera_t;
 
 // -------------------------------------------------------------------------------------------------
+
+BEGIN_DECLARATIONS;
 
 camera_t *camera_create(object_t *parent);
 void camera_destroy(camera_t *camera);
@@ -74,6 +78,9 @@ void camera_update_view_matrix(camera_t *camera);
 void camera_update_projection_matrix(camera_t *camera);
 void camera_update_view_projection_matrix(camera_t *camera);
 void camera_update_view_projection_matrix_inverse(camera_t *camera);
+
+// Apply post-processing shaders to the camera's view.
+void camera_add_post_processing_effect(camera_t *camera, shader_t *shader);
 
 // -------------------------------------------------------------------------------------------------
 

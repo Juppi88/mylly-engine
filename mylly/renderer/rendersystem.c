@@ -186,6 +186,13 @@ void rsys_render_scene(scene_t *scene)
 		view->root.matrix = mat_identity();
 		view->root.mvp = view->projection;
 
+		// Apply post processing effects.
+		shader_t *effect;
+		
+		arr_foreach(camera->camera->post_processing_effects, effect) {
+			arr_push(view->post_processing_effects, effect);
+		}
+
 		// Add the view to the list of views to be rendered.
 		list_push(views, view);
 	}
@@ -535,6 +542,8 @@ static void rsys_free_frame_data(void)
 		list_foreach_safe(view->objects, obj, tmp2) {
 			mem_free(obj);
 		}
+
+		arr_clear(view->post_processing_effects);
 
 		// Remove the view itself.
 		mem_free(view);

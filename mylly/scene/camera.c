@@ -4,7 +4,7 @@
 #include "math/math.h"
 #include "core/mylly.h"
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 camera_t *camera_create(object_t *parent)
 {
@@ -27,6 +27,8 @@ camera_t *camera_create(object_t *parent)
 	camera->size = 2;
 	camera->fov = 60;
 
+	arr_init(camera->post_processing_effects);
+
 	return camera;
 }
 
@@ -35,6 +37,8 @@ void camera_destroy(camera_t *camera)
 	if (camera == NULL) {
 		return;
 	}
+
+	arr_clear(camera->post_processing_effects);
 
 	DESTROY(camera);
 }
@@ -271,4 +275,14 @@ void camera_update_view_projection_matrix_inverse(camera_t *camera)
 
 	camera->view_projection_inv = mat_invert(*camera_get_view_projection_matrix(camera));
 	camera->state &= ~CAMSTATE_VIEWPROJ_INV_DIRTY;
+}
+
+void camera_add_post_processing_effect(camera_t *camera, shader_t *shader)
+{
+	if (camera == NULL || shader == NULL) {
+		return;
+	}
+
+	// TODO: Determine whether the shader is suitable for post-processing effects.
+	arr_push(camera->post_processing_effects, shader);
 }

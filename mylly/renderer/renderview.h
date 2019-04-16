@@ -93,6 +93,9 @@ typedef struct rview_t {
 	// (for example debug meshes).
 	robject_t root;
 
+	// List of post processing shaders for the view.
+	arr_t(shader_t*) post_processing_effects;
+
 } rview_t;
 
 // -------------------------------------------------------------------------------------------------
