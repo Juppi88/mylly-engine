@@ -13,20 +13,17 @@ void main()
 
 #elif defined(FRAGMENT_SHADER)
 
-float strength = 0.0015;
-vec2 rOffset = strength * vec2(1, 1);
-vec2 gOffset = strength * vec2(1, -1);
-vec2 bOffset = strength * vec2(-1, 1);
+float strength = 0.0025;
 
 void main()
 {
-	vec4 col = texture(SamplerArr[SAMPLER_MAIN], texCoord.st);
+	vec2 offset = vec2(strength, strength);
 
-	float r = texture2D(SamplerArr[SAMPLER_MAIN], texCoord - rOffset).r;
-    float g = texture2D(SamplerArr[SAMPLER_MAIN], texCoord - gOffset).g;
-    float b = texture2D(SamplerArr[SAMPLER_MAIN], texCoord - bOffset).b;
+	float r = texture2D(SamplerArr[SAMPLER_MAIN], texCoord - offset).r;
+	float g = texture2D(SamplerArr[SAMPLER_MAIN], texCoord).g;
+	float b = texture2D(SamplerArr[SAMPLER_MAIN], texCoord + offset).b;
 
-    gl_FragColor = vec4(r, g, b, 1.0);
+	gl_FragColor = vec4(r, g, b, 1);
 }
 
 #endif

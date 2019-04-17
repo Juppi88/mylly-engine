@@ -79,6 +79,7 @@ static void rend_clear_uniforms(void);
 
 static bool rend_create_framebuffers(void);
 static void rend_destroy_framebuffers(void);
+static void rend_draw_post_processing_effects(rview_t *view);
 static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index);
 
 // -------------------------------------------------------------------------------------------------
@@ -273,9 +274,7 @@ void rend_draw_views(rview_t *first_view)
 			bool post_process = (view->post_processing_effects.count != 0);
 			
 			// Bind the post processing framebuffer if the view defines any post processing effects.
-			if (post_process) {
-				glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[0]);
-			}
+			glBindFramebuffer(GL_FRAMEBUFFER, (post_process ? framebuffers[0] : 0));
 
 			list_foreach(view->meshes[queue], mesh) {
 
@@ -285,25 +284,7 @@ void rend_draw_views(rview_t *first_view)
 
 			// Render the view again with post processing.
 			if (post_process) {
-
-				// Apply each post processing effect in order.
-				for (uint32_t i = 0, c = view->post_processing_effects.count; i < c; i++) {
-
-					if (i < c - 1) {
-
-						// Bind the framebuffer not used by the previous render pass.
-						glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[1 + i & 1]);
-					}
-					else {
-						// Last effect, bind back to the screen's framebuffer.
-						glBindFramebuffer(GL_FRAMEBUFFER, 0);
-					}
-					
-					// Render the contents of the previous framebuffer into the next one (or the
-					// screen if this is the last effect).
-					shader_t *effect = view->post_processing_effects.items[i];
-					rend_draw_framebuffer_with_shader(effect, i & 1);
-				}
+				rend_draw_post_processing_effects(view);
 			}
 		}
 	}
@@ -879,6 +860,41 @@ static void rend_destroy_framebuffers(void)
 	glDeleteBuffersARB(1, &framebuffer_vertices);
 }
 
+static void rend_draw_post_processing_effects(rview_t *view)
+{
+	// Update relevant uniform arrays.
+	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
+	sampler_array[UNIFORM_SAMPLER_NORMAL] = -1;
+
+	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
+	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
+	vector_array[UNIFORM_VEC_COLOUR] = view->ambient_light;
+
+	uint16_t width, height;
+	mylly_get_resolution(&width, &height);
+	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, 0, 0);
+	
+
+	// Apply each post processing effect in order.
+	for (uint32_t i = 0, c = view->post_processing_effects.count; i < c; i++) {
+
+		if (i < c - 1) {
+
+			// Bind the framebuffer not used by the previous render pass.
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[1 + i & 1]);
+		}
+		else {
+			// Last effect, bind back to the screen's framebuffer.
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+		
+		// Render the contents of the previous framebuffer into the next one (or the
+		// screen if this is the last effect).
+		shader_t *effect = view->post_processing_effects.items[i];
+		rend_draw_framebuffer_with_shader(effect, i & 1);
+	}
+}
+
 static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 {
 	// Switch to the post-processing shader.
@@ -905,12 +921,12 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 	rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
 	                           sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, colour));
 
-	// Apply sampler array.
-	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
-	sampler_array[UNIFORM_SAMPLER_NORMAL] = -1;
-
-	if (shader->sampler_array >= 0) {
+	// Apply relevant uniform arrays.
+	if (shader->vector_array >= 0) {
 		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
+	}
+	if (shader->sampler_array >= 0) {
+		glUniform4fv(shader->vector_array, NUM_VEC_UNIFORMS, &vector_array[0].vec[0]);
 	}
 	
 	// Draw the framebuffer's contents into a screen sized quad.
