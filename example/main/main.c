@@ -179,7 +179,9 @@ static void setup(void)
 	mylly_set_scene(scene);
 
 	// Add a post processing effect to the camera.
+	camera_add_post_processing_effect(camera->camera, res_get_shader("effect-fxaa"));
 	camera_add_post_processing_effect(camera->camera, res_get_shader("effect-chromatic-aberration"));
+	//camera_add_post_processing_effect(camera->camera, res_get_shader("effect-glitch"));
 
 
 	//
