@@ -9,6 +9,8 @@
 #include "core/mylly.h"
 #include <stdio.h>
 
+// -------------------------------------------------------------------------------------------------
+
 // Device and OpenGL context
 #ifdef _WIN32
 static HDC context;
@@ -30,13 +32,13 @@ static int sampler_array[NUM_SAMPLER_UNIFORMS];
 static int num_mesh_lights;
 static mat_t light_array[MAX_LIGHTS_PER_MESH];
 
-// Framebuffer for post processing.
-static GLuint framebuffer;
+// Framebuffers for post processing.
 static GLuint framebuffer_vertices;
-static GLuint framebuffer_texture;
-static GLuint depth_buffer;
+static GLuint framebuffers[2];
+static GLuint framebuffer_textures[2];
+static GLuint depth_buffers[2];
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // The source code for a default GLSL shader which renders everything in purple.
 // Used when no valid shaders are available.
@@ -62,7 +64,7 @@ static const char *default_shader_source =
 "\n"
 "#endif\n";
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static void rend_draw_mesh(rview_t *view, rmesh_t *mesh);
 
@@ -75,11 +77,11 @@ static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint si
 static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
-static bool rend_create_framebuffer(void);
-static void rend_destroy_framebuffer(void);
-static void rend_draw_framebuffer_with_shader(shader_t *shader);
+static bool rend_create_framebuffers(void);
+static void rend_destroy_framebuffers(void);
+static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index);
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 bool rend_initialize(void)
 {
@@ -143,11 +145,11 @@ bool rend_initialize(void)
 		return false;	
 	}
 
-	// Create a framebuffer for post processing effects.
-	// TODO: Resize the buffer every time rendering resolution changes!
-	if (!rend_create_framebuffer()) {
+	// Create two framebuffers for rendering post processing effects.
+	// TODO: Resize the buffers every time rendering resolution changes!
+	if (!rend_create_framebuffers()) {
 
-		log_error("Renderer", "Could not create a framebuffer.");
+		log_error("Renderer", "Could not create framebuffers.");
 		return false;
 	}
 
@@ -163,8 +165,8 @@ bool rend_initialize(void)
 
 void rend_shutdown(void)
 {
-	// Destroy framebuffer.
-	rend_destroy_framebuffer();
+	// Destroy framebuffers.
+	rend_destroy_framebuffers();
 	
 	// Destroy the rendering context.
 #ifdef _WIN32
@@ -186,13 +188,16 @@ void rend_begin_draw(void)
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.0f);
 	
-	// Clear hardware buffer.
+	// Clear the framebuffers.
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Clear the framebuffer.
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[1]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Clear hardware buffer.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	glEnable(GL_BLEND);
@@ -269,7 +274,7 @@ void rend_draw_views(rview_t *first_view)
 			
 			// Bind the post processing framebuffer if the view defines any post processing effects.
 			if (post_process) {
-				glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+				glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[0]);
 			}
 
 			list_foreach(view->meshes[queue], mesh) {
@@ -281,12 +286,24 @@ void rend_draw_views(rview_t *first_view)
 			// Render the view again with post processing.
 			if (post_process) {
 
-				// Bind back to the screen's framebuffer.
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				// Apply each post processing effect in order.
+				for (uint32_t i = 0, c = view->post_processing_effects.count; i < c; i++) {
 
-				// TODO: We're only drawing with the first shader here - Add support for multiple
-				// post processing effects!
-				rend_draw_framebuffer_with_shader(view->post_processing_effects.items[0]);
+					if (i < c - 1) {
+
+						// Bind the framebuffer not used by the previous render pass.
+						glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[1 + i & 1]);
+					}
+					else {
+						// Last effect, bind back to the screen's framebuffer.
+						glBindFramebuffer(GL_FRAMEBUFFER, 0);
+					}
+					
+					// Render the contents of the previous framebuffer into the next one (or the
+					// screen if this is the last effect).
+					shader_t *effect = view->post_processing_effects.items[i];
+					rend_draw_framebuffer_with_shader(effect, i & 1);
+				}
 			}
 		}
 	}
@@ -783,40 +800,53 @@ static void rend_clear_uniforms(void)
 	num_mesh_lights = 0;
 }
 
-static bool rend_create_framebuffer(void)
+static bool rend_create_framebuffers(void)
 {
 	// Generate a screen sized texture for the frame buffer.
 	uint16_t screen_width, screen_height;
 	mylly_get_resolution(&screen_width, &screen_height);
 
 	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(1, &framebuffer_texture);
-	glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glGenTextures(2, framebuffer_textures);
+
+	for (int i = 0; i < 2; i++) {
+
+		glBindTexture(GL_TEXTURE_2D, framebuffer_textures[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Create a depth buffer.
-	glGenRenderbuffers(1, &depth_buffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, screen_width, screen_height);
+	glGenRenderbuffers(2, depth_buffers);
+
+	for (int i = 0; i < 2; i++) {	
+
+		glBindRenderbuffer(GL_RENDERBUFFER, depth_buffers[i]);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, screen_width, screen_height);
+	}
+
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	// Create a framebuffer and attach the texture and depth buffer to it.
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_texture, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
+	glGenFramebuffers(2, framebuffers);
 
-	// Check that the framebuffer was created successfully.
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	for (int i = 0; i < 2; i++) {
 
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		return false;
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_textures[i], 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffers[i]);
+
+		// Check that the framebuffer was created successfully.
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			return false;
+		}	
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -837,15 +867,19 @@ static bool rend_create_framebuffer(void)
 	return true;
 }
 
-static void rend_destroy_framebuffer(void)
+static void rend_destroy_framebuffers(void)
 {
-	glDeleteFramebuffers(1, &framebuffer);
-	glDeleteTextures(1, &framebuffer_texture);
-	glDeleteRenderbuffers(1, &depth_buffer);
+	for (int i = 0; i < 2; i++) {
+
+		glDeleteFramebuffers(1, &framebuffers[i]);
+		glDeleteTextures(1, &framebuffer_textures[i]);
+		glDeleteRenderbuffers(1, &depth_buffers[i]);
+	}
+
 	glDeleteBuffersARB(1, &framebuffer_vertices);
 }
 
-static void rend_draw_framebuffer_with_shader(shader_t *shader)
+static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 {
 	// Switch to the post-processing shader.
 	glUseProgram(shader->program);
@@ -853,8 +887,8 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader)
 
 	// Select the framebuffer texture.
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
-	active_texture = framebuffer_texture;
+	glBindTexture(GL_TEXTURE_2D, framebuffer_textures[fb_index]);
+	active_texture = framebuffer_textures[fb_index];
 
 	// Disable all vertex attributes.
 	for (int i = 0; i < NUM_SHADER_ATTRIBUTES; i++) {
