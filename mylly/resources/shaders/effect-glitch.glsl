@@ -13,16 +13,20 @@ void main()
 
 #elif defined(FRAGMENT_SHADER)
 
-float _ChromAberrAmountX = 0.0;
-float _ChromAberrAmountY = 0.0;
-vec4 _DisplacementAmount = vec4(0.1, 0.1, 0.1, 0.1);
-float _DesaturationAmount = 0.1;
-float _RightStripesAmount = 0.1;
-float _RightStripesFill = 0.7;
-float _LeftStripesAmount = 0.1;
-float _LeftStripesFill = 0.7;
-float _WavyDisplFreq = 0.1;
-float _GlitchEffect = 0.3;
+// Total glitch effect amount. Only the fractional part will matter.
+float GlitchEffect = 0;
+
+// Chromatic aberration effect strength.
+float ChromaticAberrX = 0.01;
+float ChromaticAberrY = 0.0025;
+
+// Displacement and waves. First two elements of the vector affect stripe displacement, the last two
+// are for wave displacement.
+vec4 Displacement = vec4(-0.01, 0.01, -0.0025, 0.0025);
+float WaveEffectFreq = 200;
+
+// Horizontal stripes. The elements are: Left/right stripes frequency, left/right stripes fill.
+vec4 Stripes = vec4(100, 70, 0.3, 0.4);
 
 float rand(vec2 co)
 {
@@ -31,46 +35,51 @@ float rand(vec2 co)
 
 void main()
 {
-	vec2 _ChromAberrAmount = vec2(_ChromAberrAmountX, _ChromAberrAmountY);
+	GlitchEffect = 0.5 + 0.5 * sin(4.5 * time()) + time();
 
-	vec4 displAmount = vec4(0, 0, 0, 0);
-	vec2 chromAberrAmount = vec2(0, 0);
 	float rightStripesFill = 0;
 	float leftStripesFill = 0;
-	//Glitch control
-	if (fract(_GlitchEffect) < 0.8) {
-		rightStripesFill = mix(0, _RightStripesFill, fract(_GlitchEffect) * 2);
-		leftStripesFill = mix(0, _LeftStripesFill, fract(_GlitchEffect) * 2);
+	vec2 chromaticAberr = vec2(ChromaticAberrX, ChromaticAberrY);
+	vec2 chromAberrAmount = vec2(0, 0);
+	vec4 displAmount = vec4(0, 0, 0, 0);
+
+	// Calculate multipliers for different effects based on the overall glitch factor.
+	float factor = fract(GlitchEffect);
+
+	if (factor < 0.7) {
+		leftStripesFill =  mix(0, Stripes.z, factor * 2);
+		rightStripesFill = mix(0, Stripes.w, factor * 2);
 	}
-	if (fract(_GlitchEffect) < 0.5) {
-		chromAberrAmount = mix(vec2(0, 0), _ChromAberrAmount.xy, fract(_GlitchEffect) * 2);
+	if (factor < 0.5) {
+		chromAberrAmount = mix(vec2(0, 0), chromaticAberr, factor * 2);
 	}
-	if (fract(_GlitchEffect) < 0.33) {
-		displAmount = mix(vec4(0,0,0,0), _DisplacementAmount, fract(_GlitchEffect) * 3);
+	if (factor < 0.5) {
+		displAmount = mix(vec4(0, 0, 0, 0), Displacement, factor * 2);
 	}
 
-	//Stripes section
-	float stripesRight = floor(texCoord.y * _RightStripesAmount);
+	// Calculate stripes.
+	float stripesLeft = floor(texCoord.y * Stripes.x);
+	stripesLeft = step(leftStripesFill, rand(vec2(stripesLeft, stripesLeft)));
+
+	float stripesRight = floor(texCoord.y * Stripes.y);
 	stripesRight = step(rightStripesFill, rand(vec2(stripesRight, stripesRight)));
 
-	float stripesLeft = floor(texCoord.y * _LeftStripesAmount);
-	stripesLeft = step(leftStripesFill, rand(vec2(stripesLeft, stripesLeft)));
-	//Stripes section
+	vec4 wavyDispl = mix(
+		vec4(1, 0, 0, 1),
+		vec4(0, 1, 0, 1),
+		(sin(texCoord.y * WaveEffectFreq) + 1) / 2
+	);
 
-	vec4 wavyDispl = mix(vec4(1,0,0,1), vec4(0,1,0,1), (sin(texCoord.y * _WavyDisplFreq) + 1) / 2);
+	// Calculate displacement.
+	vec2 displCoord = (displAmount.xy * stripesRight) - (displAmount.xy * stripesLeft);
+	displCoord += (displAmount.zw * wavyDispl.r) - (displAmount.zw * wavyDispl.g);
 
-	//Displacement section
-	vec2 displUV = (displAmount.xy * stripesRight) - (displAmount.xy * stripesLeft);
-	displUV += (displAmount.zw * wavyDispl.r) - (displAmount.zw * wavyDispl.g);
-	//Displacement section
+	// Calculate chromatic aberration.
+	float r = texture2D(getTexture(), texCoord + displCoord + chromAberrAmount).r;
+	float g = texture2D(getTexture(), texCoord + displCoord).g;
+	float b = texture2D(getTexture(), texCoord + displCoord - chromAberrAmount).b;
 
-	//Chromatic aberration section
-	float chromR = texture2D(getTexture(), texCoord + displUV + chromAberrAmount).r;
-	float chromG = texture2D(getTexture(), texCoord + displUV).g;
-	float chromB = texture2D(getTexture(), texCoord + displUV - chromAberrAmount).b;
-	//Chromatic aberration section
-
-	gl_FragColor = vec4(chromR, chromG, chromB, 1);
+	gl_FragColor = vec4(r, g, b, 1);
 }
 
 #endif

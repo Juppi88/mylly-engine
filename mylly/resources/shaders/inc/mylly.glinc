@@ -34,9 +34,14 @@ uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
 uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
 uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 
-sampler2D getTexture() { return SamplerArr[SAMPLER_MAIN]; }
-sampler2D getNormalMap() { return SamplerArr[SAMPLER_NORMAL]; }
+#define   getTexture() (SamplerArr[SAMPLER_MAIN])
+#define   getNormalMap() (SamplerArr[SAMPLER_NORMAL])
 vec2      screenResolution() { return VectorArr[VEC_SCREEN].xy; }
+
+float     time() { return VectorArr[VEC_TIME].x; }
+float     cosTime() { return VectorArr[VEC_TIME].y; }
+float     sinTime() { return VectorArr[VEC_TIME].z; }
+float     deltaTime() { return VectorArr[VEC_TIME].w; }
 
 // -------------------------------------------------------------------------------------------------
 // Vertex attributes

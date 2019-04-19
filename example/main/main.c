@@ -59,7 +59,7 @@ static void setup(void)
 	obj_look_at(camera, vec3_zero(), vec3_right());
 	//obj_set_local_rotation(camera, quat_from_euler(0, 0, DEG_TO_RAD(45)));
 
-	camera_set_perspective_projection(camera->camera, 90, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
+	camera_set_perspective_projection(camera->camera, 60, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
 	//camera_set_orthographic_projection(camera->camera, 20, ORTOGRAPHIC_NEAR, ORTOGRAPHIC_FAR);
 
 	// Create a test model (a quad) for testing.
