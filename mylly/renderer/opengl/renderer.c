@@ -923,10 +923,10 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 
 	// Apply relevant uniform arrays.
 	if (shader->vector_array >= 0) {
-		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
+		glUniform4fv(shader->vector_array, NUM_VEC_UNIFORMS, &vector_array[0].vec[0]);
 	}
 	if (shader->sampler_array >= 0) {
-		glUniform4fv(shader->vector_array, NUM_VEC_UNIFORMS, &vector_array[0].vec[0]);
+		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
 	}
 	
 	// Draw the framebuffer's contents into a screen sized quad.
