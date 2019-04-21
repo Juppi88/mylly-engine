@@ -83,6 +83,4 @@ void material_apply_parameters(material_t *material)
 				break;
 		}
 	}
-
-	printf("Applysin kasan materiaaleja!\n");
 }

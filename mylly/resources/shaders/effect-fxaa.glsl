@@ -15,8 +15,8 @@ void main()
 	gl_Position = vec4(Vertex, 0, 1);
 	texCoord = TexCoord;
 
-	vec2 fragCoord = TexCoord * screenResolution();
-	vec2 inverseVP = 1.0 / screenResolution();
+	vec2 fragCoord = TexCoord * ScreenResolution();
+	vec2 inverseVP = 1.0 / ScreenResolution();
 
 	// Calculate texture coordinates in the vertex shader to avoid unnecessary texture reads.
 	rgbNW = (fragCoord + vec2(-1.0, -1.0)) * inverseVP;
@@ -36,15 +36,15 @@ void main()
 {
 	vec4 color;
 
-	vec2 fragCoord = texCoord * screenResolution();
-	vec2 inverseVP = vec2(1.0 / screenResolution().x, 1.0 / screenResolution().y);
+	vec2 fragCoord = texCoord * ScreenResolution();
+	vec2 inverseVP = vec2(1.0 / ScreenResolution().x, 1.0 / ScreenResolution().y);
 
 	// Look up the fragment and others around it.
-	vec3 rgbNW = texture2D(getTexture(), rgbNW).xyz;
-	vec3 rgbNE = texture2D(getTexture(), rgbNE).xyz;
-	vec3 rgbSW = texture2D(getTexture(), rgbSW).xyz;
-	vec3 rgbSE = texture2D(getTexture(), rgbSE).xyz;
-	vec4 texColor = texture2D(getTexture(), rgbM);
+	vec3 rgbNW = texture2D(TextureMain(), rgbNW).xyz;
+	vec3 rgbNE = texture2D(TextureMain(), rgbNE).xyz;
+	vec3 rgbSW = texture2D(TextureMain(), rgbSW).xyz;
+	vec3 rgbSE = texture2D(TextureMain(), rgbSE).xyz;
+	vec4 texColor = texture2D(TextureMain(), rgbM);
 	vec3 rgbM  = texColor.xyz;
 
 	// Calculate luminances.
@@ -71,12 +71,12 @@ void main()
 	          dir * rcpDirMin)) * inverseVP;
 
 	vec3 rgbA = 0.5 * (
-	    texture2D(getTexture(), fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-	    texture2D(getTexture(), fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+	    texture2D(TextureMain(), fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+	    texture2D(TextureMain(), fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
 
 	vec3 rgbB = rgbA * 0.5 + 0.25 * (
-	    texture2D(getTexture(), fragCoord * inverseVP + dir * -0.5).xyz +
-	    texture2D(getTexture(), fragCoord * inverseVP + dir * 0.5).xyz);
+	    texture2D(TextureMain(), fragCoord * inverseVP + dir * -0.5).xyz +
+	    texture2D(TextureMain(), fragCoord * inverseVP + dir * 0.5).xyz);
 
 	float lumaB = dot(rgbB, luma);
 

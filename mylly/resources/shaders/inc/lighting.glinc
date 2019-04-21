@@ -1,0 +1,82 @@
+#ifndef LIGHTING_GLINC
+#define LIGHTING_GLINC
+
+// -------------------------------------------------------------------------------------------------
+// Uniforms and helper methods for lighting.
+// -------------------------------------------------------------------------------------------------
+
+#define MAX_LIGHTS_PER_MESH 4
+
+uniform int NumLights;
+uniform mat4 LightArr[MAX_LIGHTS_PER_MESH];
+
+vec4  LightPosition(int light) { return LightArr[light][0]; }
+vec3  LightColour(int light) { return LightArr[light][1].rgb; }
+float LightRange(int light) { return LightArr[light][3][0]; }
+float LightIntensity(int light) { return LightArr[light][3][1]; }
+vec3  LightDirection(int light) { return LightArr[light][2].xyz; }
+float LightCutoffAngle(int light) { return LightArr[light][3][2]; }
+float LightCutoffOuterAngle(int light) { return LightArr[light][3][3]; }
+
+vec3  AmbientLightColour() { return VectorArr[VEC_COLOUR].rgb; }
+
+// -------------------------------------------------------------------------------------------------
+
+vec3 ApplyAmbientLight(vec3 matDiffColour)
+{
+	return AmbientLightColour() * matDiffColour;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+vec3 ApplyPhongLight(int light,
+                     vec3 worldPosition, vec3 normal,
+                     vec3 matDiffColour, vec3 matSpecColour, float matShininess)
+{
+	// Calculate light intensity at the fragment.
+	vec3 position = LightPosition(light).xyz;
+	vec3 direction;
+	float intensity;
+
+	// Directional light, no attenuation.
+	if (LightPosition(light).w == 0) {
+
+		intensity = LightIntensity(light);
+		direction = normalize(position);
+	}
+
+	// Spot or point light.
+	else {
+		float distance = length(position - worldPosition);
+		float r = distance / LightRange(light);
+
+		intensity = LightIntensity(light) * 1.0 / (1.0 + 25.0 * r * r);
+		direction = normalize(position - worldPosition);
+	}
+
+	// Apply diffuse lighting.
+	float diffuseStrength = max(dot(normal, direction), 0.0);
+	vec3 diffuse = diffuseStrength * matDiffColour;
+
+	// Apply specular lighting.
+	vec3 viewDirection = normalize(ViewPosition() - worldPosition);
+	vec3 reflectDirection = reflect(-direction, normal);
+	float specularStrength = pow(max(dot(viewDirection, reflectDirection), 0.0), matShininess);
+	vec3 specular = specularStrength * matSpecColour;
+
+	// Spotlight attenuation.
+	if (LightCutoffAngle(light) > 0) {
+
+		float theta = dot(-direction, normalize(LightDirection(light)));
+		float epsilon = LightCutoffAngle(light) - LightCutoffOuterAngle(light);
+		
+		intensity *= clamp((theta - LightCutoffOuterAngle(light)) / epsilon, 0.0, 1.0);
+	}
+
+	// Return combined diffuse and specular lighting caused by the light instance.
+	return intensity * (diffuse + specular) * LightColour(light);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+#endif // LIGHTING_GLINC

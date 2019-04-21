@@ -4,10 +4,11 @@ varying vec4 colour;
 
 #if defined(VERTEX_SHADER)
 
-// Attributes for UI widget quads.
+// Attributes for debug primitives.
 attribute vec3 Vertex;
 attribute vec4 Colour;
 
+// To avoid having to include the entire engine include file, we'll define the matrix array here.
 uniform mat4 MatrixArr[1];
 
 void main()

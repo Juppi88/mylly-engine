@@ -19,9 +19,9 @@ void main()
 {
 	vec2 offset = vec2(strength, strength);
 
-	float r = texture2D(SamplerArr[SAMPLER_MAIN], texCoord - offset).r;
-	float g = texture2D(SamplerArr[SAMPLER_MAIN], texCoord).g;
-	float b = texture2D(SamplerArr[SAMPLER_MAIN], texCoord + offset).b;
+	float r = texture2D(TextureMain(), texCoord - offset).r;
+	float g = texture2D(TextureMain(), texCoord).g;
+	float b = texture2D(TextureMain(), texCoord + offset).b;
 
 	gl_FragColor = vec4(r, g, b, 1);
 }

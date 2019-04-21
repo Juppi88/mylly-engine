@@ -28,8 +28,6 @@ float WaveEffectFreq = 200;
 // Horizontal stripes. The elements are: Left/right stripes frequency, left/right stripes fill.
 vec4 Stripes = vec4(100, 70, 0.3, 0.4);
 
-uniform vec4 BLAHLOL;
-
 float rand(vec2 co)
 {
 	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
@@ -37,7 +35,7 @@ float rand(vec2 co)
 
 void main()
 {
-	GlitchEffect = 0.5 + 0.5 * sin(4.5 * time()) + time();
+	GlitchEffect = 0.5 + 0.5 * sin(4.5 * Time()) + Time();
 
 	float rightStripesFill = 0;
 	float leftStripesFill = 0;
@@ -77,9 +75,9 @@ void main()
 	displCoord += (displAmount.zw * wavyDispl.r) - (displAmount.zw * wavyDispl.g);
 
 	// Calculate chromatic aberration.
-	float r = texture2D(getTexture(), texCoord + displCoord + chromAberrAmount).r;
-	float g = texture2D(getTexture(), texCoord + displCoord).g;
-	float b = texture2D(getTexture(), texCoord + displCoord - chromAberrAmount).b;
+	float r = texture2D(TextureMain(), texCoord + displCoord + chromAberrAmount).r;
+	float g = texture2D(TextureMain(), texCoord + displCoord).g;
+	float b = texture2D(TextureMain(), texCoord + displCoord - chromAberrAmount).b;
 
 	gl_FragColor = vec4(r, g, b, 1);
 }

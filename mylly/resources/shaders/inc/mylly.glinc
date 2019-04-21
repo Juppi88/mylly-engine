@@ -34,14 +34,21 @@ uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
 uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
 uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 
-#define   getTexture() (SamplerArr[SAMPLER_MAIN])
-#define   getNormalMap() (SamplerArr[SAMPLER_NORMAL])
-vec2      screenResolution() { return VectorArr[VEC_SCREEN].xy; }
+mat4      MatrixMVP() { return MatrixArr[MAT_MVP]; }
+mat4      MatrixModel() { return MatrixArr[MAT_MODEL]; }
+mat4      MatrixView() { return MatrixArr[MAT_VIEW]; }
+mat4      MatrixProjection() { return MatrixArr[MAT_PROJECTION]; }
 
-float     time() { return VectorArr[VEC_TIME].x; }
-float     cosTime() { return VectorArr[VEC_TIME].y; }
-float     sinTime() { return VectorArr[VEC_TIME].z; }
-float     deltaTime() { return VectorArr[VEC_TIME].w; }
+#define   TextureMain() (SamplerArr[SAMPLER_MAIN])
+#define   TextureNormalMap() (SamplerArr[SAMPLER_NORMAL])
+
+vec3      ViewPosition() { return VectorArr[VEC_VIEW_POSITION].xyz; }
+vec2      ScreenResolution() { return VectorArr[VEC_SCREEN].xy; }
+
+float     Time() { return VectorArr[VEC_TIME].x; }
+float     CosTime() { return VectorArr[VEC_TIME].y; }
+float     SinTime() { return VectorArr[VEC_TIME].z; }
+float     DeltaTime() { return VectorArr[VEC_TIME].w; }
 
 // -------------------------------------------------------------------------------------------------
 // Vertex attributes
@@ -72,25 +79,6 @@ float     deltaTime() { return VectorArr[VEC_TIME].w; }
 #endif
 
 // -------------------------------------------------------------------------------------------------
-// Lighting uniforms and helper methods
-// -------------------------------------------------------------------------------------------------
-
-#define MAX_LIGHTS_PER_MESH 4
-
-uniform int NumLights;
-uniform mat4 LightArr[MAX_LIGHTS_PER_MESH];
-
-vec4  lightPosition(int light) { return LightArr[light][0]; }
-vec3  lightColour(int light) { return LightArr[light][1].xyz; }
-float lightRange(int light) { return LightArr[light][3][0]; }
-float lightIntensity(int light) { return LightArr[light][3][1]; }
-vec3  lightDirection(int light) { return LightArr[light][2].xyz; }
-float lightCutoffAngle(int light) { return LightArr[light][3][2]; }
-float lightCutoffOuterAngle(int light) { return LightArr[light][3][3]; }
-
-vec3  ambientLightColour() { return VectorArr[VEC_COLOUR].xyz; }
-
-// -------------------------------------------------------------------------------------------------
 // Utility macros and functions
 // -------------------------------------------------------------------------------------------------
 
@@ -104,7 +92,7 @@ vec3  ambientLightColour() { return VectorArr[VEC_COLOUR].xyz; }
 vec4 pixelsnap(vec4 pos)
 {
 	// Convert vertex position to pixels and round the result.
-	vec2 halfScreen = 0.5 * VectorArr[VEC_SCREEN].xy;
+	vec2 halfScreen = 0.5 * ScreenResolution();
 	vec2 pixelPos = round((pos.xy / pos.w) * halfScreen);
 
 	// Convert back to normalized coordinates.
@@ -116,13 +104,13 @@ vec4 pixelsnap(vec4 pos)
 // Helper method to convert an object space position to clip space homogenous coordinates.
 vec4 toclipspace(vec3 vertex)
 {
-	return MatrixArr[MAT_MVP] * vec4(vertex, 1.0);
+	return MatrixMVP() * vec4(vertex, 1.0);
 }
 
 // Same as above but for 2D screen space coordinates (UI).
 vec4 toclipspace2(vec2 vertex)
 {
-	return MatrixArr[MAT_MVP] * vec4(vertex, 0.0, 1.0);
+	return MatrixMVP() * vec4(vertex, 0.0, 1.0);
 }
 
 // Transpose a matrix.

@@ -25,7 +25,7 @@ void main()
 
 void main()
 {
-	gl_FragColor = colour * texture(SamplerArr[SAMPLER_MAIN], texCoord.st);
+	gl_FragColor = colour * texture2D(TextureMain(), texCoord.st);
 
 	// Alpha cutoff
 	alphacut(gl_FragColor.a, 0.01);

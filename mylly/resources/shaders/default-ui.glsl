@@ -26,7 +26,7 @@ void main()
 		discard;
 	}
 
-	gl_FragColor = colour * texture(SamplerArr[SAMPLER_MAIN], texCoord.st);
+	gl_FragColor = colour * texture2D(TextureMain(), texCoord.st);
 }
 
 #endif
