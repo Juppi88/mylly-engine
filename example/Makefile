@@ -1,18 +1,17 @@
 .DEFAULT_GOAL := all
 .PHONY: all builddirs clean
-CC = clang
-CFLAGS = -Wall -g -I../mylly
-LDFLAGS = -L../mylly/build/bin -lmylly -lpthread -lX11 -lGL -lGLU -lm -lpng
+CC = clang++
+CFLAGS = -Wall -g -std=c++11 -I. -I../ -I../mylly
+LDFLAGS = -L../mylly/build/bin -lmylly -L../external/jsmn
 
 # Include library dependencies.
-LDFLAGS += -L../external/jsmn
 include ../mylly/deps.mk
 
-OBJS = main/main.o
+OBJS = main.o game.o inputhandler.o ship.o
 DEPS =
 
 builddirs:
-	mkdir -p build/objs/main
+	mkdir -p build/objs
 	mkdir -p build/bin
 
 clean:
@@ -27,7 +26,7 @@ game.bin: $(OBJS)
 	$(CC) $(addprefix build/objs/, $^) $(LDFLAGS) -o build/bin/$@
 	cp -r ../mylly/resources/shaders/ build/bin/
 
-%.o: %.c $(DEPS)
+%.o: %.cpp $(DEPS)
 	$(CC) -c -o build/objs/$@ $< $(CFLAGS)
 
 all:

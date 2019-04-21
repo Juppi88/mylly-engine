@@ -1,3 +1,7 @@
+#include "game.h"
+#include <mylly/core/mylly.h>
+
+#if 0
 #include "core/mylly.h"
 #include "core/time.h"
 #include "resources/resources.h"
@@ -68,24 +72,7 @@ static void setup(void)
 	//model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("pico"));
 	//model_set_material(test_model, -1, res_get_shader("test-animated"), res_get_texture("animtest"));
 
-	test_model = res_get_model("fighterjet");
-
-	//model_set_material(test_model, -1, res_get_shader("default-textured"), res_get_texture("fighter"));
-
-	// Create a test object and attach the model to it.
-	test = scene_create_object(scene, NULL);
-	obj_set_model(test, test_model);
-
-	//sprite_t *sprite = res_get_sprite("pico");
-
-	//obj_set_sprite(test, sprite);
-
-	//obj_set_local_position(test, vector3(-0.25f, 0.5f, 0.0f));
-	//obj_set_local_position(test, vector3(0.25f, 0.25f, 0));
-	//obj_set_local_scale(test, vector3(0.5f, 0.5f, 1.0f));
-	obj_set_local_rotation(test, quat_from_euler_deg(0, 0, 0));
-	obj_set_local_scale(test, vec3(0.01f, 0.01f, 0.01f));
-
+	
 	// Create a light object and add it to the scene.
 	object_t *light = scene_create_object(scene, NULL);
 	obj_add_light(light);
@@ -282,6 +269,30 @@ int main(int argc, char **argv)
 	//
 	// END OF TEST CODE!
 	//
+
+	return 0;
+}
+#endif
+
+// Game handler instance.
+static Game game;
+
+// This method is called on every frame before rendering the scene.
+static void MainLoop(void)
+{
+	game.Process();
+}
+
+int main(int argc, char **argv)
+{
+	// Initialize the engine and enter the main loop.
+	if (mylly_initialize(argc, argv)) {
+
+		game.SetupGame();
+		mylly_main_loop(MainLoop);
+	}
+
+	game.Shutdown();
 
 	return 0;
 }
