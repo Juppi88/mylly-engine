@@ -27,6 +27,7 @@ struct shader_contents_t {
 	arr_t(char*) lines;
 	arr_t(char*) uniforms;
 	arr_t(UNIFORM_TYPE) uniform_types;
+	uint32_t num_lines;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -624,6 +625,7 @@ static void res_load_shader(const char *file_name)
 	arr_init(contents.lines);
 	arr_init(contents.uniforms);
 	arr_init(contents.uniform_types);
+	contents.num_lines = 0;
 
 	// Add an empty line for defines. This is a requirement for the shader compiler.
 	arr_push(contents.lines, NULL);
@@ -673,6 +675,9 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 
 	struct shader_contents_t *contents = context;
 
+	// Keep track of shader source code lines for correct error reporting.
+	contents->num_lines++;
+
 	// Check the source code for #pragma include directives.
 	if (string_starts_with(line, "#pragma include ", 16)) {
 
@@ -692,6 +697,12 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 
 			// Push the contents of the include file to the line list.
 			arr_push(contents->lines, string_duplicate(include_buffer));
+
+			// Add a line directive to keep error line numbers matching the shader source file.
+			char line_directive[32];
+			snprintf(line_directive, sizeof(line_directive), "#line %u\n", contents->num_lines + 1);
+
+			arr_push(contents->lines, string_duplicate(line_directive));
 		}
 		else {
 			log_warning("Resources", "Could not include a shader named '%s'.", include);
@@ -699,16 +710,17 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 	}
 	else {
 
-		// Strip leading whitespace from the line.
-		string_strip(&line);
+		char *original = line;
 
 		// Parse and store uniforms.
+		string_strip(&line);
+
 		if (string_starts_with(line, "uniform ", 8)) {
 			res_parse_shader_uniform(contents, &line[8]);
 		}
 
 		// Push the source code line to the list as-is.
-		arr_push(contents->lines, string_duplicate(line));
+		arr_push(contents->lines, string_duplicate(original));
 	}
 }
 

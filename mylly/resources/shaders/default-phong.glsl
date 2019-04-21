@@ -36,7 +36,7 @@ void main()
 
 	// Apply each light affecting this fragment.
 	for (int i = 0; i < NumLights; i++) {
-		
+
 		colour += ApplyPhongLight(i, worldPosition, normalize(worldNormal),
 		                          DiffuseColour.rgb, SpecularColour.rgb, Shininess);
 	}

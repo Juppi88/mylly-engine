@@ -140,4 +140,3 @@ mat3 inverse(mat3 m)
 }
 
 #endif // MYLLY_GLINC
-#line 1
