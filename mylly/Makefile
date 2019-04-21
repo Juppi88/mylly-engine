@@ -14,7 +14,7 @@ OBJS = ai/ai.o ai/behaviour.o ai/node.o\
        platform/inputhook.o platform/thread.o platform/timer.o platform/window.o\
        renderer/buffer.o renderer/buffercache.o renderer/colour.o renderer/debug.o renderer/font.o\
        renderer/fontpacker.o renderer/material.o renderer/mesh.o renderer/rendersystem.o\
-       renderer/shader.o renderer/shaderdata.o renderer/texture.o renderer/vbcache.o\
+       renderer/shader.o renderer/texture.o renderer/vbcache.o\
        renderer/opengl/extensions.o renderer/opengl/renderer.o\
        resources/mtlparser.o resources/objparser.o resources/resourceparser.o resources/resources.o\
        scene/animator.o scene/camera.o scene/emitter.o scene/light.o scene/model.o scene/object.o\

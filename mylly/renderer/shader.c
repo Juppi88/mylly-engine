@@ -7,6 +7,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static void shader_destroy_program(shader_t *shader);
+static shader_uniform_t *shader_get_uniform(shader_t *shader, const char *name);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -52,6 +53,8 @@ shader_t * shader_create(const char *name, const char *path)
 	shader->light_array = -1;
 	shader->num_lights_position = -1;
 
+	arr_init(shader->material_uniforms);
+
 	return shader;
 }
 
@@ -64,12 +67,102 @@ void shader_destroy(shader_t *shader)
 	// Destroy the GPU objects.
 	shader_destroy_program(shader);
 
+	for (uint32_t i = 0; i < shader->material_uniforms.count; i++) {
+		DESTROY(shader->material_uniforms.items[i].name);
+	}
+
+	arr_clear(shader->material_uniforms);
+
 	DESTROY(shader->resource.res_name);
 	DESTROY(shader->resource.path);
 	DESTROY(shader);
 }
 
-bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines)
+void shader_set_uniform_int(shader_t *shader, const char *name, int value)
+{
+	if (shader == NULL || string_is_null_or_empty(name)) {
+		return;
+	}
+
+	shader_uniform_t *uniform = shader_get_uniform(shader, name);
+
+	if (uniform == NULL) {
+		return;
+	}
+
+	if (uniform->type != UNIFORM_TYPE_INT) {
+
+		log_warning("Shader", "Uniform '%s' in shader %s is not of type int.",
+			name, shader->resource.name);
+
+		return;
+	}
+
+	// Update the value and flag the shader to be updated before rendering the next frame.
+	uniform->value.i = value;
+	shader->has_updated_uniforms = true;
+}
+
+void shader_set_uniform_float(shader_t *shader, const char *name, float value)
+{
+	if (shader == NULL || string_is_null_or_empty(name)) {
+		return;
+	}
+
+	shader_uniform_t *uniform = shader_get_uniform(shader, name);
+
+	if (uniform == NULL) {
+		return;
+	}
+
+	if (uniform->type != UNIFORM_TYPE_FLOAT) {
+
+		log_warning("Shader", "Uniform '%s' in shader %s is not of type float.",
+			name, shader->resource.name);
+
+		return;
+	}
+
+	// Update the value and flag the shader to be updated before rendering the next frame.
+	uniform->value.f = value;
+	shader->has_updated_uniforms = true;
+}
+
+void shader_set_uniform_vector(shader_t *shader, const char *name, vec4_t value)
+{
+	if (shader == NULL || string_is_null_or_empty(name)) {
+		return;
+	}
+
+	shader_uniform_t *uniform = shader_get_uniform(shader, name);
+
+	if (uniform == NULL) {
+		return;
+	}
+
+	if (uniform->type != UNIFORM_TYPE_VECTOR4) {
+
+		log_warning("Shader", "Uniform '%s' in shader %s is not of type vec4.",
+			name, shader->resource.name);
+
+		return;
+	}
+
+	// Update the value and flag the shader to be updated before rendering the next frame.
+	uniform->value.vec = value;
+	shader->has_updated_uniforms = true;
+}
+
+void shader_set_uniform_colour(shader_t *shader, const char *name, colour_t value)
+{
+	// Convenience method for setting a colour to a vec4 type uniform field.
+	shader_set_uniform_vector(shader, name, col_to_vec4(value));
+}
+
+bool shader_load_from_source(
+	shader_t *shader,
+	size_t num_lines, const char **lines,
+	size_t num_uniforms, const char **uniforms, UNIFORM_TYPE *uniform_types)
 {
 	if (shader == NULL) {
 		return false;
@@ -120,6 +213,31 @@ bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_li
 
 	shader->light_array = rend_get_program_uniform_location(shader->program, LIGHT_ARRAY_NAME);
 	shader->num_lights_position = rend_get_program_uniform_location(shader->program, NUM_LIGHTS_NAME);
+
+	// Custom material uniforms.
+	for (size_t i = 0; i < num_uniforms; i++) {
+
+		int position = rend_get_program_uniform_location(shader->program, uniforms[i]);
+
+		if (position < 0) {
+
+			// If the uniform has no position in the compiled program, it is not used and the
+			// compiler has optimized it away. Ignore the uniform.
+			break;
+		}
+
+		// Store the uniform into the shader.
+		shader_uniform_t uniform;
+
+		uniform.name = string_duplicate(uniforms[i]);
+		uniform.type = uniform_types[i];
+		uniform.position = position;
+
+		// Initialize value to 0.
+		memset(&uniform.value, 0, sizeof(uniform.value));
+
+		arr_push(shader->material_uniforms, uniform);
+	}
 
 	// Get and cache vertex attribute indices.
 	for (uint32_t i = 0; i < NUM_SHADER_ATTRIBUTES; ++i) {
@@ -177,4 +295,19 @@ static void shader_destroy_program(shader_t *shader)
 		rend_destroy_shader(shader->program);
 		shader->program = 0;
 	}
+}
+
+static shader_uniform_t *shader_get_uniform(shader_t *shader, const char *name)
+{
+	for (uint32_t i = 0; i < shader->material_uniforms.count; i++) {
+
+		shader_uniform_t *uniform = &shader->material_uniforms.items[i];
+
+		if (string_equals(uniform->name, name)) {
+			return uniform;
+		}
+	}
+
+	log_warning("Shader", "Uniform '%s' does not exist in shader %s.", name, shader->resource.name);
+	return NULL;
 }

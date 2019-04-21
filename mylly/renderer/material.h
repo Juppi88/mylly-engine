@@ -3,32 +3,25 @@
 #define __MATERIAL_H
 
 #include "core/defines.h"
-#include "renderer/shaderdata.h"
 #include "collections/array.h"
 #include "resources/resource.h"
 #include "renderer/colour.h"
+#include "renderer/shader.h"
 #include "math/vector.h"
-
-// -------------------------------------------------------------------------------------------------
-
-// Material parameter value. The datatypes here must correspond with shader_data_type_t,
-// with the exception of matrix which isn't supported by custom materials.
-typedef union material_value_t {
-
-	int int_value;
-	float float_value;
-	colour_t colour_value;
-	vec4_t vec4_value;
-
-} material_value_t;
 
 // -------------------------------------------------------------------------------------------------
 
 // Material parameter. Contains a reference to a shader uniform definition with the value for it.
 typedef struct material_param_t {
 
-	const shader_uniform_t *uniform;
-	material_value_t value;
+	const char *name; // Name of the parameter and matching uniform in the shader
+	UNIFORM_TYPE type; // Type of the parameter
+
+	union { // Parameter value
+		int i;
+		float f;
+		vec4_t vec;
+	} value;
 
 } material_param_t;
 
@@ -52,6 +45,8 @@ BEGIN_DECLARATIONS;
 
 material_t *material_create(const char *name, const char *path);
 void material_destroy(material_t *material);
+
+void material_apply_parameters(material_t *material);
 
 END_DECLARATIONS;
 

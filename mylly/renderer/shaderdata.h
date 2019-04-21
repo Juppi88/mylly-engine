@@ -3,6 +3,7 @@
 #define __SHADERDATA_H
 
 #include "core/defines.h"
+#include "renderer/shader.h"
 
 BEGIN_DECLARATIONS;
 
@@ -39,14 +40,6 @@ typedef enum shader_data_type_t {
 
 // -------------------------------------------------------------------------------------------------
 
-// Shader uniform data.
-typedef struct shader_uniform_t {
-
-	uint32_t index; // Either one of shader_uniform_index_t or UNIFORM_MATERIAL_DEFINED + {0, 1, ...}
-	const char *name; // Name of the uniform in the shader
-	shader_data_type_t type; // Data type
-
-} shader_uniform_t;
 
 // -------------------------------------------------------------------------------------------------
 

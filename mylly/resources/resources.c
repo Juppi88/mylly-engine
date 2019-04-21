@@ -22,6 +22,15 @@
 
 // -------------------------------------------------------------------------------------------------
 
+// A temporary structure storing the contents of a shader source file.
+struct shader_contents_t {
+	arr_t(char*) lines;
+	arr_t(char*) uniforms;
+	arr_t(UNIFORM_TYPE) uniform_types;
+};
+
+// -------------------------------------------------------------------------------------------------
+
 static arr_t(texture_t*) textures;
 static arr_t(sprite_t*) sprites;
 static arr_t(shader_t*) shaders;
@@ -44,6 +53,7 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 
 static void res_load_shader(const char *file_name);
 static void res_parse_shader_line(char *line, size_t length, void *context);
+static void res_parse_shader_uniform(struct shader_contents_t *contents, char *line);
 
 static void res_load_animation_group(const char *file_name);
 static void res_load_animation(res_parser_t *parser, int *next_token, const char *group_name);
@@ -72,7 +82,7 @@ void res_initialize(void)
 	};
 
 	shader_t *default_shader = shader_create("default", NULL);
-	shader_load_from_source(default_shader, source, 2);
+	shader_load_from_source(default_shader, 2, source, 0, NULL, NULL);
 
 	arr_push(shaders, default_shader);
 	default_shader->resource.index = arr_last_index(shaders);
@@ -607,14 +617,18 @@ static void res_load_sprite(texture_t *texture, int pixels_per_unit,
 
 static void res_load_shader(const char *file_name)
 {
-	// Read the shader source into an array of lines.
-	arr_t(char*) lines;
-	arr_init(lines);
+	// Read the shader source into an array of lines and collect a list of custom uniforms declared
+	// in the source file.
+	struct shader_contents_t contents;
+
+	arr_init(contents.lines);
+	arr_init(contents.uniforms);
+	arr_init(contents.uniform_types);
 
 	// Add an empty line for defines. This is a requirement for the shader compiler.
-	arr_push(lines, NULL);
+	arr_push(contents.lines, NULL);
 
-	if (!file_for_each_line(file_name, res_parse_shader_line, &lines, true)) {
+	if (!file_for_each_line(file_name, res_parse_shader_line, &contents, true)) {
 		return;
 	}
 
@@ -624,7 +638,12 @@ static void res_load_shader(const char *file_name)
 
 	shader_t *shader = shader_create(name, file_name);
 
-	if (shader_load_from_source(shader, (const char **)lines.items, lines.count)) {
+	if (shader_load_from_source(shader, contents.lines.count,
+		                        (const char **)contents.lines.items,
+	                            contents.uniforms.count,
+	                            (const char **)contents.uniforms.items,
+	                            (UNIFORM_TYPE *)contents.uniform_types.items)) {
+		
 		shader->resource.is_loaded = true;
 	}
 
@@ -633,20 +652,26 @@ static void res_load_shader(const char *file_name)
 	shader->resource.index = arr_last_index(shaders);
 
 	// Remove all temporarily allocated memory.
-	char *line;
+	char *line, *uniform;
 
-	arr_foreach(lines, line) {
+	arr_foreach(contents.lines, line) {
 		mem_free(line);
 	}
 
-	arr_clear(lines);
+	arr_foreach(contents.uniforms, uniform) {
+		mem_free(uniform);
+	}
+
+	arr_clear(contents.lines);
+	arr_clear(contents.uniforms);
+	arr_clear(contents.uniform_types);
 }
 
 static void res_parse_shader_line(char *line, size_t length, void *context)
 {
 	UNUSED(length);
 
-	arr_t(char*) *lines = context;
+	struct shader_contents_t *contents = context;
 
 	// Check the source code for #pragma include directives.
 	if (string_starts_with(line, "#pragma include ", 16)) {
@@ -666,16 +691,68 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 		if (file_read_all_text(file_name, &include_buffer, &include_length)) {
 
 			// Push the contents of the include file to the line list.
-			arr_push(*lines, string_duplicate(include_buffer));
+			arr_push(contents->lines, string_duplicate(include_buffer));
 		}
 		else {
 			log_warning("Resources", "Could not include a shader named '%s'.", include);
 		}
 	}
 	else {
-		// Push the line to the list as-is.
-		arr_push(*lines, string_duplicate(line));
+
+		// Strip leading whitespace from the line.
+		string_strip(&line);
+
+		// Parse and store uniforms.
+		if (string_starts_with(line, "uniform ", 8)) {
+			res_parse_shader_uniform(contents, &line[8]);
+		}
+
+		// Push the source code line to the list as-is.
+		arr_push(contents->lines, string_duplicate(line));
 	}
+}
+
+static void res_parse_shader_uniform(struct shader_contents_t *contents, char *line)
+{
+	char type[32];
+	char name[128], *name_ptr = name;
+	
+	string_tokenize(line, ' ', type, sizeof(type));
+	string_tokenize(NULL, ';', name, sizeof(name));
+	string_strip(&name_ptr);
+
+	// Ensure the uniform has a valid name.
+	if (string_is_null_or_empty(name_ptr)) {
+		return;
+	}
+
+	UNIFORM_TYPE uni_type = UNIFORM_TYPE_FLOAT;
+
+	// Check that the type of the uniform is supported by the engine's material system.
+	if (string_equals(type, "float")) {
+		uni_type = UNIFORM_TYPE_FLOAT;
+	}
+	else if (string_equals(type, "vec4")) {
+		uni_type = UNIFORM_TYPE_VECTOR4;
+	}
+	else if (string_equals(type, "int")) {
+		uni_type = UNIFORM_TYPE_INT;
+	}
+	else if (string_equals(type, "mat4")) {
+		// Currently mat4 uniforms are only internally supported by the renderer system, so we'll
+		// ignore the uniform declaration silently.
+		return;
+	}
+	else {
+		log_warning("Resurces", "Unsupported uniform type '%s' in shader file %s",
+			type, parsed_file_name);
+
+		return;
+	}
+
+	// Store the uniform name and type.
+	arr_push(contents->uniforms, string_duplicate(name_ptr));
+	arr_push(contents->uniform_types, uni_type);
 }
 
 static void res_load_animation_group(const char *file_name)
@@ -1100,6 +1177,9 @@ static void res_load_material(const char *file_name)
 		
 		arr_push(materials, material);
 	}
+
+	// Apply shader parameters.
+	material_apply_parameters(material);
 
 	// Release the temporary parser data.
 	mtl_parser_destroy(&parser);

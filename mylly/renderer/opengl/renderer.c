@@ -74,6 +74,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint size, GLenum type,
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 
+static void rend_update_material_uniforms(shader_t *shader);
 static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
@@ -405,6 +406,11 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 
 		glUseProgram(shader_id);
 		active_shader = shader_id;
+
+		// Update custom uniforms.
+		if (shader->has_updated_uniforms) {
+			rend_update_material_uniforms(shader);
+		}
 	}
 
 	// Select the active texture.
@@ -737,6 +743,39 @@ void rend_delete_texture(texture_name_t texture)
 	glDeleteTextures(1, &texture);
 }
 
+static void rend_update_material_uniforms(shader_t *shader)
+{
+	if (!shader->has_updated_uniforms) {
+		return;
+	}
+
+	for (uint32_t i = 0; i < shader->material_uniforms.count; i++) {
+
+		shader_uniform_t *uniform = &shader->material_uniforms.items[i];
+
+		switch (uniform->type) {
+
+			case UNIFORM_TYPE_INT:
+				glUniform1i(uniform->position, uniform->value.i);
+				break;
+
+			case UNIFORM_TYPE_FLOAT:
+				glUniform1f(uniform->position, uniform->value.f);
+				break;
+
+			case UNIFORM_TYPE_VECTOR4:
+			case UNIFORM_TYPE_COLOUR:
+				glUniform4fv(uniform->position, 1, &uniform->value.vec.x);
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	shader->has_updated_uniforms = false;
+}
+
 static void rend_commit_uniforms(shader_t *shader)
 {
 	if (shader->matrix_array >= 0) {
@@ -905,6 +944,11 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, framebuffer_textures[fb_index]);
 	active_texture = framebuffer_textures[fb_index];
+
+	// Update custom uniforms.
+	if (shader->has_updated_uniforms) {
+		rend_update_material_uniforms(shader);
+	}
 
 	// Disable all vertex attributes.
 	for (int i = 0; i < NUM_SHADER_ATTRIBUTES; i++) {

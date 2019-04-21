@@ -3,9 +3,10 @@
 #define __SHADER_H
 
 #include "core/defines.h"
-#include "renderer/shaderdata.h"
 #include "collections/array.h"
 #include "resources/resource.h"
+#include "math/vector.h"
+#include "renderer/colour.h"
 
 BEGIN_DECLARATIONS;
 
@@ -63,7 +64,18 @@ typedef enum {
 
 // -------------------------------------------------------------------------------------------------
 
-// Uniform array indices.
+typedef enum {
+
+	UNIFORM_TYPE_INT, // A single int
+	UNIFORM_TYPE_FLOAT, // A single float
+	UNIFORM_TYPE_VECTOR4, // 4-element float vector
+	UNIFORM_TYPE_COLOUR, // 4-byte RGBA colour
+
+} UNIFORM_TYPE;
+
+// -------------------------------------------------------------------------------------------------
+
+// Built-in uniform array indices.
 
 enum {
 	UNIFORM_MAT_MVP = 0, // Model-view-projection matrix
@@ -91,6 +103,23 @@ enum {
 
 // -------------------------------------------------------------------------------------------------
 
+// Custom material uniforms.
+typedef struct shader_uniform_t {
+
+	char *name; // Uniform name
+	UNIFORM_TYPE type; // Data type
+	int position; // Shader position
+
+	union { // Value
+		int i;
+		float f;
+		vec4_t vec;
+	} value;
+
+} shader_uniform_t;
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct shader_t {
 
 	resource_t resource; // Resource info
@@ -102,14 +131,16 @@ typedef struct shader_t {
 	int queue; // Render queue used by this shader - see enum SHADER_QUEUE above
 	int attributes[NUM_SHADER_ATTRIBUTES]; // List of vertex attributes used by the program
 
-	// Uniform array positions
-	int matrix_array;
-	int vector_array;
-	int sampler_array;
-
-	// Light array
-	int light_array;
+	// Positions for built-in renderer uniform arrays.
+	int matrix_array; // Matrix data
+	int vector_array; // Vector data
+	int sampler_array; // Textures
+	int light_array; // Lights
 	int num_lights_position;
+
+	// Positions and values for custom material uniforms.
+	arr_t(shader_uniform_t) material_uniforms;
+	bool has_updated_uniforms; // A flag indicating whether the custom uniforms need updating
 
 } shader_t;
 
@@ -119,7 +150,15 @@ typedef struct shader_t {
 shader_t * shader_create(const char *name, const char *path);
 void shader_destroy(shader_t *shader);
 
-bool shader_load_from_source(shader_t *shader, const char **lines, size_t num_lines);
+void shader_set_uniform_int(shader_t *shader, const char *name, int value);
+void shader_set_uniform_float(shader_t *shader, const char *name, float value);
+void shader_set_uniform_vector(shader_t *shader, const char *name, vec4_t value);
+void shader_set_uniform_colour(shader_t *shader, const char *name, colour_t value);
+
+bool shader_load_from_source(
+	shader_t *shader,
+	size_t num_lines, const char **lines,
+	size_t num_uniforms, const char **uniforms, UNIFORM_TYPE *uniform_types);
 
 // -------------------------------------------------------------------------------------------------
 

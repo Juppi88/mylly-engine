@@ -4,8 +4,6 @@ varying vec3 worldPosition;
 varying vec2 texCoord;
 varying mat3 tangentMatrix;
 
-varying vec3 blah;
-
 #if defined(VERTEX_SHADER)
 
 void main()
@@ -30,9 +28,10 @@ void main()
 
 #elif defined(FRAGMENT_SHADER)
 
-vec3 DiffuseColour = vec3(0.6, 0.6, 0.6);
-vec3 SpecularColour = vec3(0.9, 0.9, 0.9);
-float Shininess = 2;
+uniform vec4 DiffuseColour;
+uniform vec4 SpecularColour;
+uniform float Shininess;
+uniform float Opacity;
 
 vec3 ApplyLight(int light)
 {
@@ -64,13 +63,13 @@ vec3 ApplyLight(int light)
 
 	// Apply diffuse lighting.
 	float diffuseStrength = max(dot(normal, direction), 0.0);
-	vec3 diffuse = diffuseStrength * DiffuseColour;
+	vec3 diffuse = diffuseStrength * DiffuseColour.rgb;
 
 	// Apply specular lighting.
 	vec3 viewDirection = normalize(VectorArr[VEC_VIEW_POSITION].xyz - worldPosition);
 	vec3 reflectDirection = reflect(-direction, normal);
 	float specularStrength = pow(max(dot(viewDirection, reflectDirection), 0.0), Shininess);
-	vec3 specular = specularStrength * SpecularColour;
+	vec3 specular = specularStrength * SpecularColour.rgb;
 
 	// Spotlight attenuation.
 	if (lightCutoffAngle(light) > 0) {
@@ -88,7 +87,7 @@ vec3 ApplyLight(int light)
 void main()
 {
 	// Apply ambient lighting.
-	vec3 colour = ambientLightColour() * DiffuseColour;
+	vec3 colour = ambientLightColour() * DiffuseColour.rgb;
 
 	// Apply each light affecting this fragment.
 	for (int i = 0; i < NumLights; i++) {
@@ -96,7 +95,7 @@ void main()
 	}
 
 	// Apply fragment colour.
-	gl_FragColor = vec4(colour, 1.0) * texture(SamplerArr[SAMPLER_MAIN], texCoord.st);
+	gl_FragColor = vec4(colour, Opacity) * texture2D(getTexture(), texCoord.st);
  }
 
 #endif

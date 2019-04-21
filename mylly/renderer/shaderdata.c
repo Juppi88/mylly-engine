@@ -47,7 +47,7 @@ uint32_t shader_data_add_uniform(const char *name, shader_data_type_t type)
 		return index;
 	}
 
-	shader_uniform_t data = {
+	/*shader_uniform_t data = {
 		uniforms.count, // Index
 		string_duplicate(name), // Name
 		type // Data type
@@ -56,7 +56,8 @@ uint32_t shader_data_add_uniform(const char *name, shader_data_type_t type)
 	// Add a new uniform definition.
 	arr_push(uniforms, data);
 
-	return data.index;
+	return data.index;*/
+	return 0;
 }
 
 const shader_uniform_t *shader_data_get_uniform_by_index(uint32_t index)

@@ -7,9 +7,8 @@
 // -------------------------------------------------------------------------------------------------
 
 static void mtl_parser_add_parameter(mtl_parser_t *parser, size_t num_values,
-                                     const char *name, shader_data_type_t type);
+                                     const char *name, UNIFORM_TYPE type);
 
-static const shader_uniform_t *mtl_parser_get_uniform(const char *name, shader_data_type_t type);
 static void mtl_parser_save_material(mtl_parser_t *parser);
 
 // -------------------------------------------------------------------------------------------------
@@ -77,26 +76,27 @@ void mtl_parser_process_line(mtl_parser_t *parser, const char *line)
 		string_tokenize(NULL, ' ', text, sizeof(text));
 		parser->material = string_duplicate(text);
 	}
-	else if (string_equals(type, "Ns")) { // Ns = specular weight (1 float, ranged between 0...1000)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "SpecularWeight", DATATYPE_FLOAT);
+	else if (string_equals(type, "Ns")) { // Ns = specular weight/shininess (1 float, 0...1000)
+		mtl_parser_add_parameter(parser, num_tokens - 1, "Shininess", UNIFORM_TYPE_FLOAT);
 	}
 	else if (string_equals(type, "Ka")) { // Ka = ambient colour (3 floats)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "AmbientColour", DATATYPE_COLOUR);
+		// Ambient colour is supplied by the engine, hence the material definition is ignored.
+		//mtl_parser_add_parameter(parser, num_tokens - 1, "AmbientColour", UNIFORM_TYPE_COLOUR);
 	}
 	else if (string_equals(type, "Kd")) { // Kd = diffuse colour (3 floats)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "DiffuseColour", DATATYPE_COLOUR);
+		mtl_parser_add_parameter(parser, num_tokens - 1, "DiffuseColour", UNIFORM_TYPE_COLOUR);
 	}
 	else if (string_equals(type, "Ks")) { // Ks = specular colour (3 floats)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "SpecularColour", DATATYPE_COLOUR);
+		mtl_parser_add_parameter(parser, num_tokens - 1, "SpecularColour", UNIFORM_TYPE_COLOUR);
 	}
 	else if (string_equals(type, "Ke")) { // Ke = emissive (PBR) (3 floats)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "EmissiveColour", DATATYPE_COLOUR);
+		mtl_parser_add_parameter(parser, num_tokens - 1, "EmissiveColour", UNIFORM_TYPE_COLOUR);
 	}
 	else if (string_equals(type, "Ni")) { // Ni = optical density (1 float, 0.001...10)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "OpticalDensity", DATATYPE_FLOAT);
+		mtl_parser_add_parameter(parser, num_tokens - 1, "OpticalDensity", UNIFORM_TYPE_COLOUR);
 	}
 	else if (string_equals(type, "d")) { // d = dissolved (transparency) (1 float 0...1, 1 = opaque)
-		mtl_parser_add_parameter(parser, num_tokens - 1, "Dissolved", DATATYPE_FLOAT);
+		mtl_parser_add_parameter(parser, num_tokens - 1, "Opacity", UNIFORM_TYPE_FLOAT);
 	}
 	else if (string_equals(type, "illum")) { // illum = illumination model, enumeration
 		// Illumination model is currently not supported by the parser.
@@ -122,18 +122,6 @@ void mtl_parser_process_line(mtl_parser_t *parser, const char *line)
 	}
 }
 
-static const shader_uniform_t *mtl_parser_get_uniform(const char *name, shader_data_type_t type)
-{
-	uint32_t index;
-
-	// Create a new uniform definition if one by the given name doesn't exist.
-	if (!shader_data_uniform_exists(name, &index)) {
-		index = shader_data_add_uniform(name, type);
-	}
-
-	return shader_data_get_uniform_by_index(index);
-}
-
 void mtl_parser_end_file(mtl_parser_t *parser)
 {
 	if (parser == NULL) {
@@ -145,87 +133,85 @@ void mtl_parser_end_file(mtl_parser_t *parser)
 }
 
 static void mtl_parser_add_parameter(mtl_parser_t *parser, size_t num_values,
-                                     const char *name, shader_data_type_t type)
+                                     const char *name, UNIFORM_TYPE type)
 {
-	const shader_uniform_t *uniform = mtl_parser_get_uniform(name, type);
-
-	if (uniform == NULL) {
-		return;
-	}
-
 	// Ensure the line has enough values to parse from.
-	switch (uniform->type) {
-		case DATATYPE_INT:
-		case DATATYPE_FLOAT:
+	switch (type) {
+
+		case UNIFORM_TYPE_INT:
+		case UNIFORM_TYPE_FLOAT:
 			if (num_values < 1) {
 				return;
 			}
 			break;
 
-		case DATATYPE_VECTOR4:
+		case UNIFORM_TYPE_VECTOR4:
 			if (num_values < 4) {
 				return;
 			}
 			break;
 
-		case DATATYPE_COLOUR:
+		case UNIFORM_TYPE_COLOUR:
 			if (num_values < 3) {
 				return;
 			}
 			break;
 
 		default:
-			log_warning(".mtl parser", "Unhandled data type in material file (%u).", uniform->type);
+			log_warning(".mtl parser", "Unhandled data type in material file (%u).", type);
 			return;
 	}
 
 	// Parse the rest of the line based on the type of data.
-	material_value_t value;
 	char str1[32];
 	char str2[32];
 	char str3[32];
 	char str4[32];
-	float r, g, b, a;
+	
+	material_param_t param = {
+		NULL,
+		type,
+		{ .i = 0 }
+	};
 
-	switch (uniform->type) {
-		case DATATYPE_INT:
+	switch (type) {
+		case UNIFORM_TYPE_INT:
 			string_tokenize(NULL, ' ', str1, sizeof(str1));
 
-			value.int_value = atoi(str1);
+			param.value.i = atoi(str1);
 			break;
 
-		case DATATYPE_FLOAT:
+		case UNIFORM_TYPE_FLOAT:
 			string_tokenize(NULL, ' ', str1, sizeof(str1));
 
-			value.float_value = atof(str1);
+			param.value.f = atof(str1);
 			break;
 
-		case DATATYPE_VECTOR4:
+		case UNIFORM_TYPE_VECTOR4:
 			string_tokenize(NULL, ' ', str1, sizeof(str1));
 			string_tokenize(NULL, ' ', str2, sizeof(str2));
 			string_tokenize(NULL, ' ', str3, sizeof(str3));
 			string_tokenize(NULL, ' ', str4, sizeof(str4));
 
-			value.vec4_value = vec4(atof(str1), atof(str2), atof(str3), atof(str4));
+			param.value.vec = vec4(
+				atof(str1),
+				atof(str2),
+				atof(str3),
+				atof(str4)
+			);
 			break;
 
-		case DATATYPE_COLOUR:
+		case UNIFORM_TYPE_COLOUR:
 			string_tokenize(NULL, ' ', str1, sizeof(str1));
 			string_tokenize(NULL, ' ', str2, sizeof(str2));
 			string_tokenize(NULL, ' ', str3, sizeof(str3));
 			string_tokenize(NULL, ' ', str4, sizeof(str4));
 
-			r = atof(str1);
-			g = atof(str2);
-			b = atof(str3);
-			a = (string_is_null_or_empty(str4) ? 1.0f : atof(str4)); // Use 1 as default alpha
-
-			// The colours in .mtl files are normalized. Convert these to 0...255 values.
-			value.colour_value = col_a(
-				(uint8_t)(255 * r),
-				(uint8_t)(255 * g),
-				(uint8_t)(255 * b),
-				(uint8_t)(255 * a)
+			param.value.vec = vec4(
+				atof(str1),
+				atof(str2),
+				atof(str3),
+				(string_is_null_or_empty(str4) ? 1.0f : atof(str4)) // Use 1 as default alpha
 			);
 			break;
 
@@ -234,10 +220,7 @@ static void mtl_parser_add_parameter(mtl_parser_t *parser, size_t num_values,
 	}
 
 	// Add the parameter to the list of parsed parameters.
-	material_param_t param = {
-		uniform,
-		value
-	};
+	param.name = string_duplicate(name);
 
 	arr_push(parser->parameters, param);
 }

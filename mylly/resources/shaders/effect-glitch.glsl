@@ -28,6 +28,8 @@ float WaveEffectFreq = 200;
 // Horizontal stripes. The elements are: Left/right stripes frequency, left/right stripes fill.
 vec4 Stripes = vec4(100, 70, 0.3, 0.4);
 
+uniform vec4 BLAHLOL;
+
 float rand(vec2 co)
 {
 	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);

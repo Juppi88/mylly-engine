@@ -181,7 +181,7 @@ static void setup(void)
 	// Add a post processing effect to the camera.
 	camera_add_post_processing_effect(camera->camera, res_get_shader("effect-fxaa"));
 	//camera_add_post_processing_effect(camera->camera, res_get_shader("effect-chromatic-aberration"));
-	camera_add_post_processing_effect(camera->camera, res_get_shader("effect-glitch"));
+	//camera_add_post_processing_effect(camera->camera, res_get_shader("effect-glitch"));
 
 
 	//
