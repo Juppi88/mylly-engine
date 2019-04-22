@@ -227,7 +227,8 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 
 		// The format supported in the current version requires all of position, texture coordinate
 		// and normal to be defined. Print an error if the file doesn't define these.
-		if (string_token_count(vertex[i], '/') < 3) {
+		size_t num_tokens = string_token_count(vertex[i], '/');
+		if (num_tokens < 2) {
 
 			log_error(".obj parser", "Unhandled number of tokens in face definition.");
 			continue;
@@ -239,14 +240,21 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 
 		string_tokenize(vertex[i], '/', position_str, sizeof(position_str));
 		string_tokenize(NULL,   '/', texcoord_str, sizeof(texcoord_str));
-		string_tokenize(NULL,   '/', normal_str, sizeof(normal_str));
 
 		int position_idx = atoi(position_str);
 		int texcoord_idx = atoi(texcoord_str);
-		int normal_idx = atoi(normal_str);
+		int normal_idx = 0;
 
-		// Ensure all indices are either positive (offset from start) or negative (offset from end).
-		if (position_idx == 0 || texcoord_idx == 0 || normal_idx == 0) {
+		// Some models may not define normals at all and use a normal map instead.
+		if (num_tokens > 2) {
+
+			string_tokenize(NULL,   '/', normal_str, sizeof(normal_str));
+			normal_idx = atoi(normal_str);
+		}
+
+		// Ensure all necssary indices are either positive (offset from start) or negative
+		// (offset from end).
+		if (position_idx == 0 || texcoord_idx == 0) {
 
 			log_error(".obj parser", "Invalid face/vertex data.");
 			return;
@@ -284,8 +292,7 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *verti
 
 		// Validate the data and that it has been defined in the file.
 		if (position_idx >= parser->positions.count ||
-			texcoord_idx >= parser->texcoords.count ||
-			normal_idx >= parser->normals.count) {
+			texcoord_idx >= parser->texcoords.count) {
 
 			log_warning(".obj parser", "Vertex data out od bounds.");
 			continue;
@@ -294,7 +301,7 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *verti
 		// Create the renderer vertex and add it to the vertex array.
 		vertices[i] = vertex(
 			parser->positions.items[position_idx],
-			parser->normals.items[normal_idx],
+			(normal != 0 ? parser->normals.items[normal_idx] : vec3_up()),
 			parser->texcoords.items[texcoord_idx]
 		);
 	}

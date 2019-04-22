@@ -43,6 +43,13 @@ void material_destroy(material_t *material)
 		DESTROY(material->parameters.items[i].name);
 	}
 
+	// TODO: Add reference counting to duplicated resources!
+	// We're assuming here that a shader without a source code path is a duplicated shader and can
+	// be destroyed whenever the material is as well.
+	if (string_is_null_or_empty(material->shader->resource.path)) {
+		shader_destroy(material->shader);
+	}
+
 	arr_clear(material->parameters);
 
 	DESTROY(material->resource.name);

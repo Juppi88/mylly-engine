@@ -7,6 +7,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static void shader_destroy_program(shader_t *shader);
+static void shader_add_uniform(shader_t *shader, const char *name, UNIFORM_TYPE type);
 static shader_uniform_t *shader_get_uniform(shader_t *shader, const char *name);
 
 // -------------------------------------------------------------------------------------------------
@@ -31,7 +32,7 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 
 // -------------------------------------------------------------------------------------------------
 
-shader_t * shader_create(const char *name, const char *path)
+shader_t *shader_create(const char *name, const char *path)
 {
 	NEW(shader_t, shader);
 
@@ -54,7 +55,32 @@ shader_t * shader_create(const char *name, const char *path)
 	shader->num_lights_position = -1;
 
 	arr_init(shader->material_uniforms);
+	arr_init(shader->source);
 
+	return shader;
+}
+
+shader_t *shader_clone(shader_t *original)
+{
+	if (original == NULL) {
+		return NULL;
+	}
+
+	shader_t *shader = shader_create(original->resource.res_name, NULL);
+
+	// Compile the shader program.
+	if (shader_load_from_source(shader, original->source.count, (const char **)original->source.items,
+	                            0, NULL, NULL)) {
+
+		// Resolve custom material uniforms.
+		for (size_t i = 0; i < original->material_uniforms.count; i++) {
+
+			shader_uniform_t *uniform = &original->material_uniforms.items[i];
+			shader_add_uniform(shader, uniform->name, uniform->type);
+		}
+	}
+
+	// TODO: Add reference counting to duplicated resources!
 	return shader;
 }
 
@@ -216,27 +242,7 @@ bool shader_load_from_source(
 
 	// Custom material uniforms.
 	for (size_t i = 0; i < num_uniforms; i++) {
-
-		int position = rend_get_program_uniform_location(shader->program, uniforms[i]);
-
-		if (position < 0) {
-
-			// If the uniform has no position in the compiled program, it is not used and the
-			// compiler has optimized it away. Ignore the uniform.
-			break;
-		}
-
-		// Store the uniform into the shader.
-		shader_uniform_t uniform;
-
-		uniform.name = string_duplicate(uniforms[i]);
-		uniform.type = uniform_types[i];
-		uniform.position = position;
-
-		// Initialize value to 0.
-		memset(&uniform.value, 0, sizeof(uniform.value));
-
-		arr_push(shader->material_uniforms, uniform);
+		shader_add_uniform(shader, uniforms[i], uniform_types[i]);
 	}
 
 	// Get and cache vertex attribute indices.
@@ -269,6 +275,11 @@ bool shader_load_from_source(
 		}
 	}
 
+	// Store shader source code for shader duplicating.
+	for (uint32_t i = 0; i < num_lines; i++) {
+		arr_push(shader->source, string_duplicate(lines[i]));
+	}
+
 	return true;
 }
 
@@ -295,6 +306,43 @@ static void shader_destroy_program(shader_t *shader)
 		rend_destroy_shader(shader->program);
 		shader->program = 0;
 	}
+
+	// Destroy source code storage.
+	const char *src_line;
+
+	arr_foreach(shader->source, src_line) {
+		DESTROY(src_line);
+	}
+
+	arr_clear(shader->source);
+}
+
+static void shader_add_uniform(shader_t *shader, const char *name, UNIFORM_TYPE type)
+{
+	if (shader == NULL || string_is_null_or_empty(name)) {
+		return;
+	}
+
+	int position = rend_get_program_uniform_location(shader->program, name);
+
+	if (position < 0) {
+
+		// If the uniform has no position in the compiled program, it is not used and the
+		// compiler has optimized it away. Ignore the uniform.
+		return;
+	}
+
+	// Store the uniform into the shader.
+	shader_uniform_t uniform;
+
+	uniform.name = string_duplicate(name);
+	uniform.type = type;
+	uniform.position = position;
+
+	// Initialize value to 0.
+	memset(&uniform.value, 0, sizeof(uniform.value));
+
+	arr_push(shader->material_uniforms, uniform);
 }
 
 static shader_uniform_t *shader_get_uniform(shader_t *shader, const char *name)

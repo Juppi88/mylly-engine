@@ -142,12 +142,15 @@ typedef struct shader_t {
 	arr_t(shader_uniform_t) material_uniforms;
 	bool has_updated_uniforms; // A flag indicating whether the custom uniforms need updating
 
+	arr_t(const char *) source; // An array consisting of source code lines of the shader
+
 } shader_t;
 
 // -------------------------------------------------------------------------------------------------
 
 // NOTE: Should not be used directly. Load resources via the res_* API.
-shader_t * shader_create(const char *name, const char *path);
+shader_t *shader_create(const char *name, const char *path);
+shader_t *shader_clone(shader_t *original);
 void shader_destroy(shader_t *shader);
 
 void shader_set_uniform_int(shader_t *shader, const char *name, int value);

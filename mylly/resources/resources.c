@@ -1195,6 +1195,11 @@ static void res_load_material(const char *file_name)
 		else {
 			material->shader = res_get_shader("default-phong");
 		}
+
+		// Create a copy of the shader program for each material.
+		if (material->shader != NULL) {
+			material->shader = shader_clone(material->shader);
+		}
 		
 		arr_push(materials, material);
 	}
