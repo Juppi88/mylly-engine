@@ -62,7 +62,7 @@ void Game::Shutdown(void)
 
 void Game::Process(void)
 {
-
+	m_ship->Update(m_input);
 }
 
 void Game::CreateCamera(void)
@@ -72,8 +72,19 @@ void Game::CreateCamera(void)
 	m_camera = obj_add_camera(cameraObject);
 
 	// Setup the camera's view.
-	obj_set_position(cameraObject, vector3(0.0f, 5.0f, 0.0f));
-	obj_look_at(cameraObject, vec3_zero(), vec3_right());
+	obj_set_position(cameraObject, vector3(0.0f, -50.0f, 0.0f));
+	obj_look_at(cameraObject, vec3_zero(), vec3_forward());
 
-	camera_set_perspective_projection(m_camera, 60, PERSPECTIVE_NEAR, PERSPECTIVE_FAR);
+	camera_set_orthographic_projection(m_camera, 75, ORTOGRAPHIC_NEAR, 100);
+
+	// Calculate game area boundaries with the current camera. OpenGL vertical coordinates
+	// get smaller from top to botton, hence the reversed Y coordinate.
+	uint16_t screenWidth, screenHeight;
+	mylly_get_resolution(&screenWidth, &screenHeight);
+
+	vec3_t min = camera_screen_to_world(m_camera, vec3(0, (float)screenHeight, 0.1f));
+	vec3_t max = camera_screen_to_world(m_camera, vec3((float)screenWidth, 0, 0.1f));
+
+	m_boundsMin = vec2(min.x, min.z);
+	m_boundsMax = vec2(max.x, max.z);
 }

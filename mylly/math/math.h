@@ -52,6 +52,13 @@ static INLINE float math_sanitize_angle(float angle)
 	return angle;
 }
 
+static INLINE float math_sanitize_angle_deg(float angle)
+{
+	while (angle > 360.0f) { angle -= 360.0f; }
+	while (angle < 0) { angle += 360.0f; }
+	return angle;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 static INLINE int lerpi(int a, int b, float t)

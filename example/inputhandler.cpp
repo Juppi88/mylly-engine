@@ -22,6 +22,25 @@ InputHandler::~InputHandler(void)
 	
 }
 
+float InputHandler::GetSteering(void) const
+{
+	float direction = 0;
+	
+	if (input_is_button_down(BUTTON_LEFT)) {
+		direction += -1;
+	}
+	if (input_is_button_down(BUTTON_RIGHT)) {
+		direction += 1;
+	}
+
+	return direction;
+}
+
+float InputHandler::GetAcceleration(void) const
+{
+	return (input_is_button_down(BUTTON_FORWARD) ? 1 : 0);
+}
+
 bool InputHandler::ExitApp(uint32_t key, bool pressed, void *context)
 {
 	if (!pressed) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gamedefs.h"
+#include <mylly/math/vector.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -26,4 +27,7 @@ private:
 
 	InputHandler *m_input = nullptr;
 	Ship *m_ship = nullptr;
+
+	vec2_t m_boundsMin = vec2_zero();
+	vec2_t m_boundsMax = vec2_zero();
 };
