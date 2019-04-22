@@ -1,6 +1,8 @@
 #include "game.h"
 #include "inputhandler.h"
+#include "asteroidhandler.h"
 #include "ship.h"
+#include "utils.h"
 #include <mylly/core/mylly.h>
 #include <mylly/scene/scene.h>
 #include <mylly/scene/object.h>
@@ -18,6 +20,7 @@ constexpr colour_t Game::DIRECTIONAL_LIGHT_COLOUR;
 
 Game::Game(void)
 {
+	Utils::Initialize();
 }
 
 Game::~Game(void)
@@ -51,6 +54,10 @@ void Game::SetupGame(void)
 	// Create the player's ship.
 	m_ship = new Ship();
 	m_ship->Spawn(m_gameScene);
+
+	// Spawn some asteroids.
+	m_asteroids = new AsteroidHandler();
+	m_asteroids->SpawnAsteroids(this, 5);
 }
 
 void Game::Shutdown(void)
@@ -58,6 +65,9 @@ void Game::Shutdown(void)
 	if (!IsSetup()) {
 		return;
 	}
+
+	delete m_asteroids;
+	m_asteroids = nullptr;
 
 	delete m_ship;
 	m_ship = nullptr;
@@ -74,11 +84,34 @@ void Game::Shutdown(void)
 	m_gameScene = nullptr;
 }
 
-void Game::Process(void)
+void Game::Update(void)
 {
 	m_ship->Update(m_input);
+	m_asteroids->Update(this);
 
 	EnforceBoundaries();
+}
+
+bool Game::IsWithinBoundaries(const vec2_t &position) const
+{
+	return (
+		position.x > m_boundsMin.x &&
+		position.x < m_boundsMax.x &&
+		position.y < m_boundsMin.y &&
+		position.y > m_boundsMin.y
+	);
+}
+
+vec2_t Game::WrapBoundaries(const vec2_t &position) const
+{
+	vec2_t wrapped = position;
+
+	if (position.x < m_boundsMin.x) wrapped.x = m_boundsMax.x;
+	if (position.x > m_boundsMax.x) wrapped.x = m_boundsMin.x;
+	if (position.y < m_boundsMin.y) wrapped.y = m_boundsMax.y;
+	if (position.y > m_boundsMax.y) wrapped.y = m_boundsMin.y;
+
+	return wrapped;
 }
 
 void Game::CreateCamera(void)
@@ -114,7 +147,7 @@ void Game::CreateSpaceBackground(void)
 {
 	// Create an object for the background element and attach a space sprite to it.
 	m_spaceBackground = scene_create_object(m_gameScene, nullptr);
-	obj_set_position(m_spaceBackground, vec3(0, 0, 10));
+	obj_set_position(m_spaceBackground, vec3(0, 20, 0));
 
 	sprite_t *sprite = res_get_sprite("space");
 	obj_set_sprite(m_spaceBackground, sprite);
@@ -161,26 +194,4 @@ void Game::EnforceBoundaries(void)
 	if (!IsWithinBoundaries(m_ship->GetPosition())) {
 		m_ship->SetPosition(WrapBoundaries(m_ship->GetPosition()));
 	}
-}
-
-bool Game::IsWithinBoundaries(const vec2_t &position)
-{
-	return (
-		position.x > m_boundsMin.x &&
-		position.x < m_boundsMax.x &&
-		position.y < m_boundsMin.y &&
-		position.y > m_boundsMin.y
-	);
-}
-
-vec2_t Game::WrapBoundaries(const vec2_t &position)
-{
-	vec2_t wrapped = position;
-
-	if (position.x < m_boundsMin.x) wrapped.x = m_boundsMax.x;
-	if (position.x > m_boundsMax.x) wrapped.x = m_boundsMin.x;
-	if (position.y < m_boundsMin.y) wrapped.y = m_boundsMax.y;
-	if (position.y > m_boundsMax.y) wrapped.y = m_boundsMin.y;
-
-	return wrapped;
 }

@@ -280,7 +280,7 @@ static Game game;
 // This method is called on every frame before rendering the scene.
 static void MainLoop(void)
 {
-	game.Process();
+	game.Update();
 }
 
 int main(int argc, char **argv)

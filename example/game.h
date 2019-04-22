@@ -12,12 +12,19 @@ public:
 	Game(void);
 	~Game(void);
 
+	scene_t *GetScene(void) const { return m_gameScene; }
+
 	void SetupGame(void);
 	void Shutdown(void);
 
 	bool IsSetup(void) const { return (m_gameScene != nullptr); }
 
-	void Process(void);
+	void Update(void);
+
+	bool IsWithinBoundaries(const vec2_t &position) const;
+	vec2_t GetBoundsMin(void) const { return m_boundsMin; }
+	vec2_t GetBoundsMax(void) const { return m_boundsMax; }
+	vec2_t WrapBoundaries(const vec2_t &position) const;
 
 private:
 	void CreateCamera(void);
@@ -26,14 +33,13 @@ private:
 	void SetupLighting(void);
 
 	void EnforceBoundaries(void);
-	bool IsWithinBoundaries(const vec2_t &position);
-	vec2_t WrapBoundaries(const vec2_t &position);
 
 private:
 	static constexpr colour_t AMBIENT_LIGHT_COLOUR = col(80, 120, 175);
 	static constexpr colour_t DIRECTIONAL_LIGHT_COLOUR = col(200, 220, 255);
 
 	InputHandler *m_input = nullptr;
+	AsteroidHandler *m_asteroids = nullptr;
 	Ship *m_ship = nullptr;
 
 	scene_t *m_gameScene = nullptr;
