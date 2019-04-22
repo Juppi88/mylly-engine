@@ -700,7 +700,8 @@ const char *rend_get_default_shader_source(void)
 	return default_shader_source;
 }
 
-texture_name_t rend_generate_texture(void *image, size_t width, size_t height, texture_format_t fmt)
+texture_name_t rend_generate_texture(void *image, size_t width, size_t height,
+                                     TEX_FORMAT fmt, TEX_FILTER filter)
 {
 	// Generate a texture name.
 	GLuint texture;
@@ -710,30 +711,41 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height, t
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
+	// Select a filter for interpolating the texture.
+	int filter_param = (filter == TEX_FILTER_POINT ? GL_NEAREST : GL_LINEAR);
+
+	int internal_format;
+	int image_format;
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter_param);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter_param);
+
 	switch (fmt) {
 
 		case TEX_FORMAT_GRAYSCALE:
 
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 			// Convert grayscale textures into 4-channel texture where the only colour is red.
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0,
-                         GL_RED, GL_UNSIGNED_BYTE, image);
+			internal_format = GL_RED;
+			image_format = GL_RED;
+			break;
 
+		case TEX_FORMAT_RGB:
+
+			// Assume 24bit RGB texture by default.
+			internal_format = GL_RGBA;
+			image_format = GL_RGB;
 			break;
 
 		default:
 
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 			// Assume 32bit RGBA texture by default.
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                         GL_RGBA, GL_UNSIGNED_BYTE, image);
-
+			internal_format = GL_RGBA;
+			image_format = GL_RGBA;
 			break;
 	}
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0,
+	             image_format, GL_UNSIGNED_BYTE, image);
 
 	return texture;
 }

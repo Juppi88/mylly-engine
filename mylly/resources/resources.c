@@ -382,7 +382,15 @@ static void res_load_texture(const char *file_name)
 
 		texture_t *texture = texture_create(name, file_name);
 
-		if (texture_load_png(texture, buffer, length)) {
+		// Check whether the texture is a spritesheet and use a different filtering method depending
+		// on whether it is.
+		char sprite_sheet_file[260];
+		snprintf(sprite_sheet_file, sizeof(sprite_sheet_file), "./textures/%s.sprite", name);
+
+		bool is_sprite_sheet = file_exists(sprite_sheet_file);
+		TEX_FILTER filter = (is_sprite_sheet ? TEX_FILTER_POINT : TEX_FILTER_BILINEAR);
+
+		if (texture_load_png(texture, buffer, length, filter)) {
 			texture->resource.is_loaded = true;
 		}
 

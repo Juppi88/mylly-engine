@@ -56,7 +56,7 @@ void texture_destroy(texture_t *texture)
 	DESTROY(texture);
 }
 
-bool texture_load_png(texture_t *texture, void *data, size_t data_length)
+bool texture_load_png(texture_t *texture, void *data, size_t data_length, TEX_FILTER filter)
 {
 	if (texture == NULL || data == NULL) {
 		return false;
@@ -124,14 +124,20 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 
 	png_get_IHDR(png, info, &width, &height, &bit_depth, &colour_type, NULL, NULL, NULL);
 
-	if (colour_type != PNG_COLOR_TYPE_RGB_ALPHA) {
+	if (colour_type != PNG_COLOR_TYPE_RGB &&
+		colour_type != PNG_COLOR_TYPE_RGB_ALPHA) {
 
-		log_warning("Renderer",
-			"Unsupported texture type (currently only PNG_COLOR_TYPE_RGB_ALPHA is supported)");
+		log_warning(
+			"Renderer",
+			"Unsupported texture type %d (currently only RGB with or without alpha is supported)",
+			colour_type
+		);
 
 		png_destroy_read_struct(&png, &info, &end);
 		return false;
 	}
+
+	bool has_alpha = (colour_type == PNG_COLOR_TYPE_RGB_ALPHA);
 
 	texture->width = (uint16_t)width;
 	texture->height = (uint16_t)height;
@@ -166,7 +172,7 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length)
 
 	// Generate a GPU object for this texture.
 	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
-                                                 TEX_FORMAT_RGBA);
+                                            has_alpha ? TEX_FORMAT_RGBA : TEX_FORMAT_RGB, filter);
 
 	return true;
 }
@@ -186,7 +192,7 @@ bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width
 
 	// Generate a GPU object for this texture.
 	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
-                                                 TEX_FORMAT_GRAYSCALE);
+                                                 TEX_FORMAT_GRAYSCALE, TEX_FILTER_POINT);
 
 	return true;
 }
