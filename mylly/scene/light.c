@@ -86,6 +86,16 @@ void light_set_range(light_t *light, float range)
 	light->is_dirty = true;
 }
 
+void light_set_direction(light_t *light, vec3_t direction)
+{
+	if (light == NULL) {
+		return;
+	}
+
+	light->direction = direction;
+	light->is_dirty = true;
+}
+
 void light_set_spotlight_cutoff_angle(light_t *light, float angle, float outer_angle)
 {
 	if (light == NULL) {
@@ -94,16 +104,6 @@ void light_set_spotlight_cutoff_angle(light_t *light, float angle, float outer_a
 
 	light->cutoff_angle = cosf(DEG_TO_RAD(angle));
 	light->cutoff_angle_outer = cosf(DEG_TO_RAD(outer_angle));
-	light->is_dirty = true;
-}
-
-void light_set_spotlight_direction(light_t *light, vec3_t direction)
-{
-	if (light == NULL) {
-		return;
-	}
-
-	light->direction = direction;
 	light->is_dirty = true;
 }
 

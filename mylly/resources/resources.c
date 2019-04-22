@@ -92,8 +92,8 @@ void res_initialize(void)
 	// - Textures should be loaded before materials and sprites
 	// - Materials should be loaded before shaders and models
 	// - Sprites should be loaded before animations
-	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
 	res_load_all_in_directory("./shaders", ".glsl", RES_SHADER);
+	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
 	res_load_all_in_directory("./models", ".mtl", RES_MATERIAL);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
@@ -374,29 +374,46 @@ static void res_load_texture(const char *file_name)
 	void *buffer;
 	size_t length;
 
-	if (file_read_all_data(file_name, &buffer, &length)) {
+	if (!file_read_all_data(file_name, &buffer, &length)) {
+		return;
+	}
 
-		// Create the texture.
-		char name[260];
-		string_get_file_name_without_extension(file_name, name, sizeof(name));
+	// Create the texture.
+	char name[260];
+	string_get_file_name_without_extension(file_name, name, sizeof(name));
 
-		texture_t *texture = texture_create(name, file_name);
+	texture_t *texture = texture_create(name, file_name);
 
-		// Check whether the texture is a spritesheet and use a different filtering method depending
-		// on whether it is.
-		char sprite_sheet_file[260];
-		snprintf(sprite_sheet_file, sizeof(sprite_sheet_file), "./textures/%s.sprite", name);
+	// Check whether the texture is a spritesheet and use a different filtering method depending
+	// on whether it is.
+	char sprite_sheet_file[260];
+	snprintf(sprite_sheet_file, sizeof(sprite_sheet_file), "./textures/%s.sprite", name);
 
-		bool is_sprite_sheet = file_exists(sprite_sheet_file);
-		TEX_FILTER filter = (is_sprite_sheet ? TEX_FILTER_POINT : TEX_FILTER_BILINEAR);
+	bool is_sprite_sheet = file_exists(sprite_sheet_file);
+	TEX_FILTER filter = (is_sprite_sheet ? TEX_FILTER_POINT : TEX_FILTER_BILINEAR);
 
-		if (texture_load_png(texture, buffer, length, filter)) {
-			texture->resource.is_loaded = true;
-		}
+	if (texture_load_png(texture, buffer, length, filter)) {
+		texture->resource.is_loaded = true;
+	}
 
-		// Add the texture to resource list.
-		arr_push(textures, texture);
-		texture->resource.index = arr_last_index(textures);
+	// Add the texture to resource list.
+	arr_push(textures, texture);
+	texture->resource.index = arr_last_index(textures);
+
+	// Add the entire texture as a sprite as well (for easy 1-sprite sheet importing).
+	if (texture->resource.is_loaded) {
+
+		// Create a sprite for the entire texture and set its data.
+		sprite_t *sprite = sprite_create(texture, NULL);
+
+		sprite_set(sprite, texture,
+		           vec2_zero(), vector2(texture->width, texture->height), vec2_zero(), 100);
+
+		// Add to resource list.
+		sprite->resource.index = arr_last_index(sprites);
+		sprite->resource.is_loaded = true;
+
+		arr_push(sprites, sprite);
 	}
 }
 
@@ -415,22 +432,6 @@ static void res_load_sprite_sheet(const char *file_name)
 
 		log_warning("Resources", "Could not find a texture for spritesheet '%s'.", name);
 		return;
-	}
-
-	// Add the entire texture as a sprite as well (for easy 1-sprite sheet importing).
-	if (texture->resource.is_loaded) {
-
-		// Create a sprite for the entire texture and set its data.
-		sprite_t *sprite = sprite_create(texture, NULL);
-
-		sprite_set(sprite, texture,
-			vec2_zero(), vector2(texture->width, texture->height), vec2_zero(), 100);
-
-		// Add to resource list.
-		sprite->resource.index = arr_last_index(sprites);
-		sprite->resource.is_loaded = true;
-
-		arr_push(sprites, sprite);
 	}
 
 	char *text;

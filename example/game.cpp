@@ -5,8 +5,14 @@
 #include <mylly/scene/scene.h>
 #include <mylly/scene/object.h>
 #include <mylly/scene/camera.h>
-#include <mylly/scene/model.h>
+#include <mylly/scene/sprite.h>
+#include <mylly/scene/light.h>
 #include <mylly/resources/resources.h>
+
+// -------------------------------------------------------------------------------------------------
+
+constexpr colour_t Game::AMBIENT_LIGHT_COLOUR;
+constexpr colour_t Game::DIRECTIONAL_LIGHT_COLOUR;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -33,14 +39,14 @@ void Game::SetupGame(void)
 	m_gameScene = scene_create();
 	mylly_set_scene(m_gameScene);
 
-	// Adjust scene lighting.
-	scene_set_ambient_light(m_gameScene, col(150, 150, 150));
-
 	// Setup camera.
 	CreateCamera();
 
 	// Create a large sprite as the space background.
 	CreateSpaceBackground();
+
+	// Setup scene lighting.
+	SetupLighting();
 
 	// Create the player's ship.
 	m_ship = new Ship();
@@ -61,6 +67,8 @@ void Game::Shutdown(void)
 
 	obj_destroy(m_camera->parent);
 	obj_destroy(m_spaceBackground);
+	obj_destroy(m_directionalLights[0]->parent);
+	obj_destroy(m_directionalLights[1]->parent);
 
 	scene_destroy(m_gameScene);
 	m_gameScene = nullptr;
@@ -83,7 +91,7 @@ void Game::CreateCamera(void)
 	obj_set_position(cameraObject, vector3(0.0f, -50.0f, 0.0f));
 	obj_look_at(cameraObject, vec3_zero(), vec3_forward());
 
-	camera_set_orthographic_projection(m_camera, 60, ORTOGRAPHIC_NEAR, 100);
+	camera_set_orthographic_projection(m_camera, 45, ORTOGRAPHIC_NEAR, 100);
 
 	// Calculate game area boundaries with the current camera. OpenGL vertical coordinates
 	// get smaller from top to botton, hence the reversed Y coordinate.
@@ -97,26 +105,55 @@ void Game::CreateCamera(void)
 
 	m_boundsMin = vec2(min.x - padding, min.z - padding);
 	m_boundsMax = vec2(max.x + padding, max.z + padding);
+
+	// Apply anti-aliasing to the rendering result.
+	camera_add_post_processing_effect(m_camera, res_get_shader("effect-fxaa"));
 }
 
 void Game::CreateSpaceBackground(void)
 {
+	// Create an object for the background element and attach a space sprite to it.
 	m_spaceBackground = scene_create_object(m_gameScene, nullptr);
+	obj_set_position(m_spaceBackground, vec3(0, 0, 10));
 
-	model_t *quadModel = model_create("", "");
-	model_setup_primitive(quadModel, PRIMITIVE_QUAD);
+	sprite_t *sprite = res_get_sprite("space");
+	obj_set_sprite(m_spaceBackground, sprite);
 
-	mesh_t *quadMesh = quadModel->meshes.items[0];
-
-	mesh_set_texture(quadMesh, res_get_texture("space"));
-	mesh_set_shader(quadMesh, res_get_shader("default-textured"));
-
-	obj_set_model(m_spaceBackground, quadModel);
-
-	float scale = m_boundsMax.x - m_boundsMin.x;
+	// Get the size of the sprite in world units and scale it to cover the entire view of the camera.
+	float spriteWidth = sprite->size.x / sprite->pixels_per_unit;
+	float viewWidth = m_boundsMax.x - m_boundsMin.x;
+	float scale = viewWidth / spriteWidth;
 
 	obj_set_local_scale(m_spaceBackground, vec3(scale, scale, 1));
+
+	// Rotate the sprite to face the camera.
 	obj_set_local_rotation(m_spaceBackground, quat_from_euler_deg(90, 0, 0));
+}
+
+void Game::SetupLighting(void)
+{
+	// Adjust ambient lighting.
+	scene_set_ambient_light(m_gameScene, AMBIENT_LIGHT_COLOUR);
+
+	// Create two directional lights to light the ship and other 3D objects.
+	for (int i = 0; i < 2; i++) {
+		
+		object_t *lightObject = scene_create_object(m_gameScene, nullptr);
+		light_t *light = obj_add_light(lightObject);
+
+		m_directionalLights[i] = light;
+
+		light_set_type(light, LIGHT_DIRECTIONAL);
+		light_set_colour(light, DIRECTIONAL_LIGHT_COLOUR);
+		light_set_intensity(light, 1.5f);
+
+		if (i == 0) {
+			light_set_direction(light, vec3(10, 3, 3));
+		}
+		else {
+			light_set_direction(light, vec3(-10, 3, -3));
+		}
+	}
 }
 
 void Game::EnforceBoundaries(void)
