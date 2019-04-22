@@ -17,6 +17,9 @@ public:
 
 	bool IsSpawned(void) const { return (m_sceneObject != nullptr); }
 
+	vec2_t GetPosition(void) const { return m_position; }
+	void SetPosition(const vec2_t &position) { m_position = position; }
+
 private:
 	void UpdateControls(const InputHandler *input);
 
