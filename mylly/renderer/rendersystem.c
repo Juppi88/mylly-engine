@@ -100,15 +100,17 @@ void rsys_begin_frame(void)
 	ui_view->view_position = vec4(0, 0, 0, 1);
 }
 
-void rsys_end_frame(void)
+void rsys_end_frame(scene_t *scene)
 {
 	// Generate and issue the actual draw calls here. All scenes and their objects ahave already
 	// been added to the views, soo all that's left are special meshes (debug primitives,
 	// UI widgets).
 
-	// First collect debug primitives.
-	debug_end_frame();
-
+	// First collect debug primitives. We're currently using the first camera for debug drawing.
+	if (scene != NULL && scene->cameras.count != 0) {
+		debug_end_frame(scene->cameras.items[0]->camera);	
+	}
+	
 	// Add the UI view to the view list as last.
 	list_push(views, ui_view);
 
@@ -181,7 +183,7 @@ void rsys_render_scene(scene_t *scene)
 
 		// Initialize a virtual root object.
 		view->root.matrix = mat_identity();
-		view->root.mvp = view->projection;
+		view->root.mvp = view->view_projection;
 
 		// Apply post processing effects.
 		shader_t *effect;

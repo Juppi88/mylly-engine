@@ -115,7 +115,7 @@ void mylly_main_loop(on_loop_t callback)
 		mgui_process();
 
 		// Ending the frame will issue the actual draw calls.
-		rsys_end_frame();
+		rsys_end_frame(current_scene);
 
 		time_tick();
 

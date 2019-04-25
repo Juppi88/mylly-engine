@@ -14,7 +14,7 @@ void rsys_initialize(void);
 void rsys_shutdown(void);
 
 void rsys_begin_frame(void);
-void rsys_end_frame(void);
+void rsys_end_frame(scene_t *scene);
 
 // Creates all render views for a single scene and adds them to the list of items to be rendered
 // during this frame.
