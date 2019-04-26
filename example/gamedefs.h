@@ -4,6 +4,8 @@
 
 class Asteroid;
 class AsteroidHandler;
+class CollisionHandler;
+class Entity;
 class Game;
 class InputHandler;
 class Ship;

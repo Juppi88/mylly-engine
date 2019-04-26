@@ -1,6 +1,7 @@
 #include "game.h"
 #include "inputhandler.h"
 #include "asteroidhandler.h"
+#include "collisionhandler.h"
 #include "ship.h"
 #include "utils.h"
 #include <mylly/core/mylly.h>
@@ -36,6 +37,7 @@ void Game::SetupGame(void)
 		return;
 	}
 
+	m_collisionHandler = new CollisionHandler();
 	m_input = new InputHandler();
 
 	// Create t main game scene.
@@ -53,7 +55,7 @@ void Game::SetupGame(void)
 
 	// Create the player's ship.
 	m_ship = new Ship();
-	m_ship->Spawn(m_gameScene);
+	m_ship->Spawn(this);
 
 	// Spawn some asteroids.
 	m_asteroids = new AsteroidHandler();
@@ -86,30 +88,35 @@ void Game::Shutdown(void)
 
 void Game::Update(void)
 {
-	m_ship->Update(m_input);
+	m_ship->ProcessInput(m_input);
+	m_ship->Update();
+
 	m_asteroids->Update(this);
+
+	// Process collisions after moving entities.
+	m_collisionHandler->Update(this);
 
 	EnforceBoundaries();
 }
 
-bool Game::IsWithinBoundaries(const vec2_t &position) const
+bool Game::IsWithinBoundaries(const Vec2 &position) const
 {
 	return (
-		position.x > m_boundsMin.x &&
-		position.x < m_boundsMax.x &&
-		position.y < m_boundsMin.y &&
-		position.y > m_boundsMin.y
+		position.x() > m_boundsMin.x() &&
+		position.x() < m_boundsMax.x() &&
+		position.y() < m_boundsMin.y() &&
+		position.y() > m_boundsMin.y()
 	);
 }
 
-vec2_t Game::WrapBoundaries(const vec2_t &position) const
+Vec2 Game::WrapBoundaries(const Vec2 &position) const
 {
-	vec2_t wrapped = position;
+	Vec2 wrapped = position;
 
-	if (position.x < m_boundsMin.x) wrapped.x = m_boundsMax.x;
-	if (position.x > m_boundsMax.x) wrapped.x = m_boundsMin.x;
-	if (position.y < m_boundsMin.y) wrapped.y = m_boundsMax.y;
-	if (position.y > m_boundsMax.y) wrapped.y = m_boundsMin.y;
+	if (position.x() < m_boundsMin.x()) wrapped.x(m_boundsMax.x());
+	if (position.x() > m_boundsMax.x()) wrapped.x(m_boundsMin.x());
+	if (position.y() < m_boundsMin.y()) wrapped.y(m_boundsMax.y());
+	if (position.y() > m_boundsMax.y()) wrapped.y(m_boundsMin.y());
 
 	return wrapped;
 }
@@ -154,7 +161,7 @@ void Game::CreateSpaceBackground(void)
 
 	// Get the size of the sprite in world units and scale it to cover the entire view of the camera.
 	float spriteWidth = sprite->size.x / sprite->pixels_per_unit;
-	float viewWidth = m_boundsMax.x - m_boundsMin.x;
+	float viewWidth = m_boundsMax.x() - m_boundsMin.x();
 	float scale = viewWidth / spriteWidth;
 
 	obj_set_local_scale(m_spaceBackground, vec3(scale, scale, 1));

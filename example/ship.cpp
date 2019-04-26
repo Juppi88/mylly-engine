@@ -1,4 +1,5 @@
 #include "ship.h"
+#include "game.h"
 #include "inputhandler.h"
 #include <mylly/scene/object.h>
 #include <mylly/scene/scene.h>
@@ -10,22 +11,20 @@
 
 Ship::Ship(void)
 {
+	SetBoundingRadius(2.0f);
 }
 
 Ship::~Ship(void)
 {
-	if (m_sceneObject != nullptr) {
-
-		obj_destroy(m_sceneObject);
-		m_sceneObject = nullptr;
-	}
 }
 
-void Ship::Spawn(scene_t *scene)
+void Ship::Spawn(Game *game)
 {
 	if (IsSpawned()) {
 		return;
 	}
+
+	Entity::Spawn(game);
 
 	// Load the spaceship model.
 	model_t *shipModel = res_get_model("fighterjet");
@@ -36,10 +35,10 @@ void Ship::Spawn(scene_t *scene)
 
 	// Create an empty parent object for the ship. This is because the ship model is rotated
 	// in a weird way and we want to be able to set the ship's heading without too complex math.
-	m_sceneObject = scene_create_object(scene, nullptr);
+	SetSceneObject(scene_create_object(game->GetScene(), nullptr));
 
 	// Create an object under the empty parent and attach the model to it.
-	object_t *shipObject = scene_create_object(scene, m_sceneObject);
+	object_t *shipObject = scene_create_object(game->GetScene(), GetSceneObject());
 	obj_set_model(shipObject, shipModel);
 
 	// Make the model a bit smaller.
@@ -49,17 +48,16 @@ void Ship::Spawn(scene_t *scene)
 	obj_set_local_rotation(shipObject, quat_from_euler_deg(180, 90, 0));
 }
 
-void Ship::Update(const InputHandler *input)
+void Ship::Update(void)
 {
-	// Process player input.
-	UpdateControls(input);
-
 	// Update the ship's transformation.
-	obj_set_position(m_sceneObject, vec3(m_position.x, 0, m_position.y));
-	obj_set_local_rotation(m_sceneObject, quat_from_euler_deg(0, m_heading, 0));
+	obj_set_position(GetSceneObject(), GetScenePosition().vec());
+	obj_set_local_rotation(GetSceneObject(), quat_from_euler_deg(0, m_heading, 0));
+
+	Entity::Update();
 }
 
-void Ship::UpdateControls(const InputHandler *input)
+void Ship::ProcessInput(const InputHandler *input)
 {
 	float dt = get_time().delta_time;
 
@@ -81,22 +79,24 @@ void Ship::UpdateControls(const InputHandler *input)
 		accelerationPower *= ACCELERATION * dt;
 
 		// Calculate acceleration direction.
-		vec2_t acceleration = vec2(cosf(headingRad), -sinf(headingRad));
-		acceleration = vec2_multiply(acceleration, accelerationPower);
+		Vec2 acceleration = Vec2(cosf(headingRad), -sinf(headingRad));
+		acceleration *= accelerationPower;
 		
 		// Apply acceleration to velocity.
-		m_velocity = vec2_add(m_velocity, acceleration);
+		m_velocity += acceleration;
 
 		// Limit the ship's speed.
-		float speed = vec2_normalize(&m_velocity);
+		float speed = m_velocity.Normalize();
 		if (speed > MAX_SPEED) {
 			speed = MAX_SPEED;
 		}
 
-		m_velocity = vec2_multiply(m_velocity, speed);
+		m_velocity *= speed;
 	}
 
 	// Apply movement to ship's position.
-	vec2_t movement = vec2_multiply(m_velocity, dt);
-	m_position = vec2_add(m_position, movement);
+	Vec2 movement = m_velocity * dt;
+	Vec2 target = GetPosition() + movement;
+
+	SetPosition(target);
 }

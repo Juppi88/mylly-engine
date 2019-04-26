@@ -1,0 +1,78 @@
+#include "collisionhandler.h"
+#include "entity.h"
+
+// -------------------------------------------------------------------------------------------------
+
+CollisionHandler::CollisionHandler(void)
+{
+
+}
+
+CollisionHandler::~CollisionHandler(void)
+{
+	arr_clear(m_entities);
+}
+
+void CollisionHandler::RegisterEntity(Entity *entity)
+{
+	if (Contains(entity)) {
+		return;
+	}
+
+	arr_push(m_entities, entity);
+}
+
+void CollisionHandler::UnregisterEntity(Entity *entity)
+{
+	if (!Contains(entity)) {
+		return;
+	}
+
+	arr_remove(m_entities, entity);
+}
+
+void CollisionHandler::Update(const Game *game)
+{
+	// This could be optimized a lot by i.e. keeping track of the entities we've checked, but since
+	// the object count in the game is so low i'm not going to bother.
+	for (uint32_t i = 0; i < m_entities.count; i++) {
+
+		Entity *entity = m_entities.items[i];
+
+		for (uint32_t j = 0; j < m_entities.count; j++) {
+
+			// Skip the entity itself.
+			if (i == j) {
+				continue;
+			}
+
+			Entity *other = m_entities.items[j];
+
+			if (EntitiesCollide(entity, other)) {
+
+				// Detected a collision! Notify both entities.
+				entity->OnCollideWith(other);
+				other->OnCollideWith(entity);
+			}
+		}
+	}
+}
+
+bool CollisionHandler::Contains(Entity *entity) const
+{
+	int index;
+	arr_find(m_entities, entity, index);
+
+	return (index >= 0);
+}
+
+bool CollisionHandler::EntitiesCollide(Entity *entity1, Entity* entity2) const
+{
+	// We're detecting simple sphere-shpere collisions.
+	// First, calculate distance between the two entities.
+	Vec2 direction = entity2->GetPosition() - entity1->GetPosition();
+	float distance = direction.Normalize();
+
+	// If the distance between the two objects is less than their radii combined.
+	return (distance < entity1->GetBoundingRadius() + entity2->GetBoundingRadius());
+}

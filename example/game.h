@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gamedefs.h"
-#include <mylly/math/vector.h>
+#include "vector.h"
 #include <mylly/renderer/colour.h>
 
 // -------------------------------------------------------------------------------------------------
@@ -12,6 +12,8 @@ public:
 	Game(void);
 	~Game(void);
 
+	CollisionHandler *GetCollisionHandler(void) const { return m_collisionHandler; }
+
 	scene_t *GetScene(void) const { return m_gameScene; }
 
 	void SetupGame(void);
@@ -21,10 +23,10 @@ public:
 
 	void Update(void);
 
-	bool IsWithinBoundaries(const vec2_t &position) const;
-	vec2_t GetBoundsMin(void) const { return m_boundsMin; }
-	vec2_t GetBoundsMax(void) const { return m_boundsMax; }
-	vec2_t WrapBoundaries(const vec2_t &position) const;
+	bool IsWithinBoundaries(const Vec2 &position) const;
+	Vec2 GetBoundsMin(void) const { return m_boundsMin; }
+	Vec2 GetBoundsMax(void) const { return m_boundsMax; }
+	Vec2 WrapBoundaries(const Vec2 &position) const;
 
 private:
 	void CreateCamera(void);
@@ -39,6 +41,7 @@ private:
 	static constexpr colour_t DIRECTIONAL_LIGHT_COLOUR = col(200, 220, 255);
 
 	InputHandler *m_input = nullptr;
+	CollisionHandler *m_collisionHandler = nullptr;
 	AsteroidHandler *m_asteroids = nullptr;
 	Ship *m_ship = nullptr;
 
@@ -47,6 +50,6 @@ private:
 	object_t *m_spaceBackground = nullptr;
 	light_t *m_directionalLights[2] = { nullptr, nullptr };
 
-	vec2_t m_boundsMin = vec2_zero();
-	vec2_t m_boundsMax = vec2_zero();
+	Vec2 m_boundsMin = Vec2();
+	Vec2 m_boundsMax = Vec2();
 };

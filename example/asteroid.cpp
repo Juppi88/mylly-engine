@@ -1,4 +1,5 @@
 #include "asteroid.h"
+#include "game.h"
 #include "utils.h"
 #include <mylly/scene/scene.h>
 #include <mylly/scene/object.h>
@@ -6,6 +7,7 @@
 #include <mylly/core/time.h>
 #include <mylly/resources/resources.h>
 #include <mylly/math/math.h>
+#include <mylly/renderer/debug.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -15,20 +17,21 @@ Asteroid::Asteroid(void)
 
 Asteroid::~Asteroid(void)
 {
-	if (m_sceneObject != nullptr) {
-
-		obj_destroy(m_sceneObject);
-		m_sceneObject = nullptr;
-	}
 }
 
-void Asteroid::Spawn(scene_t *scene)
+void Asteroid::Spawn(Game *game)
 {
+	if (IsSpawned()) {
+		return;
+	}
+	
+	Entity::Spawn(game);
+
 	// Create an empty parent object for the asteroid which we can rotate around freely.
-	m_sceneObject = scene_create_object(scene, nullptr);
+	SetSceneObject(scene_create_object(game->GetScene(), nullptr));
 
 	// Create the asteroid object.
-	object_t *asteroidObject = scene_create_object(scene, m_sceneObject);
+	object_t *asteroidObject = scene_create_object(game->GetScene(), GetSceneObject());
 
 	// Load and set an asteroid model.
 	model_t *asteroidModel = res_get_model("rock01");
@@ -45,7 +48,7 @@ void Asteroid::Spawn(scene_t *scene)
 
 void Asteroid::SetSize(AsteroidSize size)
 {
-	if (m_sceneObject == nullptr) {
+	if (!IsSpawned()) {
 		return;
 	}
 
@@ -57,43 +60,45 @@ void Asteroid::SetSize(AsteroidSize size)
 		default: scale = 1.0f; break;
 	}
 
-	obj_set_local_scale(m_sceneObject, vec3(scale, scale, scale));
+	obj_set_local_scale(GetSceneObject(), vec3(scale, scale, scale));
 	m_size = size;
+
+	SetBoundingRadius(0.8f * scale);
 }
 
-void Asteroid::SetPosition(const vec2_t &position)
-{
-	m_position = position;
-
-	if (m_sceneObject != nullptr) {
-		obj_set_position(m_sceneObject, vec3(m_position.x, 0, m_position.y));
-	}
-}
-
-void Asteroid::SetDirection(const vec2_t &direction)
+void Asteroid::SetDirection(const Vec2 &direction)
 {
 	m_direction = direction;
-	vec2_normalize(&m_direction);
+	m_direction.Normalize();
 }
 
 void Asteroid::Update(void)
 {
-	if (m_sceneObject == nullptr) {
+	if (!IsSpawned()) {
 		return;
 	}
 
 	float dt = get_time().delta_time;
 
 	// Move the asteroid.
-	vec2_t movement = vec2_multiply(m_direction, m_movementSpeed * dt);
-	SetPosition(vec2_add(m_position, movement));
+	Vec2 movement = m_direction * m_movementSpeed * dt;
+	SetPosition(GetPosition() + movement);
 
 	// Rotate the asteroid.
-	vec3_t euler = vec3(m_direction.x, 0, m_direction.y);
-	euler = vec3_multiply(euler, RAD_TO_DEG(dt));
+	Vec3 euler = Vec3(m_direction.y(), 0, -m_direction.x());
+	euler *= RAD_TO_DEG(dt);
 
-	m_rotation = vec3_add(m_rotation, euler);
+	m_rotation += euler;
 
-	obj_set_local_rotation(m_sceneObject,
-		quat_from_euler_deg(-m_rotation.x, m_rotation.y, -m_rotation.z));
+	obj_set_local_rotation(GetSceneObject(),
+		quat_from_euler_deg(-m_rotation.x(), m_rotation.y(), -m_rotation.z()));
+
+	// Draw a line to indicate the asteroid's direction.
+	Vec3 direction = Vec3(m_direction.x(), 0, m_direction.y()) * 3;
+	direction += GetScenePosition();
+
+	debug_draw_line(GetScenePosition().vec(), direction.vec(), COL_GREEN, false);
+
+	// Call base update to draw entity debug visualizers.
+	Entity::Update();
 }

@@ -19,15 +19,15 @@ AsteroidHandler::~AsteroidHandler(void)
 	arr_clear(m_asteroids);
 }
 
-void AsteroidHandler::SpawnAsteroids(const Game *game, uint32_t count)
+void AsteroidHandler::SpawnAsteroids(Game *game, uint32_t count)
 {
 	for (uint32_t i = 0; i < count; i++) {
 
 		Asteroid *asteroid = new Asteroid();
-		asteroid->Spawn(game->GetScene());
+		asteroid->Spawn(game);
 
 		// Randomize initial values.
-		vec2_t spawnPosition, spawnDirection;
+		Vec2 spawnPosition, spawnDirection;
 		GetRandomSpawnPosition(game, spawnPosition, spawnDirection);
 		
 		asteroid->SetSize(ASTEROID_LARGE);
@@ -55,31 +55,31 @@ void AsteroidHandler::Update(const Game *game)
 	}
 }
 
-void AsteroidHandler::GetRandomSpawnPosition(const Game *game, vec2_t &position, vec2_t &direction) const
+void AsteroidHandler::GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const
 {
-	vec2_t min = game->GetBoundsMin();
-	vec2_t max = game->GetBoundsMax();
+	Vec2 min = game->GetBoundsMin();
+	Vec2 max = game->GetBoundsMax();
 
 	switch (Utils::Random(0, 4)) {
 
 		case 0: // Left
-			position = vec2(min.x, Utils::Random(min.y, max.y));
+			position = Vec2(min.x(), Utils::Random(min.y(), max.y()));
 			direction = vec2(Utils::Random(0.0f, 1.0f), Utils::Random(-1.0f, 1.0f));
 			break;
 
 		case 1: // Right
-			position = vec2(max.x, Utils::Random(min.y, max.y));
-			direction = vec2(Utils::Random(0.0f, -1.0f), Utils::Random(-1.0f, 1.0f));
+			position = Vec2(max.x(), Utils::Random(min.y(), max.y()));
+			direction = Vec2(Utils::Random(0.0f, -1.0f), Utils::Random(-1.0f, 1.0f));
 			break;
 
 		case 2: // Top
-			position = vec2(Utils::Random(min.x, max.x), max.y);
-			direction = vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, -1.0f));
+			position = Vec2(Utils::Random(min.x(), max.x()), max.y());
+			direction = Vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, -1.0f));
 			break;
 
 		default: // Bottom
-			position = vec2(Utils::Random(min.x, max.x), min.y);
-			direction = vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, 1.0f));
+			position = Vec2(Utils::Random(min.x(), max.x()), min.y());
+			direction = Vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, 1.0f));
 			break;
 	}
 }
