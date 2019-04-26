@@ -12,6 +12,7 @@
 Ship::Ship(void)
 {
 	SetBoundingRadius(2.0f);
+	SetMass(200.0f);
 }
 
 Ship::~Ship(void)
@@ -83,19 +84,22 @@ void Ship::ProcessInput(const InputHandler *input)
 		acceleration *= accelerationPower;
 		
 		// Apply acceleration to velocity.
-		m_velocity += acceleration;
+		Vec2 velocity = GetVelocity();
+		velocity += acceleration;
 
 		// Limit the ship's speed.
-		float speed = m_velocity.Normalize();
+		float speed = velocity.Normalize();
 		if (speed > MAX_SPEED) {
 			speed = MAX_SPEED;
 		}
 
-		m_velocity *= speed;
+		velocity *= speed;
+
+		SetVelocity(velocity);
 	}
 
 	// Apply movement to ship's position.
-	Vec2 movement = m_velocity * dt;
+	Vec2 movement = GetVelocity() * dt;
 	Vec2 target = GetPosition() + movement;
 
 	SetPosition(target);

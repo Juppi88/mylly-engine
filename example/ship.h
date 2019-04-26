@@ -24,6 +24,5 @@ private:
 	static constexpr float ACCELERATION = 40; // units/sec^2
 	static constexpr float MAX_SPEED = 20; // units/sec
 
-	Vec2 m_velocity = Vec2();
 	float m_heading = 0;
 };

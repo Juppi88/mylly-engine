@@ -16,15 +16,21 @@ public:
 	void SetPosition(const Vec2 &position);
 	Vec3 GetScenePosition(void) const { return Vec3(m_position.x(), 0, m_position.y()); }
 
+	Vec2 GetVelocity(void) const { return m_velocity; }
+	void SetVelocity(const Vec2 &velocity) { m_velocity = velocity; }
+
 	float GetBoundingRadius(void) const { return m_boundingRadius; }
+	float GetMass(void) const { return m_mass; }
 
 	bool IsSpawned(void) const { return (m_sceneObject != nullptr); }
 
 	bool IsColliding(void) const { return (m_collisionEntity != nullptr); }
+	bool WasCollidingWith(Entity *other) const { return (m_previousCollisionEntity == other); }
 	virtual void OnCollideWith(Entity *other);
 
 protected:
 	void SetBoundingRadius(float radius) { m_boundingRadius = radius; }
+	void SetMass(float mass) { m_mass = mass; }
 
 	object_t *GetSceneObject(void) const { return m_sceneObject; }
 	void SetSceneObject(object_t *obj) { m_sceneObject = obj; }
@@ -33,7 +39,11 @@ private:
 	object_t *m_sceneObject = nullptr;
 
 	Vec2 m_position = Vec2();
+	Vec2 m_velocity = Vec2();
+
 	float m_boundingRadius = 1.0f;
+	float m_mass = 1.0f;
 
 	Entity *m_collisionEntity = nullptr;
+	Entity *m_previousCollisionEntity = nullptr;
 };

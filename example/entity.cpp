@@ -26,7 +26,7 @@ void Entity::Spawn(Game *game)
 
 void Entity::Update(void)
 {
-	// Draw the boundaries of the entity.
+	// Draw the collider boundaries.
 	colour_t circleColour = COL_GREEN;
 
 	if (IsColliding()) {
@@ -35,7 +35,18 @@ void Entity::Update(void)
 
 	debug_draw_circle(GetScenePosition().vec(), m_boundingRadius, circleColour, false);
 
+	// Draw a line to indicate the entity's direction.
+	Vec2 direction = GetVelocity();
+	float speed = direction.Normalize();
+
+	Vec3 sceneDirection = Vec3(direction.x(), 0, direction.y());
+	sceneDirection *= 0.5f * speed;
+	sceneDirection += GetScenePosition();
+
+	debug_draw_line(GetScenePosition().vec(), sceneDirection.vec(), COL_GREEN, false);
+
 	// Reset collision entity on each frame before recalculating collisions.
+	m_previousCollisionEntity = m_collisionEntity;
 	m_collisionEntity = nullptr;
 }
 
@@ -51,6 +62,4 @@ void Entity::SetPosition(const Vec2 &position)
 void Entity::OnCollideWith(Entity *other)
 {
 	m_collisionEntity = other;
-
-	// TODO: Handle collisions differently when it is with the ship.
 }

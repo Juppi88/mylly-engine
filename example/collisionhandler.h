@@ -19,6 +19,7 @@ public:
 private:
 	bool Contains(Entity *entity) const;
 	bool EntitiesCollide(Entity *entity1, Entity* entity2) const;
+	void ApplyCollisionResponse(Entity *entity1, Entity *entity2) const;
 
 private:
 	arr_t(Entity*) m_entities = arr_initializer;

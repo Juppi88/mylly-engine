@@ -46,11 +46,21 @@ void CollisionHandler::Update(const Game *game)
 				continue;
 			}
 
+			if (entity->IsColliding()) {
+				continue;
+			}
+
 			Entity *other = m_entities.items[j];
 
 			if (EntitiesCollide(entity, other)) {
 
-				// Detected a collision! Notify both entities.
+				if (/*entity->WasCollidingWith(other) ||*/ other->IsColliding()) {
+					continue;
+				}
+
+				// Detected a collision! Apply collision response and notify both entities.
+				ApplyCollisionResponse(entity, other);
+
 				entity->OnCollideWith(other);
 				other->OnCollideWith(entity);
 			}
@@ -75,4 +85,35 @@ bool CollisionHandler::EntitiesCollide(Entity *entity1, Entity* entity2) const
 
 	// If the distance between the two objects is less than their radii combined.
 	return (distance < entity1->GetBoundingRadius() + entity2->GetBoundingRadius());
+}
+
+void CollisionHandler::ApplyCollisionResponse(Entity *entity1, Entity *entity2) const
+{
+	// Calculate a direction vector between the two objects.
+	Vec2 direction = entity1->GetPosition() - entity2->GetPosition();
+	direction.Normalize();
+
+	// Calculate a velocity vector in relation to the direction for object 1.
+	Vec2 v1 = entity1->GetVelocity();
+	float x1 = direction.Dot(v1);
+	Vec2 v1x = direction * x1;
+	Vec2 v1y = v1 - v1x;
+	float m1 = entity1->GetMass();
+	
+	// Do the same for the other object.
+	direction *= -1;
+	Vec2 v2 = entity2->GetVelocity();
+	float x2 = direction.Dot(v2);
+	Vec2 v2x = direction * x2;
+	Vec2 v2y = v2 - v2x;
+	float m2 = entity2->GetMass();
+
+	Vec2 velocity1 = v1x * (m1 - m2) / (m1 + m2) + v2x * (2 * m2) / (m1 + m2) + v1y;
+	entity1->SetVelocity(velocity1);
+
+	Vec2 velocity2 = v1x * (2 * m1) / (m1 + m2) + v2x * (m2 - m1) / (m1 + m2) + v2y;
+	entity2->SetVelocity(velocity2);
+
+	// TODO: Repel the other entity so the objects don't get inside of each other.
+	// TODO: Limit asteroid velocities.
 }

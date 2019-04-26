@@ -24,7 +24,7 @@ void Asteroid::Spawn(Game *game)
 	if (IsSpawned()) {
 		return;
 	}
-	
+
 	Entity::Spawn(game);
 
 	// Create an empty parent object for the asteroid which we can rotate around freely.
@@ -42,8 +42,6 @@ void Asteroid::Spawn(Game *game)
 		Utils::Random(0.0f, 360.0f), Utils::Random(0.0f, 360.0f), Utils::Random(0.0f, 360.0f));
 
 	obj_set_local_rotation(asteroidObject, randomRotation);
-
-	m_movementSpeed = Utils::Random(MOVEMENT_SPEED_MIN, MOVEMENT_SPEED_MAX);
 }
 
 void Asteroid::SetSize(AsteroidSize size)
@@ -64,12 +62,18 @@ void Asteroid::SetSize(AsteroidSize size)
 	m_size = size;
 
 	SetBoundingRadius(0.8f * scale);
+	SetMass(100.0f * scale);
 }
 
 void Asteroid::SetDirection(const Vec2 &direction)
 {
-	m_direction = direction;
-	m_direction.Normalize();
+	Vec2 velocity = direction;
+	velocity.Normalize();
+
+	// Randomize the speed at which the asteroid is moving.
+	float speed = Utils::Random(MOVEMENT_SPEED_MIN, MOVEMENT_SPEED_MAX);
+	
+	SetVelocity(direction * speed);
 }
 
 void Asteroid::Update(void)
@@ -81,23 +85,20 @@ void Asteroid::Update(void)
 	float dt = get_time().delta_time;
 
 	// Move the asteroid.
-	Vec2 movement = m_direction * m_movementSpeed * dt;
+	Vec2 movement = GetVelocity() * dt;
 	SetPosition(GetPosition() + movement);
 
 	// Rotate the asteroid.
-	Vec3 euler = Vec3(m_direction.y(), 0, -m_direction.x());
+	Vec2 direction = GetVelocity();
+	direction.Normalize();
+
+	Vec3 euler = Vec3(direction.y(), 0, -direction.x());
 	euler *= RAD_TO_DEG(dt);
 
 	m_rotation += euler;
 
 	obj_set_local_rotation(GetSceneObject(),
 		quat_from_euler_deg(-m_rotation.x(), m_rotation.y(), -m_rotation.z()));
-
-	// Draw a line to indicate the asteroid's direction.
-	Vec3 direction = Vec3(m_direction.x(), 0, m_direction.y()) * 3;
-	direction += GetScenePosition();
-
-	debug_draw_line(GetScenePosition().vec(), direction.vec(), COL_GREEN, false);
 
 	// Call base update to draw entity debug visualizers.
 	Entity::Update();
