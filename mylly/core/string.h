@@ -39,6 +39,7 @@ char *string_strip_end(char **input);
 bool string_is_numeric(const char *text);
 bool string_is_decimal(const char *text);
 
+void string_get_file_extension(const char *text, char *dst, size_t dst_len);
 void string_get_file_name_without_extension(const char *text, char *dst, size_t dst_len);
 
 END_DECLARATIONS;

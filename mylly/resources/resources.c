@@ -94,6 +94,8 @@ void res_initialize(void)
 	// - Sprites should be loaded before animations
 	res_load_all_in_directory("./shaders", ".glsl", RES_SHADER);
 	res_load_all_in_directory("./textures", ".png", RES_TEXTURE);
+	res_load_all_in_directory("./textures", ".jpg", RES_TEXTURE);
+	res_load_all_in_directory("./textures", ".jpeg", RES_TEXTURE);
 	res_load_all_in_directory("./models", ".mtl", RES_MATERIAL);
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
@@ -380,7 +382,9 @@ static void res_load_texture(const char *file_name)
 
 	// Create the texture.
 	char name[260];
+	char extension[32];
 	string_get_file_name_without_extension(file_name, name, sizeof(name));
+	string_get_file_extension(file_name, extension, sizeof(extension));
 
 	texture_t *texture = texture_create(name, file_name);
 
@@ -392,8 +396,19 @@ static void res_load_texture(const char *file_name)
 	bool is_sprite_sheet = file_exists(sprite_sheet_file);
 	TEX_FILTER filter = (is_sprite_sheet ? TEX_FILTER_POINT : TEX_FILTER_BILINEAR);
 
-	if (texture_load_png(texture, buffer, length, filter)) {
+	// Load the texture from the file data, assiming the file format is supported.
+	if (string_equals(extension, "png") &&
+		texture_load_png(texture, buffer, length, filter)) {
+
 		texture->resource.is_loaded = true;
+	}
+	else if ((string_equals(extension, "jpg") || string_equals(extension, "jpeg")) &&
+			 texture_load_jpeg(texture, buffer, length, filter)) {
+		
+		texture->resource.is_loaded = true;
+	}
+	else {
+		log_warning("Resources", "Could not load texture %s.", file_name);
 	}
 
 	// Add the texture to resource list.

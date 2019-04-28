@@ -2,24 +2,35 @@
 #include "core/memory.h"
 #include "core/string.h"
 #include "renderer/renderer.h"
+#include "resources/resource.h"
 #include "io/log.h"
 #include <png.h>
+#include <jpeglib.h>
+#include <jerror.h>
 #include <stdio.h>
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
+// PNG loader helpers.
 static void texture_read_png_data(png_structp ptr, png_bytep data, png_size_t length);
 
-// --------------------------------------------------------------------------------
+// JPEG loader helpers.
+static boolean texture_jpeg_loader_fill_input_buffer(j_decompress_ptr cinfo);
+static void texture_jpeg_loader_skip_input_data(j_decompress_ptr cinfo, long num_bytes);
+static void texture_jpeg_loader_no_op(j_decompress_ptr cinfo);
+
+// -------------------------------------------------------------------------------------------------
 
 // A temporary file-like struct for reading PNG data from an in-memory block.
 typedef struct {
+
 	void *buffer;
 	size_t length;
 	size_t offset;
+
 } png_file_t;
 
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 texture_t *texture_create(const char *name, const char *path)
 {
@@ -128,7 +139,7 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length, TEX_FI
 		colour_type != PNG_COLOR_TYPE_RGB_ALPHA) {
 
 		log_warning(
-			"Renderer",
+			"Resources",
 			"Unsupported texture type %d (currently only RGB with or without alpha is supported)",
 			colour_type
 		);
@@ -160,21 +171,138 @@ bool texture_load_png(texture_t *texture, void *data, size_t data_length, TEX_FI
 		row_pointers[height - 1 - i] = tex_data + i * row_bytes;
 	}
 
-    // Finally read the PNG data.
-    png_read_image(png, row_pointers);
-    png_read_end(png, NULL);
+	// Finally read the PNG data.
+	png_read_image(png, row_pointers);
+	png_read_end(png, NULL);
 
-    texture->data = tex_data;
+	texture->data = tex_data;
 
 	// Do cleanup.
 	png_destroy_read_struct(&png, &info, &end);
 	mem_free(row_pointers);
 
-	// Generate a GPU object for this texture.
+	// Load the texture onto the GPU.
 	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
                                             has_alpha ? TEX_FORMAT_RGBA : TEX_FORMAT_RGB, filter);
 
 	return true;
+}
+
+static void texture_read_png_data(png_structp ptr, png_bytep data, png_size_t length)
+{
+	png_file_t *file = (png_file_t *)png_get_io_ptr(ptr);
+
+	memcpy(data, (const void *)((const char *)file->buffer + file->offset), length);
+
+	file->offset += length;
+}
+
+bool texture_load_jpeg(texture_t *texture, void *data, size_t data_length, TEX_FILTER filter)
+{
+	// Create a jpeg decompressor struct with the default error handler.
+	// TODO: The default handler uses exit() on certain issues, so this may have to be replaced
+	// with a custom error handler in the future.
+	struct jpeg_decompress_struct cinfo;
+	struct jpeg_error_mgr jpeg_err;
+	
+	cinfo.err = jpeg_std_error(&jpeg_err);
+	jpeg_create_decompress(&cinfo);
+
+	// libjpeg62 doesn't offer a way to decompress jpeg data from data stored into memory, so we'll
+	// have to explicitly define a source and a few handler methods for the decompressor.
+	cinfo.src = (*cinfo.mem->alloc_small)(
+		(j_common_ptr)&cinfo,
+		JPOOL_PERMANENT,
+		sizeof(struct jpeg_source_mgr)
+	);
+
+	cinfo.src->init_source = texture_jpeg_loader_no_op;
+	cinfo.src->fill_input_buffer = texture_jpeg_loader_fill_input_buffer;
+	cinfo.src->skip_input_data = texture_jpeg_loader_skip_input_data;
+	cinfo.src->resync_to_restart = jpeg_resync_to_restart;
+	cinfo.src->term_source = texture_jpeg_loader_no_op;
+	cinfo.src->bytes_in_buffer = data_length;
+	cinfo.src->next_input_byte = (JOCTET *)data;
+
+	// Read the jpeg header to ensure the data in the memory is from a valid jpeg file.
+	if (jpeg_read_header(&cinfo, true) != 1) {
+		
+		log_warning("Resources", "File %s is not a normal JPEG.", texture->resource.path);
+		return false;
+	}
+
+	// Decompress the jpeg data and allocate buffers for the decompressed bitmap.
+	jpeg_start_decompress(&cinfo);
+
+	texture->width = cinfo.output_width;
+	texture->height = cinfo.output_height;
+
+	int bytes_per_pixel = cinfo.output_components;
+	size_t texture_size = texture->width * texture->height * bytes_per_pixel;
+
+	texture->data = mem_alloc(texture_size);
+
+	// Read the scanlines of the jpeg into the bitmap.
+	uint8_t *bitmap_buffer = texture->data;
+	int row_stride = texture->width * bytes_per_pixel;
+
+	while (cinfo.output_scanline < cinfo.output_height) {
+
+		uint8_t *buffer_array[1];
+
+		buffer_array[0] = bitmap_buffer + (cinfo.output_scanline) * row_stride;
+		jpeg_read_scanlines(&cinfo, buffer_array, 1);
+	}
+
+	// Done reading the bitmap data, time for memory cleanup.
+	jpeg_finish_decompress(&cinfo);
+	jpeg_destroy_decompress(&cinfo);
+
+	// Figure out texture format from the pixel size of the bitmap.
+	TEX_FORMAT format;
+
+	switch (bytes_per_pixel) {
+		case 3:
+			format = TEX_FORMAT_RGB;
+			break;
+
+		case 4:
+			format = TEX_FORMAT_RGBA;
+			break;
+
+		default:
+			log_warning("Resources", "Unsupported pixel size %d in JPEG file %s.",
+			             bytes_per_pixel, texture->resource.path);
+			return false;
+	}
+
+	// Load the texture onto the GPU.
+	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
+                                                 format, filter);
+
+	return true;
+}
+
+static boolean texture_jpeg_loader_fill_input_buffer(j_decompress_ptr cinfo)
+{
+	// The loader should never reach here as the buffer should already be loaded into memory.
+    ERREXIT(cinfo, JERR_INPUT_EMPTY);
+	return true;
+}
+
+static void texture_jpeg_loader_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
+{
+    if (num_bytes > 0) {
+        cinfo->src->next_input_byte += (size_t)num_bytes;
+        cinfo->src->bytes_in_buffer -= (size_t)num_bytes;
+    }
+}
+
+static void texture_jpeg_loader_no_op(j_decompress_ptr cinfo)
+{
+	// Since we're using a memory block as the data source, we can skip some operations such as
+	// initializing and terminating the data source.
+	UNUSED(cinfo);
 }
 
 bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width, uint16_t height)
@@ -195,13 +323,4 @@ bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width
                                                  TEX_FORMAT_GRAYSCALE, TEX_FILTER_POINT);
 
 	return true;
-}
-
-static void texture_read_png_data(png_structp ptr, png_bytep data, png_size_t length)
-{
-	png_file_t *file = (png_file_t *)png_get_io_ptr(ptr);
-
-	memcpy(data, (const void *)((const char *)file->buffer + file->offset), length);
-
-	file->offset += length;
 }

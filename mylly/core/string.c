@@ -294,8 +294,47 @@ bool string_is_decimal(const char *text)
 	return true;
 }
 
+void string_get_file_extension(const char *text, char *dst, size_t dst_len)
+{
+	if (dst == NULL) {
+		return;
+	}
+
+	*dst = 0;
+
+	if (string_is_null_or_empty(text)) {
+		return;
+	}
+
+	size_t len = strlen(text);
+	const char *file = &text[len - 1];
+
+	bool dot_was_found = false;
+
+	// Find the dot which marks the beginning of the extension.
+	while (len-- > 0) {
+
+		if (text[len] == '.') {
+
+			dot_was_found = true;
+			break;
+		}
+
+		file = &text[len];
+	}
+
+	// Copy the extension into the destination buffer, assuming a dot was found in the filename.
+	if (dot_was_found) {
+		string_copy(dst, file, dst_len);
+	}
+}
+
 void string_get_file_name_without_extension(const char *text, char *dst, size_t dst_len)
 {
+	if (dst == NULL) {
+		return;
+	}
+
 	*dst = 0;
 
 	if (string_is_null_or_empty(text)) {
