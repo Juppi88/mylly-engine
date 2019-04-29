@@ -28,7 +28,7 @@ void Ship::Spawn(Game *game)
 	Entity::Spawn(game);
 
 	// Load the spaceship model.
-	model_t *shipModel = res_get_model("fighterjet");
+	model_t *shipModel = res_get_model("plane");
 
 	if (shipModel == nullptr) {
 		return;
@@ -43,10 +43,10 @@ void Ship::Spawn(Game *game)
 	obj_set_model(shipObject, shipModel);
 
 	// Make the model a bit smaller.
-	obj_set_local_scale(shipObject, vec3(0.01f, 0.01f, 0.01f));
+	//obj_set_local_scale(shipObject, vec3(0.01f, 0.01f, 0.01f));
 
 	// Rotate the ship model so it's top side up, heading right.
-	obj_set_local_rotation(shipObject, quat_from_euler_deg(180, 90, 0));
+	obj_set_local_rotation(shipObject, quat_from_euler_deg(0, 90, 0));
 }
 
 void Ship::Update(void)

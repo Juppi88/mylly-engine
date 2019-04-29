@@ -23,6 +23,8 @@ typedef struct mtl_parser_t {
 
 // -------------------------------------------------------------------------------------------------
 
+BEGIN_DECLARATIONS;
+
 // Initialize or destroy an .mtl file parser.
 void mtl_parser_init(mtl_parser_t *parser, const char *file);
 void mtl_parser_destroy(mtl_parser_t *parser);
@@ -33,5 +35,7 @@ void mtl_parser_process_line(mtl_parser_t *parser, const char *line);
 // Tell the parser the end of the file has been reached. This will make the parser store the
 // material(s) being parsed into the 'materials' array.
 void mtl_parser_end_file(mtl_parser_t *parser);
+
+END_DECLARATIONS;
 
 #endif

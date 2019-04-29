@@ -9,8 +9,12 @@
 // -------------------------------------------------------------------------------------------------
 
 static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices);
-static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *vertices);
-static void obj_parser_collect_index_data(obj_parser_t *parser, vindex_t *indices);
+
+static void obj_parser_collect_vertex_data(obj_parser_t *parser,
+                                           obj_group_t *group, vertex_t *vertices);
+
+static void obj_parser_collect_index_data(obj_parser_t *parser,
+                                          obj_group_t *group, vindex_t *indices);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -23,11 +27,14 @@ void obj_parser_init(obj_parser_t *parser)
 	arr_init(parser->positions);
 	arr_init(parser->normals);
 	arr_init(parser->texcoords);
-	arr_init(parser->vertices);
+	arr_init(parser->groups);
 
-	parser->object_name = NULL;
 	parser->material_library = NULL;
 	parser->material = NULL;
+
+	// Push an empty group to the start of the list in case the file doesn't define any groups.
+	obj_group_t empty = { NULL, arr_initializer };
+	arr_push(parser->groups, empty);
 }
 
 void obj_parser_destroy(obj_parser_t *parser)
@@ -36,12 +43,17 @@ void obj_parser_destroy(obj_parser_t *parser)
 		return;
 	}
 
+	for (uint32_t i = 0; i < parser->groups.count; i++) {
+
+		DESTROY(parser->groups.items[i].material);
+		arr_clear(parser->groups.items[i].vertices);
+	}
+
 	arr_clear(parser->positions);
 	arr_clear(parser->normals);
 	arr_clear(parser->texcoords);
-	arr_clear(parser->vertices);
+	arr_clear(parser->groups);
 
-	DESTROY(parser->object_name);
 	DESTROY(parser->material_library);
 	DESTROY(parser->material);
 }
@@ -118,19 +130,17 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 
 		obj_parser_process_face(parser, num_tokens - 1);
 	}
-	else if (*type == 'o') { // o = object name (submesh)
+	else if (*type == 'o' || *type == 'g') { // o/g = object group name
 
-		char name[128];
-		string_tokenize_end(' ', name, sizeof(name));
+		// Add a new, empty object group to the list of groups.
+		char *material = NULL;
 
-		// The parser doesn't currently handle multiple objecty definitions in one .obj file.
-		if (!string_is_null_or_empty(parser->object_name)) {
-
-			log_error(".obj parser", "Multiple submeshes are not handled by the parser.");
-			return;
+		if (parser->material != NULL) {
+			material = string_duplicate(parser->material);
 		}
 
-		parser->object_name = string_duplicate(name);
+		obj_group_t empty = { material, arr_initializer };
+		arr_push(parser->groups, empty);
 	}
 	else if (*type == 's') { // s = smooth shading
 		// Smooth shading is currently not supported by the parser.
@@ -153,16 +163,17 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 	}
 	else if (string_equals(type, "usemtl")) { // usemtl = use a material from the .mtl file
 
-		if (!string_is_null_or_empty(parser->material)) {
-
-			log_warning(".obj parser", "Multiple materials used! This is currently not supported.");
-			return;
-		}
+		// Get the current vertex group (i.e. the last one to be pushed to the group list).
+		obj_group_t *group = &arr_last(parser->groups);
 
 		char mtl[128];
 		string_tokenize(NULL, ' ', mtl, sizeof(mtl));
 
+		DESTROY(parser->material);
 		parser->material = string_duplicate(mtl);
+
+		DESTROY(group->material);
+		group->material = string_duplicate(mtl);
 	}
 	else {
 		// The line contains some type of data not handled by this parser, warn the user about it.
@@ -172,35 +183,47 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 
 model_t *obj_parser_create_model(obj_parser_t *parser, const char *name, const char *path)
 {
-	if (parser == NULL || parser->vertices.count == 0) {
+	if (parser == NULL) {
 		return NULL;
 	}
 
-	// Create a mesh from the vertex data.
-	vertex_t vertices[parser->vertices.count];
-	obj_parser_collect_vertex_data(parser, vertices);
-
-	vindex_t indices[parser->vertices.count];
-	obj_parser_collect_index_data(parser, indices);
-
-	// Create a model structure and add the mesh to it.
+	// Create a model structure into which to copy the mesh data.
 	model_t *model = model_create(name, path);
-	model_add_mesh(model, vertices, parser->vertices.count, indices, parser->vertices.count);
 
-	// Add material data from the .mtl file to the mesh.
-	if (!string_is_null_or_empty(parser->material_library) &&
-		!string_is_null_or_empty(parser->material)) {
+	// Collect vertices from each object group and create a sub-mesh from them.
+	for (uint32_t group_index = 0; group_index < parser->groups.count; group_index++) {
 
-		mesh_t *mesh = model->meshes.items[arr_last_index(model->meshes)];
+		obj_group_t *group = &parser->groups.items[group_index];
 
-		char material_name[1000];
-		snprintf(material_name, sizeof(material_name), "%s/%s",
-		         parser->material_library, parser->material);
+		// Skip empty groups.
+		if (group->vertices.count == 0) {
+			continue;
+		}
 
-		mesh_set_material(mesh, res_get_material(material_name));
+		// Create a mesh from the vertex data.
+		vertex_t vertices[group->vertices.count];
+		obj_parser_collect_vertex_data(parser, group, vertices);
+
+		vindex_t indices[group->vertices.count];
+		obj_parser_collect_index_data(parser, group, indices);
+
+		// Add the new submesh to the model.
+		mesh_t *mesh = model_add_mesh(model, vertices, group->vertices.count, indices, group->vertices.count);
+
+		// Add material data from the .mtl file to the mesh.
+		if (!string_is_null_or_empty(parser->material_library) &&
+			!string_is_null_or_empty(group->material)) {
+
+			char material_name[1000];
+
+			snprintf(material_name, sizeof(material_name), "%s/%s",
+			         parser->material_library, group->material);
+
+			mesh_set_material(mesh, res_get_material(material_name));
+		}
 	}
 
-	// Calculate tangents for normal map.
+	// Calculate mesh tangents for normal mapping.
 	mesh_t *mesh;
 
 	arr_foreach(model->meshes, mesh) {
@@ -216,9 +239,14 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 		return;
 	}
 
+	// Get the current vertex group (i.e. the last one to be pushed to the group list).
+	obj_group_t *group = &arr_last(parser->groups);
+
 	// Split the vertex definitions first.
 	char vertex[num_vertices][64];
 	size_t i = 0;
+
+	// TODO: Handle more than 3 vertices per face! (i.e. quadrilaterals)
 
 	while (string_tokenize(NULL, ' ', vertex[i], sizeof(vertex[i]))) { i++; }
 
@@ -264,13 +292,14 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 		// object has been parsed.
 		obj_vertex_t obj_vertex = { position_idx, normal_idx, texcoord_idx };
 
-		arr_push(parser->vertices, obj_vertex);
+		arr_push(group->vertices, obj_vertex);
 	}
 }
 
-static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *vertices)
+static void obj_parser_collect_vertex_data(obj_parser_t *parser,
+                                           obj_group_t *group, vertex_t *vertices)
 {
-	size_t max_vertices = parser->vertices.count;
+	size_t max_vertices = group->vertices.count;
 
 	if (max_vertices >= MAX_VERTICES) {
 
@@ -280,9 +309,9 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *verti
 
 	for (vindex_t i = 0; i < max_vertices; i++) {
 
-		int position = parser->vertices.items[i].position;
-		int texcoord = parser->vertices.items[i].texcoord;
-		int normal = parser->vertices.items[i].normal;
+		int position = group->vertices.items[i].position;
+		int texcoord = group->vertices.items[i].texcoord;
+		int normal = group->vertices.items[i].normal;
 
 		// Positive indices are offset from the start of the array (1 being the first), negative
 		// indices are offset from the end of the array.
@@ -307,9 +336,12 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser, vertex_t *verti
 	}
 }
 
-static void obj_parser_collect_index_data(obj_parser_t *parser, vindex_t *indices)
+static void obj_parser_collect_index_data(obj_parser_t *parser,
+                                          obj_group_t *group, vindex_t *indices)
 {
-	size_t max_vertices = parser->vertices.count;
+	UNUSED(parser);
+
+	size_t max_vertices = group->vertices.count;
 
 	// Truncate too large meshes.
 	if (max_vertices >= MAX_VERTICES) {
