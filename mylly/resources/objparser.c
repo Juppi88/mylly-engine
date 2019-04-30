@@ -246,8 +246,6 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 	char vertex[num_vertices][64];
 	size_t i = 0;
 
-	// TODO: Handle more than 3 vertices per face! (i.e. quadrilaterals)
-
 	while (string_tokenize(NULL, ' ', vertex[i], sizeof(vertex[i]))) { i++; }
 
 	// Each face defines multiple vertices separated by a /, make sure to parse each of them.
@@ -290,9 +288,25 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 
 		// Store the vertex definition. This is converted to a renderer vertex after the entire
 		// object has been parsed.
-		obj_vertex_t obj_vertex = { position_idx, normal_idx, texcoord_idx };
+		if (i < 3) {
+		
+			// First three vertices define a triangle on their own, no additional processing needed.
+			obj_vertex_t obj_vertex = { position_idx, normal_idx, texcoord_idx };
+			arr_push(group->vertices, obj_vertex);
+		}
+		else {
 
-		arr_push(group->vertices, obj_vertex);
+			// If the face has more than 3 vertices, it defines a triangle fan instead of
+			// a single triangle. Since our renderer renders everything as triangles, we'll have
+			// to convert the fan to a collection of triangles by using the previous vertices.
+			obj_vertex_t v1 = group->vertices.items[0];
+			obj_vertex_t v2 = arr_last(group->vertices);
+			obj_vertex_t v3 = { position_idx, normal_idx, texcoord_idx };
+
+			arr_push(group->vertices, v1);
+			arr_push(group->vertices, v2);
+			arr_push(group->vertices, v3);
+		}
 	}
 }
 
