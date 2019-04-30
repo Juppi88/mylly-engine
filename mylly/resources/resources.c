@@ -1143,7 +1143,7 @@ static void res_load_font(FT_Library freetype, const char *file_name,
 	arr_push(fonts, font);
 	font->resource.index = arr_last_index(fonts);
 }
-#include "scene/model.h"
+
 static void res_load_obj_model(const char *file_name)
 {
 	// Set up a parser for .obj files.

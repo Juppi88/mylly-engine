@@ -278,7 +278,7 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 			normal_idx = atoi(normal_str);
 		}
 
-		// Ensure all necssary indices are either positive (offset from start) or negative
+		// Ensure all necessary indices are either positive (offset from start) or negative
 		// (offset from end).
 		if (position_idx == 0 || texcoord_idx == 0) {
 
@@ -299,9 +299,9 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 			// If the face has more than 3 vertices, it defines a triangle fan instead of
 			// a single triangle. Since our renderer renders everything as triangles, we'll have
 			// to convert the fan to a collection of triangles by using the previous vertices.
-			obj_vertex_t v1 = group->vertices.items[0];
-			obj_vertex_t v2 = arr_last(group->vertices);
-			obj_vertex_t v3 = { position_idx, normal_idx, texcoord_idx };
+			obj_vertex_t v1 = group->vertices.items[group->vertices.count - i]; // First vertex
+			obj_vertex_t v2 = arr_last(group->vertices); // Latest vertex
+			obj_vertex_t v3 = { position_idx, normal_idx, texcoord_idx }; // New vertex
 
 			arr_push(group->vertices, v1);
 			arr_push(group->vertices, v2);

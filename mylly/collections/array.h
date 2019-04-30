@@ -83,6 +83,9 @@
 #define arr_last_index(arr)\
 	((arr).count - 1)
 
+#define arr_first(arr)\
+	((arr).items[0])
+
 #define arr_last(arr)\
 	((arr).items[(arr).count - 1])
 

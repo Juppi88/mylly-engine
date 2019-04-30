@@ -109,8 +109,10 @@ void mtl_parser_process_line(mtl_parser_t *parser, const char *line)
 
 		parser->diffuse_map = res_get_texture(texture_name);
 	}
-	else if (string_equals(type, "norm")) { // norm = normal map texture
+	else if (string_equals(type, "norm") ||
+	         string_equals(type, "map_Bump")) { // norm = normal map texture
 
+		// NOTE: We're currently also handling bump maps like normal maps.
 		string_tokenize(NULL, ' ', text, sizeof(text));
 		string_get_file_name_without_extension(text, texture_name, sizeof(texture_name));
 
