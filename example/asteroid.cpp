@@ -84,6 +84,17 @@ void Asteroid::Update(void)
 
 	float dt = get_time().delta_time;
 
+	// Limit the asteroid's speed.
+	Vec2 velocity = GetVelocity();
+
+	float speed = velocity.Normalize();
+	if (speed > MOVEMENT_SPEED_MAX) {
+		speed = MOVEMENT_SPEED_MAX;
+	}
+
+	velocity *= speed;
+	SetVelocity(velocity);
+
 	// Move the asteroid.
 	Vec2 movement = GetVelocity() * dt;
 	SetPosition(GetPosition() + movement);

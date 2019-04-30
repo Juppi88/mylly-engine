@@ -114,6 +114,9 @@ void CollisionHandler::ApplyCollisionResponse(Entity *entity1, Entity *entity2) 
 	Vec2 velocity2 = v1x * (2 * m1) / (m1 + m2) + v2x * (m2 - m1) / (m1 + m2) + v2y;
 	entity2->SetVelocity(velocity2);
 
-	// TODO: Repel the other entity so the objects don't get inside of each other.
-	// TODO: Limit asteroid velocities.
+	// Repel the other entity so the objects don't get inside of each other.
+	float minDistance = (entity1->GetBoundingRadius() + entity2->GetBoundingRadius()) + 0.01f;
+	Vec2 position = entity1->GetPosition() + direction * minDistance;
+
+	entity2->SetPosition(position);
 }
