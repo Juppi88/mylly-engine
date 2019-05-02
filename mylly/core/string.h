@@ -25,7 +25,10 @@ BEGIN_DECLARATIONS;
 
 void string_copy(char *dst, const char *src, size_t dst_len);
 char *string_duplicate(const char *text);
+
 size_t string_tokenize(const char *text, char delimiter, char *dst, size_t dst_len);
+size_t string_tokenize_filter(const char *text, char delimiter, char *dst, size_t dst_len,
+                              bool filter_empty);
 size_t string_tokenize_end(char delimiter, char *dst, size_t dst_len);
 const char *string_last_token(const char *text, char delimiter);
 size_t string_token_count(const char *text, char delimiter);

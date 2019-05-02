@@ -31,6 +31,12 @@ char *string_duplicate(const char *text)
 
 size_t string_tokenize(const char *text, char delimiter, char *dst, size_t dst_len)
 {
+	return string_tokenize_filter(text, delimiter, dst, dst_len, true);
+}
+
+size_t string_tokenize_filter(const char *text, char delimiter, char *dst, size_t dst_len,
+                              bool filter_empty)
+{
 	register const char *s = tokenized_param;
 
 	if (text != NULL) {
@@ -38,7 +44,12 @@ size_t string_tokenize(const char *text, char delimiter, char *dst, size_t dst_l
 	}
 
 	// Skip leading delimiter characters.
-	while (*s == delimiter) { ++s; }
+	if (filter_empty) {
+		while (*s == delimiter) { ++s; }
+	}
+	else {
+		if (*s == delimiter) { ++s; }	
+	}
 
 	const char *start = s;
 
@@ -46,6 +57,7 @@ size_t string_tokenize(const char *text, char delimiter, char *dst, size_t dst_l
 
 	// Copy into the destination buffer until the string end or delimiter is met.
 	while (*s && dst_len-- > 0) {
+
 		if (*s == delimiter) {
 			break;
 		}

@@ -264,25 +264,19 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 		char texcoord_str[32];
 		char normal_str[32];
 
-		string_tokenize(vertex[i], '/', position_str, sizeof(position_str));
-		string_tokenize(NULL,   '/', texcoord_str, sizeof(texcoord_str));
+		string_tokenize_filter(vertex[i], '/', position_str, sizeof(position_str), false);
+		string_tokenize_filter(NULL,   '/', texcoord_str, sizeof(texcoord_str), false);
+		string_tokenize_filter(NULL,   '/', normal_str, sizeof(normal_str), false);
 
 		int position_idx = atoi(position_str);
 		int texcoord_idx = atoi(texcoord_str);
-		int normal_idx = 0;
-
-		// Some models may not define normals at all and use a normal map instead.
-		if (num_tokens > 2) {
-
-			string_tokenize(NULL,   '/', normal_str, sizeof(normal_str));
-			normal_idx = atoi(normal_str);
-		}
+		int normal_idx = atoi(normal_str);
 
 		// Ensure all necessary indices are either positive (offset from start) or negative
 		// (offset from end).
-		if (position_idx == 0 || texcoord_idx == 0) {
+		if (position_idx == 0) {
 
-			log_error(".obj parser", "Invalid face/vertex data.");
+			log_error(".obj parser", "Invalid vertex index for face.");
 			return;
 		}
 
@@ -334,10 +328,9 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser,
 		size_t normal_idx = (normal < 0 ? parser->normals.count + normal : normal - 1);
 
 		// Validate the data and that it has been defined in the file.
-		if (position_idx >= parser->positions.count ||
-			texcoord_idx >= parser->texcoords.count) {
+		if (position_idx >= parser->positions.count) {
 
-			log_warning(".obj parser", "Vertex data out od bounds.");
+			log_warning(".obj parser", "Vertex data out of bounds.");
 			continue;
 		}
 
@@ -345,7 +338,7 @@ static void obj_parser_collect_vertex_data(obj_parser_t *parser,
 		vertices[i] = vertex(
 			parser->positions.items[position_idx],
 			(normal != 0 ? parser->normals.items[normal_idx] : vec3_up()),
-			parser->texcoords.items[texcoord_idx]
+			(texcoord != 0 ? parser->texcoords.items[texcoord_idx] : vec2_zero())
 		);
 	}
 }
