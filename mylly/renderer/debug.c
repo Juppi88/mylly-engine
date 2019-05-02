@@ -128,6 +128,11 @@ void debug_end_frame(camera_t *camera)
 		int num_lines;
 		mesh_t *mesh;
 
+		// Do not upload vertex data to the GPU if there are no primitives to draw.
+		if (num_primitives == 0) {
+			continue;
+		}
+
 		debug_primitive_t *primitives = (is_overlay ? primitives_overlay : primitives_scene);
 
 		for (int i = 0; i < num_primitives; i++) {
