@@ -16,11 +16,11 @@ void main()
 	worldPosition = (MatrixModel() * vec4(Vertex, 1)).xyz;
 	texCoord = TexCoord;
 
-	// Calculate tangent matrix for normal map calculations.
+	// Calculate world space tangent matrix for normal map calculations.
 	vec3 tangentVec = normalize(vec3(MatrixModel() * vec4(Tangent, 0)));
 	vec3 normalVec = normalize(vec3(MatrixModel() * vec4(Normal, 0)));
 	tangentVec = normalize(tangentVec - dot(tangentVec, normalVec) * normalVec);
-	vec3 biTangentVec = cross(normalVec, tangentVec);
+	vec3 biTangentVec = cross(tangentVec, normalVec);
 
 	tangentMatrix = mat3(tangentVec, biTangentVec, normalVec);
 }
@@ -38,13 +38,13 @@ void main()
 	// Apply ambient lighting.
 	vec3 colour = ApplyAmbientLight(DiffuseColour.rgb);
 
+	// Retrieve surface normal from the normal map and transform it to world space coordinates.
+	vec3 normal = texture2D(TextureNormalMap(), texCoord).rgb;
+	normal = normalize(normal * 2.0 - 1.0);
+	normal = normalize(tangentMatrix * normal);
+
 	// Apply each light emitter affecting this fragment.
 	for (int i = 0; i < NumLights; i++) {
-
-		// Retrieve surface normal from the normal map and transform it to the model's orientation.
-		vec3 normal = texture2D(TextureNormalMap(), texCoord).rgb;
-		normal = normalize(normal * 2.0 - 1.0);
-		normal = normalize(tangentMatrix * normal);
 
 		colour += ApplyPhongLight(i, worldPosition, normal,
 		                          DiffuseColour.rgb, SpecularColour.rgb, Shininess);

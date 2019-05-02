@@ -179,6 +179,7 @@ void mesh_calculate_tangents(mesh_t *mesh)
 	// Calculate a tangent for each triangle in the mesh.
 	for (uint32_t i = 0; i < mesh->num_indices; i += 3) {
 
+		// Get the indices to the vertex data array for each vertex of the triangle.
 		vindex_t i0 = mesh->indices[i + 0];
 		vindex_t i1 = mesh->indices[i + 1];
 		vindex_t i2 = mesh->indices[i + 2];
@@ -187,7 +188,8 @@ void mesh_calculate_tangents(mesh_t *mesh)
 		vec3_t vertex1 = mesh->vertices[i1].pos;
 		vec3_t vertex2 = mesh->vertices[i2].pos;
 
-		/*vec3_t diff1 = vec3_subtract(vertex1, vertex0);
+		// Calculate triangle normal.
+		vec3_t diff1 = vec3_subtract(vertex1, vertex0);
 		vec3_t diff2 = vec3_subtract(vertex2, vertex0);
 
 		vec3_t normal = vec3_cross(
@@ -195,8 +197,9 @@ void mesh_calculate_tangents(mesh_t *mesh)
 			diff2
 		);
 
-		vec3_normalize(&normal);*/
+		vec3_normalize(&normal);
 
+		// Calculate triangle tangent.
 		vec3_t delta_pos;
 
 		if (vec3_equals(vertex0, vertex1)) {
@@ -225,14 +228,17 @@ void mesh_calculate_tangents(mesh_t *mesh)
 
 		vec3_normalize(&tan);
 
-		// Assign the calculated tangent to each vertex of the triangle.
+		// Assign the calculated normal and tangent to each vertex of the triangle.
 		mesh->vertices[i0].tangent = tan;
 		mesh->vertices[i1].tangent = tan;
 		mesh->vertices[i2].tangent = tan;
+
+		mesh->vertices[i0].normal = normal;
+		mesh->vertices[i1].normal = normal;
+		mesh->vertices[i2].normal = normal;
 	}
 
 	// Smooth the tangents by averaging all the tangents of a vertex.
-	// TODO: Could this be done for normals as well? (see the commented code block above)
 	mesh_smooth_tangents(mesh);
 
 	mesh->is_vertex_data_dirty = true;
@@ -244,25 +250,29 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 	typedef struct {
 
 		vec3_t vertex; // Position of the vertex
+
 		arr_t(vec3_t) tangents; // List of tangents the vertex has
 		vec3_t avg_tangent; // Averaged tangent
 
-	} vtangent_t;
+		arr_t(vec3_t) normals; // List of normals the vertex has
+		vec3_t avg_normal; // Averaged normal
+
+	} vertex_orientation_t;
 
 	// Create an array in which to store all unique vertices and their tangents.
-	arr_t(vtangent_t) tangents = arr_initializer;
+	arr_t(vertex_orientation_t) vertices = arr_initializer;
 
-	// Find all unique vertices and collect a list of tangents the vertex has.
+	// Find all unique vertices and collect a list of normals and tangents the vertex has.
 	for (uint32_t i = 0; i < mesh->num_vertices; i++) {
 
 		int index = -1;
 
 		// Try to find a matching vertex in the vertex tangent list.
-		for (uint32_t j = 0; j < tangents.count; j++) {
+		for (uint32_t j = 0; j < vertices.count; j++) {
 
 			// TODO: Should the uniqueness of a vertex be determined by the position alone or
 			// also its normal?
-			if (vec3_equals(tangents.items[j].vertex, mesh->vertices[i].pos)) {
+			if (vec3_equals(vertices.items[j].vertex, mesh->vertices[i].pos)) {
 
 				index = j;
 				break;
@@ -272,54 +282,76 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 		// If the vertex was not added to the list yet, create a new entry for it.
 		if (index < 0) {
 			
-			vtangent_t tan = { mesh->vertices[i].pos, arr_initializer, vec3_zero() };
-			arr_push(tangents, tan);
+			vertex_orientation_t vertex = {
+				mesh->vertices[i].pos,
+				arr_initializer, vec3_zero(),
+			    arr_initializer, vec3_zero()
+			};
 
-			index = arr_last_index(tangents);
+			arr_push(vertices, vertex);
+
+			index = arr_last_index(vertices);
 		}
 
-		// Add tangent to the vertices tangent list.
-		arr_push(tangents.items[index].tangents, mesh->vertices[i].tangent);
+		// Add tangent and normal to the vertices tangent/normal lists.
+		arr_push(vertices.items[index].tangents, mesh->vertices[i].tangent);
+		arr_push(vertices.items[index].normals, mesh->vertices[i].normal);
 	}
 
-	// Calculate average tangent for each unique vertex.
-	for (uint32_t j = 0; j < tangents.count; j++) {
+	// Calculate average tangent and normal for each unique vertex.
+	for (uint32_t j = 0; j < vertices.count; j++) {
 
-		uint32_t num_tangents = tangents.items[j].tangents.count;
-		vec3_t avg = vec3_zero();
+		uint32_t num_tangents = vertices.items[j].tangents.count;
+		vec3_t avg_tangent = vec3_zero();
+		vec3_t avg_normal = vec3_zero();
 
-		for (uint32_t k = 0; k < num_tangents; k++) {
-			avg = vec3_add(avg, tangents.items[j].tangents.items[k]);
+		for (uint32_t k = 0; k < num_tangents; k++) { // The number of normals should be the same.
+
+			avg_tangent = vec3_add(avg_tangent, vertices.items[j].tangents.items[k]);
+			avg_normal = vec3_add(avg_normal, vertices.items[j].normals.items[k]);
 		}
 
-		vec3_divide(avg, num_tangents);
-		vec3_normalize(&avg);
+		// Average tangent
+		vec3_divide(avg_tangent, num_tangents);
+		vec3_normalize(&avg_tangent);
 
-		tangents.items[j].avg_tangent = avg;
+		vertices.items[j].avg_tangent = avg_tangent;
+
+		// Average normals
+		vec3_divide(avg_normal, num_tangents);
+		vec3_normalize(&avg_normal);
+
+		vertices.items[j].avg_normal = avg_normal;
 	}
 
-	// Assign averaged tangents.
+	// Assign averaged tangents and normals.
 	for (uint32_t i = 0; i < mesh->num_vertices; i++) {
 
-		// Find the averaged tangent for the vertex.
-		for (uint32_t j = 0; j < tangents.count; j++) {
+		// Find the averaged tangent/normal for the vertex.
+		for (uint32_t j = 0; j < vertices.count; j++) {
 
 			// TODO: Should the uniqueness of a vertex be determined by the position alone or
 			// also its normal?
-			if (vec3_equals(tangents.items[j].vertex, mesh->vertices[i].pos)) {
+			if (vec3_equals(vertices.items[j].vertex, mesh->vertices[i].pos)) {
 				
-				mesh->vertices[i].tangent = tangents.items[j].avg_tangent;
+				mesh->vertices[i].tangent = vertices.items[j].avg_tangent;
+
+				// NOTE: To activate smoothed normals (test with a sphere or a torus), uncomment
+				// this line.
+				//mesh->vertices[i].normal = vertices.items[j].avg_normal;
 				break;
 			}
 		}
 	}
 
 	// Clean up.
-	for (uint32_t i = 0; i < tangents.count; i++) {
-		arr_clear(tangents.items[i].tangents);
+	for (uint32_t i = 0; i < vertices.count; i++) {
+
+		arr_clear(vertices.items[i].tangents);
+		arr_clear(vertices.items[i].normals);
 	}
 
-	arr_clear(tangents);
+	arr_clear(vertices);
 }
 
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices)
