@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------------------------
 
-static void mesh_smooth_tangents(mesh_t *mesh);
+static void mesh_smooth_faces(mesh_t *mesh, bool smooth_normals);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -170,7 +170,7 @@ void mesh_set_debug_vertices(mesh_t *mesh, const vertex_debug_t *vertices, size_
 	mesh->is_vertex_data_dirty = true;
 }
 
-void mesh_calculate_tangents(mesh_t *mesh)
+void mesh_calculate_tangents(mesh_t *mesh, bool smooth_shading)
 {
 	if (mesh == NULL) {
 		return;
@@ -238,13 +238,13 @@ void mesh_calculate_tangents(mesh_t *mesh)
 		mesh->vertices[i2].normal = normal;
 	}
 
-	// Smooth the tangents by averaging all the tangents of a vertex.
-	mesh_smooth_tangents(mesh);
+	// Smooth the faces by averaging all the tangents (and possibly also normals) of a vertex.
+	mesh_smooth_faces(mesh, smooth_shading);
 
 	mesh->is_vertex_data_dirty = true;
 }
 
-static void mesh_smooth_tangents(mesh_t *mesh)
+static void mesh_smooth_faces(mesh_t *mesh, bool smooth_normals)
 {
 	// A helper structure to store the position of a vertex and all tangents that refer said vertex.
 	typedef struct {
@@ -252,9 +252,9 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 		vec3_t vertex; // Position of the vertex
 
 		arr_t(vec3_t) tangents; // List of tangents the vertex has
-		vec3_t avg_tangent; // Averaged tangent
-
 		arr_t(vec3_t) normals; // List of normals the vertex has
+
+		vec3_t avg_tangent; // Averaged tangent
 		vec3_t avg_normal; // Averaged normal
 
 	} vertex_orientation_t;
@@ -284,8 +284,10 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 			
 			vertex_orientation_t vertex = {
 				mesh->vertices[i].pos,
-				arr_initializer, vec3_zero(),
-			    arr_initializer, vec3_zero()
+				arr_initializer,
+				arr_initializer,
+				vec3_zero(),
+				vec3_zero()
 			};
 
 			arr_push(vertices, vertex);
@@ -308,7 +310,10 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 		for (uint32_t k = 0; k < num_tangents; k++) { // The number of normals should be the same.
 
 			avg_tangent = vec3_add(avg_tangent, vertices.items[j].tangents.items[k]);
-			avg_normal = vec3_add(avg_normal, vertices.items[j].normals.items[k]);
+
+			if (smooth_normals) {
+				avg_normal = vec3_add(avg_normal, vertices.items[j].normals.items[k]);
+			}
 		}
 
 		// Average tangent
@@ -317,11 +322,13 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 
 		vertices.items[j].avg_tangent = avg_tangent;
 
-		// Average normals
-		vec3_divide(avg_normal, num_tangents);
-		vec3_normalize(&avg_normal);
+		// Average normals if the mesh uses smooth shading.
+		if (smooth_normals) {
 
-		vertices.items[j].avg_normal = avg_normal;
+			vec3_divide(avg_normal, num_tangents);
+			vec3_normalize(&avg_normal);
+			vertices.items[j].avg_normal = avg_normal;
+		}
 	}
 
 	// Assign averaged tangents and normals.
@@ -336,9 +343,10 @@ static void mesh_smooth_tangents(mesh_t *mesh)
 				
 				mesh->vertices[i].tangent = vertices.items[j].avg_tangent;
 
-				// NOTE: To activate smoothed normals (test with a sphere or a torus), uncomment
-				// this line.
-				//mesh->vertices[i].normal = vertices.items[j].avg_normal;
+				if (smooth_normals) {
+					mesh->vertices[i].normal = vertices.items[j].avg_normal;
+				}
+
 				break;
 			}
 		}

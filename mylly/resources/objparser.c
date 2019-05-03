@@ -33,7 +33,7 @@ void obj_parser_init(obj_parser_t *parser)
 	parser->material = NULL;
 
 	// Push an empty group to the start of the list in case the file doesn't define any groups.
-	obj_group_t empty = { NULL, arr_initializer };
+	obj_group_t empty = { NULL, false, arr_initializer };
 	arr_push(parser->groups, empty);
 }
 
@@ -130,20 +130,31 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 
 		obj_parser_process_face(parser, num_tokens - 1);
 	}
-	else if (*type == 'o' || *type == 'g') { // o/g = object group name
+	else if (*type == 'o' || *type == 'g' || // o/g = object group name
+	         *type == 's') { // s = smooth shading
 
 		// Add a new, empty object group to the list of groups.
-		char *material = NULL;
+		if (arr_last(parser->groups).vertices.count != 0) {
+		
+			char *material = NULL;
 
-		if (parser->material != NULL) {
-			material = string_duplicate(parser->material);
+			if (parser->material != NULL) {
+				material = string_duplicate(parser->material);
+			}
+
+			obj_group_t empty = { material, parser->smooth_shading, arr_initializer };
+			arr_push(parser->groups, empty);
 		}
 
-		obj_group_t empty = { material, arr_initializer };
-		arr_push(parser->groups, empty);
-	}
-	else if (*type == 's') { // s = smooth shading
-		// Smooth shading is currently not supported by the parser.
+		// Smooth shading also starts a new submesh, so update the shading of the latest mesh.
+		if (*type == 's') {
+
+			char value[32];
+			string_tokenize(NULL, ' ', value, sizeof(value));
+
+			parser->smooth_shading = (value[0] == '1');
+			arr_last(parser->groups).smooth_shading = parser->smooth_shading;
+		}
 	}
 	else if (string_equals(type, "mtllib")) { // mtllib = the .mtl file associated with this object
 
@@ -221,13 +232,9 @@ model_t *obj_parser_create_model(obj_parser_t *parser, const char *name, const c
 
 			mesh_set_material(mesh, res_get_material(material_name));
 		}
-	}
 
-	// Calculate mesh tangents for normal mapping.
-	mesh_t *mesh;
-
-	arr_foreach(model->meshes, mesh) {
-		mesh_calculate_tangents(mesh);
+		// Calculate mesh tangents for normal mapping. Smooth normals when using smooth shading.
+		mesh_calculate_tangents(mesh, group->smooth_shading);
 	}
 
 	return model;
