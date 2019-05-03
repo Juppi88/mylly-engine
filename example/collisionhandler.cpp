@@ -59,7 +59,9 @@ void CollisionHandler::Update(const Game *game)
 				}
 
 				// Detected a collision! Apply collision response and notify both entities.
-				ApplyCollisionResponse(entity, other);
+				if (entity->IsCollidable() && other->IsCollidable()) {
+					ApplyCollisionResponse(entity, other);
+				}
 
 				entity->OnCollideWith(other);
 				other->OnCollideWith(entity);

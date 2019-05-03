@@ -15,7 +15,7 @@ public:
 
 	void SpawnAsteroids(Game *game, uint32_t count);
 
-	void Update(const Game *game);
+	void Update(Game *game);
 
 private:
 	void GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const;

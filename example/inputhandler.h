@@ -9,6 +9,7 @@ enum {
 	BUTTON_BACKWARD,
 	BUTTON_LEFT,
 	BUTTON_RIGHT,
+	BUTTON_FIRE,
 
 	NUM_CONTROLS
 };
@@ -23,6 +24,8 @@ public:
 
 	float GetSteering(void) const;
 	float GetAcceleration(void) const;
+
+	bool IsFiring(void) const;
 
 private:
 	static bool ExitApp(uint32_t key, bool pressed, void *context);

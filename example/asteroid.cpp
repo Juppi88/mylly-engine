@@ -76,7 +76,7 @@ void Asteroid::SetDirection(const Vec2 &direction)
 	SetVelocity(direction * speed);
 }
 
-void Asteroid::Update(void)
+void Asteroid::Update(Game *game)
 {
 	if (!IsSpawned()) {
 		return;
@@ -112,5 +112,5 @@ void Asteroid::Update(void)
 		quat_from_euler_deg(-m_rotation.x(), m_rotation.y(), -m_rotation.z()));
 
 	// Call base update to draw entity debug visualizers.
-	Entity::Update();
+	Entity::Update(game);
 }

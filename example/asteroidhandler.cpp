@@ -39,14 +39,14 @@ void AsteroidHandler::SpawnAsteroids(Game *game, uint32_t count)
 	}
 }
 
-void AsteroidHandler::Update(const Game *game)
+void AsteroidHandler::Update(Game *game)
 {
 	// Update all active asteroids.
 	Asteroid *asteroid;
 
 	arr_foreach(m_asteroids, asteroid) {
 
-		asteroid->Update();
+		asteroid->Update(game);
 
 		// Enforce game area boundaries.
 		if (!game->IsWithinBoundaries(asteroid->GetPosition())) {

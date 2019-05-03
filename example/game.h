@@ -13,6 +13,7 @@ public:
 	~Game(void);
 
 	CollisionHandler *GetCollisionHandler(void) const { return m_collisionHandler; }
+	ProjectileHandler *GetProjectileHandler(void) const { return m_projectiles; }
 
 	scene_t *GetScene(void) const { return m_gameScene; }
 
@@ -37,12 +38,13 @@ private:
 	void EnforceBoundaries(void);
 
 private:
-	static constexpr colour_t AMBIENT_LIGHT_COLOUR = col(80, 120, 175);
-	static constexpr colour_t DIRECTIONAL_LIGHT_COLOUR = col(200, 220, 255);
+	static constexpr colour_t AMBIENT_LIGHT_COLOUR = col(50, 70, 120);
+	static constexpr colour_t DIRECTIONAL_LIGHT_COLOUR = col(200, 220, 240);
 
 	InputHandler *m_input = nullptr;
 	CollisionHandler *m_collisionHandler = nullptr;
 	AsteroidHandler *m_asteroids = nullptr;
+	ProjectileHandler *m_projectiles = nullptr;
 	Ship *m_ship = nullptr;
 
 	scene_t *m_gameScene = nullptr;

@@ -1,5 +1,6 @@
 #include "ship.h"
 #include "game.h"
+#include "projectilehandler.h"
 #include "inputhandler.h"
 #include <mylly/scene/object.h>
 #include <mylly/scene/scene.h>
@@ -44,22 +45,24 @@ void Ship::Spawn(Game *game)
 
 	// Make the model a bit smaller.
 	//obj_set_local_scale(shipObject, vec3(0.01f, 0.01f, 0.01f));
+	obj_set_local_scale(shipObject, vec3(0.8f, 0.8f, 0.8f));
 
 	// Rotate the ship model so it's top side up, heading right.
 	obj_set_local_rotation(shipObject, quat_from_euler_deg(180, 90, 0));
 }
 
-void Ship::Update(void)
+void Ship::Update(Game *game)
 {
 	// Update the ship's transformation.
 	obj_set_position(GetSceneObject(), GetScenePosition().vec());
 	obj_set_local_rotation(GetSceneObject(), quat_from_euler_deg(0, m_heading, 0));
 
-	Entity::Update();
+	Entity::Update(game);
 }
 
-void Ship::ProcessInput(const InputHandler *input)
+void Ship::ProcessInput(Game *game, const InputHandler *input)
 {
+	float time = get_time().time;
 	float dt = get_time().delta_time;
 
 	// Process ship steering.
@@ -103,4 +106,15 @@ void Ship::ProcessInput(const InputHandler *input)
 	Vec2 target = GetPosition() + movement;
 
 	SetPosition(target);
+
+	// Process weapon fire.
+	if (input->IsFiring() && time >= m_nextWeaponFire) {
+
+		float rad = DEG_TO_RAD(m_heading + 90);
+		Vec2 direction = Vec2(sinf(rad), cosf(rad));
+
+		game->GetProjectileHandler()->FireProjectile(game, this, direction);
+
+		m_nextWeaponFire = time + 1.0f / WEAPON_FIRE_RATE;
+	}
 }

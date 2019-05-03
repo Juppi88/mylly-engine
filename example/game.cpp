@@ -3,6 +3,7 @@
 #include "asteroidhandler.h"
 #include "collisionhandler.h"
 #include "ship.h"
+#include "projectilehandler.h"
 #include "utils.h"
 #include <mylly/core/mylly.h>
 #include <mylly/scene/scene.h>
@@ -39,6 +40,7 @@ void Game::SetupGame(void)
 
 	m_collisionHandler = new CollisionHandler();
 	m_input = new InputHandler();
+	m_projectiles = new ProjectileHandler();
 
 	// Create t main game scene.
 	m_gameScene = scene_create();
@@ -77,6 +79,9 @@ void Game::Shutdown(void)
 	delete m_input;
 	m_input = nullptr;
 
+	delete m_projectiles;
+	m_projectiles = nullptr;
+
 	obj_destroy(m_camera->parent);
 	obj_destroy(m_spaceBackground);
 	obj_destroy(m_directionalLights[0]->parent);
@@ -88,9 +93,10 @@ void Game::Shutdown(void)
 
 void Game::Update(void)
 {
-	m_ship->ProcessInput(m_input);
-	m_ship->Update();
+	m_ship->ProcessInput(this, m_input);
+	m_ship->Update(this);
 
+	m_projectiles->Update(this);
 	m_asteroids->Update(this);
 
 	// Process collisions after moving entities.
@@ -188,10 +194,10 @@ void Game::SetupLighting(void)
 		light_set_intensity(light, 1.5f);
 
 		if (i == 0) {
-			light_set_direction(light, vec3(10, 3, 3));
+			light_set_direction(light, vec3(10, -3, 5));
 		}
 		else {
-			light_set_direction(light, vec3(-10, 3, -3));
+			light_set_direction(light, vec3(-10, -3, -5));
 		}
 	}
 }

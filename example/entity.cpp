@@ -24,7 +24,17 @@ void Entity::Spawn(Game *game)
 	game->GetCollisionHandler()->RegisterEntity(this);
 }
 
-void Entity::Update(void)
+void Entity::Destroy(Game *game)
+{
+	if (!IsSpawned()) {
+		return;
+	}
+
+	game->GetCollisionHandler()->UnregisterEntity(this);
+	delete this;
+}
+
+void Entity::Update(Game *game)
 {
 	// Draw the collider boundaries.
 	colour_t circleColour = COL_GREEN;
@@ -33,7 +43,7 @@ void Entity::Update(void)
 		circleColour = COL_RED;
 	}
 
-	debug_draw_circle(GetScenePosition().vec(), m_boundingRadius, circleColour, false);
+	//debug_draw_circle(GetScenePosition().vec(), m_boundingRadius, circleColour, false);
 
 	// Draw a line to indicate the entity's direction.
 	Vec2 direction = GetVelocity();
@@ -43,7 +53,7 @@ void Entity::Update(void)
 	sceneDirection *= 0.5f * speed;
 	sceneDirection += GetScenePosition();
 
-	debug_draw_line(GetScenePosition().vec(), sceneDirection.vec(), COL_GREEN, false);
+	//debug_draw_line(GetScenePosition().vec(), sceneDirection.vec(), COL_GREEN, false);
 
 	// Reset collision entity on each frame before recalculating collisions.
 	m_previousCollisionEntity = m_collisionEntity;
@@ -55,7 +65,7 @@ void Entity::SetPosition(const Vec2 &position)
 	m_position = position;
 
 	if (m_sceneObject != nullptr) {
-		obj_set_position(m_sceneObject, vec3(m_position.x(), 0, m_position.y()));
+		obj_set_position(m_sceneObject, vec3(m_position.x(), m_drawDepth, m_position.y()));
 	}
 }
 

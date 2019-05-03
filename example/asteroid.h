@@ -21,7 +21,7 @@ class Asteroid : public Entity
 
 public:
 	virtual void Spawn(Game *game) override;
-	virtual void Update(void) override;
+	virtual void Update(Game *game) override;
 
 	void SetSize(AsteroidSize size);
 	void SetDirection(const Vec2 &direction);

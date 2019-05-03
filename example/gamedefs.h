@@ -8,4 +8,6 @@ class CollisionHandler;
 class Entity;
 class Game;
 class InputHandler;
+class Projectile;
+class ProjectileHandler;
 class Ship;
