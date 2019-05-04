@@ -1,6 +1,7 @@
 #include "asteroidhandler.h"
 #include "game.h"
 #include "utils.h"
+#include <mylly/math/math.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -19,7 +20,7 @@ AsteroidHandler::~AsteroidHandler(void)
 	arr_clear(m_asteroids);
 }
 
-void AsteroidHandler::SpawnAsteroids(Game *game, uint32_t count)
+void AsteroidHandler::SpawnInitialAsteroids(Game *game, uint32_t count)
 {
 	for (uint32_t i = 0; i < count; i++) {
 
@@ -41,9 +42,21 @@ void AsteroidHandler::SpawnAsteroids(Game *game, uint32_t count)
 
 void AsteroidHandler::Update(Game *game)
 {
-	// Update all active asteroids.
 	Asteroid *asteroid;
 
+	// Remove all destroyed asteroids and spawn smaller fragments in their place.
+	arr_foreach_reverse(m_asteroids, asteroid) {
+
+		if (asteroid->IsDestroyed()) {
+
+			OnAsteroidDestroyed(asteroid, game);
+
+			// Remove the destroyed asteroid from the game.
+			asteroid->Destroy(game);
+		}
+	}
+
+	// Update all active asteroids.
 	arr_foreach(m_asteroids, asteroid) {
 
 		asteroid->Update(game);
@@ -53,6 +66,11 @@ void AsteroidHandler::Update(Game *game)
 			asteroid->SetPosition(game->WrapBoundaries(asteroid->GetPosition()));
 		}
 	}
+}
+
+void AsteroidHandler::RemoveReference(Asteroid *asteroid)
+{
+	arr_remove(m_asteroids, asteroid);
 }
 
 void AsteroidHandler::GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const
@@ -82,4 +100,37 @@ void AsteroidHandler::GetRandomSpawnPosition(const Game *game, Vec2 &position, V
 			direction = Vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, 1.0f));
 			break;
 	}
+}
+
+void AsteroidHandler::OnAsteroidDestroyed(Asteroid *destroyed, Game *game)
+{
+	// TODO: Spawn some sort of an effect.
+
+	// Smallest asteroids do not split into smaller fragments.
+	if (destroyed->GetSize() == ASTEROID_SMALL) {
+		return;
+	}
+
+	// Small fragments.
+	AsteroidSize size = (destroyed->GetSize() == ASTEROID_LARGE ? ASTEROID_MEDIUM : ASTEROID_SMALL);
+
+	for (uint32_t i = 0; i < 2; i++) {
+
+		Asteroid *asteroid = new Asteroid();
+		asteroid->Spawn(game);
+
+		// Spawn near the original asteroid.
+		Vec2 direction = destroyed->GetVelocity().Normalized();
+		direction.Rotate(i == 0 ? -PI / 4 : PI / 4);
+
+		Vec2 position = destroyed->GetPosition() + direction;
+
+		asteroid->SetSize(size);
+		asteroid->SetPosition(position);
+		asteroid->SetDirection(direction);
+
+		// Keep track of active asteroids.
+		arr_push(m_asteroids, asteroid);
+	}
+
 }

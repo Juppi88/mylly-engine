@@ -6,6 +6,11 @@
 
 // -------------------------------------------------------------------------------------------------
 
+Entity::Entity(EntityType type)
+{
+	m_type = type;
+}
+
 Entity::~Entity(void)
 {
 	if (m_sceneObject != nullptr) {

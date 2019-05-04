@@ -45,6 +45,8 @@ vec2_t vec2_normalized(vec2_t v);
 
 bool vec2_is_zero(vec2_t v);
 
+vec2_t vec2_rotate(vec2_t v, float angle);
+
 static INLINE void vec2_print(vec2_t vec)
 {
 	printf("%.2f  %.2f\n", vec.x, vec.y);

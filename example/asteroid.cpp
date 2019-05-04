@@ -1,4 +1,5 @@
 #include "asteroid.h"
+#include "asteroidhandler.h"
 #include "game.h"
 #include "utils.h"
 #include <mylly/scene/scene.h>
@@ -11,7 +12,8 @@
 
 // -------------------------------------------------------------------------------------------------
 
-Asteroid::Asteroid(void)
+Asteroid::Asteroid(void) :
+	Entity(ENTITY_ASTEROID)
 {
 }
 
@@ -50,12 +52,28 @@ void Asteroid::SetSize(AsteroidSize size)
 		return;
 	}
 
-	float scale;
+	// Set the asteroid's health and model's scale based on the size of the asteroid.
+	float scale, mass;
 
 	switch (size) {
-		case ASTEROID_LARGE: scale = 3.0f; break;
-		case ASTEROID_MEDIUM: scale = 2.0f; break;
-		default: scale = 1.0f; break;
+
+		case ASTEROID_LARGE:
+			scale = 3.0f;
+			mass = 300.0f;
+			m_health = 3;
+			break;
+
+		case ASTEROID_MEDIUM:
+			scale = 2.0f;
+			mass = 150.0f;
+			m_health = 2;
+			break;
+
+		default:
+			mass = 50.0f;
+			scale = 1.0f;
+			m_health = 1;
+			break;
 	}
 
 	obj_set_local_scale(GetSceneObject(), vec3(scale, scale, scale));
@@ -71,9 +89,21 @@ void Asteroid::SetDirection(const Vec2 &direction)
 	velocity.Normalize();
 
 	// Randomize the speed at which the asteroid is moving.
-	float speed = Utils::Random(MOVEMENT_SPEED_MIN, MOVEMENT_SPEED_MAX);
+	float speed = GetSpeedMultiplier() * Utils::Random(MOVEMENT_SPEED_MIN, MOVEMENT_SPEED_MAX);
 	
 	SetVelocity(direction * speed);
+}
+
+void Asteroid::Destroy(Game *game)
+{
+	if (!IsSpawned()) {
+		return;
+	}
+
+	game->GetAsteroidHandler()->RemoveReference(this);
+
+	// Do final cleanup.
+	Entity::Destroy(game);
 }
 
 void Asteroid::Update(Game *game)
@@ -88,8 +118,9 @@ void Asteroid::Update(Game *game)
 	Vec2 velocity = GetVelocity();
 
 	float speed = velocity.Normalize();
-	if (speed > MOVEMENT_SPEED_MAX) {
-		speed = MOVEMENT_SPEED_MAX;
+
+	if (speed > GetSpeedMultiplier() * MOVEMENT_SPEED_MAX) {
+		speed = GetSpeedMultiplier() * MOVEMENT_SPEED_MAX;
 	}
 
 	velocity *= speed;
@@ -113,4 +144,17 @@ void Asteroid::Update(Game *game)
 
 	// Call base update to draw entity debug visualizers.
 	Entity::Update(game);
+}
+
+void Asteroid::OnCollideWith(Entity *other)
+{
+	Entity::OnCollideWith(other);
+
+	if (other->GetType() == ENTITY_PROJECTILE) {
+
+		// Calculate damage to the asteroid.
+		if (!IsDestroyed()) {
+			--m_health;
+		}
+	}
 }

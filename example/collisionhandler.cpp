@@ -34,7 +34,7 @@ void CollisionHandler::UnregisterEntity(Entity *entity)
 void CollisionHandler::Update(const Game *game)
 {
 	// This could be optimized a lot by i.e. keeping track of the entities we've checked, but since
-	// the object count in the game is so low i'm not going to bother.
+	// the object count in the game is so low I'm not going to bother.
 	for (uint32_t i = 0; i < m_entities.count; i++) {
 
 		Entity *entity = m_entities.items[i];

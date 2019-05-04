@@ -62,11 +62,5 @@ void ProjectileHandler::Update(Game *game)
 
 void ProjectileHandler::RemoveReference(Projectile *projectile)
 {
-	// Check that the projectile is referenced in the projectile list.
-	int index;
-	arr_find(m_projectiles, projectile, index);
-
-	if (index >= 0) {
-		arr_remove(m_projectiles, projectile);
-	}
+	arr_remove(m_projectiles, projectile);
 }

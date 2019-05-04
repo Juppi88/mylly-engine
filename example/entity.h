@@ -5,6 +5,16 @@
 
 // -------------------------------------------------------------------------------------------------
 
+enum EntityType {
+	
+	ENTITY_NONE,
+	ENTITY_SHIP,
+	ENTITY_ASTEROID,
+	ENTITY_PROJECTILE,
+};
+
+// -------------------------------------------------------------------------------------------------
+
 class Entity
 {
 public:
@@ -12,6 +22,8 @@ public:
 	virtual void Spawn(Game *game);
 	virtual void Destroy(Game *game);
 	virtual void Update(Game *game);
+
+	EntityType GetType(void) const { return m_type; }
 
 	Vec2 GetPosition(void) const { return m_position; }
 	void SetPosition(const Vec2 &position);
@@ -34,6 +46,8 @@ public:
 	virtual void OnCollideWith(Entity *other);
 
 protected:
+	Entity(EntityType type);
+
 	void SetBoundingRadius(float radius) { m_boundingRadius = radius; }
 	void SetMass(float mass) { m_mass = mass; }
 
@@ -43,7 +57,12 @@ protected:
 	void SetCollidable(bool isCollidable) { m_isCollidable = isCollidable; }
 
 private:
+	Entity(void);
+
+private:
 	object_t *m_sceneObject = nullptr;
+
+	EntityType m_type = ENTITY_NONE;
 
 	Vec2 m_position = Vec2();
 	Vec2 m_velocity = Vec2();

@@ -10,7 +10,8 @@
 
 // -------------------------------------------------------------------------------------------------
 
-Ship::Ship(void)
+Ship::Ship(void) :
+	Entity(ENTITY_SHIP)
 {
 	SetBoundingRadius(2.0f);
 	SetMass(200.0f);

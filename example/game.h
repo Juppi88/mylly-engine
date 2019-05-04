@@ -13,6 +13,7 @@ public:
 	~Game(void);
 
 	CollisionHandler *GetCollisionHandler(void) const { return m_collisionHandler; }
+	AsteroidHandler *GetAsteroidHandler(void) const { return m_asteroids; }
 	ProjectileHandler *GetProjectileHandler(void) const { return m_projectiles; }
 
 	scene_t *GetScene(void) const { return m_gameScene; }

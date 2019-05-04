@@ -30,7 +30,10 @@ public:
 	Vec2 operator/=(float value) { m_vector = vec2_multiply(m_vector, 1.0f / value); return *this; }
 
 	float Normalize(void) { return vec2_normalize(&m_vector); }
+	Vec2 Normalized(void) { return vec2_normalized(m_vector); }
+
 	float Dot(const Vec2 &other) { return vec2_dot(m_vector, other.m_vector); }
+	void Rotate(float radians) { m_vector = vec2_rotate(m_vector, radians); }
 
 	// Cast operators
 	explicit operator vec2_t() const { return m_vector; }
@@ -67,6 +70,8 @@ public:
 	Vec3 operator/=(float value) { m_vector = vec3_multiply(m_vector, 1.0f / value); return *this; }
 
 	float Normalize(void) { return vec3_normalize(&m_vector); }
+	Vec3 Normalized(void) { return vec3_normalized(m_vector); }
+
 	float Dot(const Vec3 &other) { return vec3_dot(m_vector, other.m_vector); }
 
 	// Cast operators

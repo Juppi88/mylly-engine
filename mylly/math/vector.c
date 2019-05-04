@@ -69,6 +69,17 @@ bool vec2_is_zero(vec2_t v)
 	return IS_ZERO(v.x) && IS_ZERO(v.y);
 }
 
+vec2_t vec2_rotate(vec2_t v, float angle)
+{
+	float sn, cs;
+	math_sincos(angle, &sn, &cs);
+
+	return vec2(
+		v.x * cs - v.y * sn,
+		v.x * sn + v.y * cs
+	);
+}
+
 // --------------------------------------------------------------------------------
 
 vec3_t vec3_add(vec3_t a, vec3_t b)

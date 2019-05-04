@@ -9,7 +9,8 @@
 
 // -------------------------------------------------------------------------------------------------
 
-Projectile::Projectile(void)
+Projectile::Projectile(void) :
+	Entity(ENTITY_PROJECTILE)
 {
 	SetDrawDepth(-5);
 	SetCollidable(false);
@@ -71,7 +72,22 @@ void Projectile::Update(Game *game)
 
 	Entity::Update(game);
 
-	if (get_time().time >= m_expiresTime) {
+	// Destroy the projectile if it has hit something (an asteroid) or has been flying for a while.
+	if (m_hitTarget ||
+		get_time().time >= m_expiresTime) {
+
 		Destroy(game);
+	}
+}
+
+void Projectile::OnCollideWith(Entity *other)
+{
+	Entity::OnCollideWith(other);
+
+	// Self destruct when hitting a non-projectile target that is not the owher of this projectile.
+	if (other != m_owner &&
+		other->GetType() != ENTITY_PROJECTILE) {
+
+		m_hitTarget = true;
 	}
 }

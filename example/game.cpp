@@ -61,7 +61,7 @@ void Game::SetupGame(void)
 
 	// Spawn some asteroids.
 	m_asteroids = new AsteroidHandler();
-	m_asteroids->SpawnAsteroids(this, 5);
+	m_asteroids->SpawnInitialAsteroids(this, 5);
 }
 
 void Game::Shutdown(void)

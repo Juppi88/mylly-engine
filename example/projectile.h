@@ -22,10 +22,13 @@ public:
 	Entity *GetOwner(void) const { return m_owner; }
 	float GetSpeed(void) const { return SPEED; }
 
+	virtual void OnCollideWith(Entity *other) override;
+
 private:
 	static constexpr float SPEED = 25.0f; // Units/Sec
 	static constexpr float LIFETIME = 1.0f; // Seconds
 
-	Entity *m_owner = nullptr;
-	float m_expiresTime = 0;
+	Entity *m_owner = nullptr; // Entity which fired the projectile
+	float m_expiresTime = 0; // Time when the projectile should self-destruct
+	bool m_hitTarget = false; // Set to true when the projectile hits its target (i.e. an asteroid)
 };
