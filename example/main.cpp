@@ -10,6 +10,12 @@ static void MainLoop(void)
 	game->Update();
 }
 
+static void Cleanup(void)
+{
+	delete game;
+	game = nullptr;
+}
+
 int main(int argc, char **argv)
 {
 	game = new Game();
@@ -18,9 +24,8 @@ int main(int argc, char **argv)
 	if (mylly_initialize(argc, argv)) {
 
 		game->SetupGame();
-		mylly_main_loop(MainLoop);
+		mylly_main_loop(MainLoop, Cleanup);
 	}
 
-	delete game;
 	return 0;
 }

@@ -4,18 +4,17 @@
 
 #include "core/defines.h"
 
-// --------------------------------------------------------------------------------
-
-typedef struct scene_t scene_t;
-
-// --------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 typedef void (*on_loop_t)(void);
+typedef void (*on_exit_t)(void);
+
+// -------------------------------------------------------------------------------------------------
 
 BEGIN_DECLARATIONS;
 
 bool mylly_initialize(int argc, char **argv);
-void mylly_main_loop(on_loop_t callback);
+void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback);
 
 void mylly_set_scene(scene_t *scene);
 

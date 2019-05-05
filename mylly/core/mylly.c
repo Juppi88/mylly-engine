@@ -87,7 +87,7 @@ static void mylly_shutdown(void)
 	rsys_shutdown();
 }
 
-void mylly_main_loop(on_loop_t callback)
+void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 {
 	// Enter the main loop.
 	while (is_running) {
@@ -100,8 +100,8 @@ void mylly_main_loop(on_loop_t callback)
 		rsys_begin_frame();
 
 		// Call the main loop callback.
-		if (callback != NULL) {
-			callback();
+		if (loop_callback != NULL) {
+			loop_callback();
 		}
 
 		if (current_scene != NULL) {
@@ -120,6 +120,11 @@ void mylly_main_loop(on_loop_t callback)
 		time_tick();
 
 		thread_sleep(10);
+	}
+
+	// Clean up game specific code.
+	if (exit_callback != NULL) {
+		exit_callback();
 	}
 
 	// Do cleanup when exiting the main loop.
