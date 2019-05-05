@@ -1105,7 +1105,7 @@ static void res_parse_font_entry(char *line, size_t length, void *context)
 	string_tokenize(line, ' ', size, sizeof(size));
 	string_tokenize(NULL, ' ', first, sizeof(first));
 	string_tokenize(NULL, ' ', last, sizeof(last));
-	string_tokenize(NULL, ' ', name, sizeof(name));
+	string_tokenize_end(' ', name, sizeof(name));
 
 	uint8_t font_size = (uint8_t)atoi(size);
 	uint32_t font_first = (uint32_t)atoi(first);
