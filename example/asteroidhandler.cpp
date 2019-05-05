@@ -11,16 +11,10 @@ AsteroidHandler::AsteroidHandler(void)
 
 AsteroidHandler::~AsteroidHandler(void)
 {
-	Asteroid *asteroid;
-
-	arr_foreach(m_asteroids, asteroid) {
-		delete asteroid;
-	}
-
-	arr_clear(m_asteroids);
+	RemoveAllAsteroids();
 }
 
-void AsteroidHandler::SpawnInitialAsteroids(Game *game, uint32_t count)
+void AsteroidHandler::SpawnInitialAsteroids(Game *game, AsteroidSize size, uint32_t count)
 {
 	for (uint32_t i = 0; i < count; i++) {
 
@@ -31,7 +25,7 @@ void AsteroidHandler::SpawnInitialAsteroids(Game *game, uint32_t count)
 		Vec2 spawnPosition, spawnDirection;
 		GetRandomSpawnPosition(game, spawnPosition, spawnDirection);
 		
-		asteroid->SetSize(ASTEROID_LARGE);
+		asteroid->SetSize(size);
 		asteroid->SetPosition(spawnPosition);
 		asteroid->SetDirection(spawnDirection);
 
@@ -71,6 +65,17 @@ void AsteroidHandler::Update(Game *game)
 void AsteroidHandler::RemoveReference(Asteroid *asteroid)
 {
 	arr_remove(m_asteroids, asteroid);
+}
+
+void AsteroidHandler::RemoveAllAsteroids(void)
+{
+	Asteroid *asteroid;
+
+	arr_foreach(m_asteroids, asteroid) {
+		delete asteroid;
+	}
+
+	arr_clear(m_asteroids);
 }
 
 void AsteroidHandler::GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const

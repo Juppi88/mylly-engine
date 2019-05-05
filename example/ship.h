@@ -14,7 +14,7 @@ public:
 	virtual void Update(Game *game) override;
 
 	// Call this before update.
-	void ProcessInput(Game *game, const InputHandler *input);
+	void ProcessInput(Game *game);
 
 private:
 	void UpdateControls(const InputHandler *input);

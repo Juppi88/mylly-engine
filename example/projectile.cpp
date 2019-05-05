@@ -2,7 +2,6 @@
 #include "projectilehandler.h"
 #include "game.h"
 #include <mylly/scene/object.h>
-#include <mylly/scene/scene.h>
 #include <mylly/resources/resources.h>
 #include <mylly/core/time.h>
 #include <mylly/math/math.h>
@@ -37,7 +36,7 @@ void Projectile::Spawn(Game *game)
 	}
 
 	// Spawn an object into the scene and add the sprite to it.
-	SetSceneObject(scene_create_object(game->GetScene(), nullptr));
+	SetSceneObject(game->SpawnSceneObject());
 	obj_set_sprite(GetSceneObject(), bulletSprite);
 
 	// Rotate the sprite towards the camera.
@@ -54,7 +53,7 @@ void Projectile::Destroy(Game *game)
 		return;
 	}
 
-	game->GetProjectileHandler()->RemoveReference(this);
+	game->GetScene()->GetProjectileHandler()->RemoveReference(this);
 
 	// Do final cleanup.
 	Entity::Destroy(game);

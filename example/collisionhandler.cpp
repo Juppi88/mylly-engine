@@ -31,6 +31,11 @@ void CollisionHandler::UnregisterEntity(Entity *entity)
 	arr_remove(m_entities, entity);
 }
 
+void CollisionHandler::UnregisterAllEntities(void)
+{
+	arr_clear(m_entities);
+}
+
 void CollisionHandler::Update(const Game *game)
 {
 	// This could be optimized a lot by i.e. keeping track of the entities we've checked, but since

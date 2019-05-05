@@ -13,6 +13,7 @@ public:
 
 	void RegisterEntity(Entity *entity);
 	void UnregisterEntity(Entity *entity);
+	void UnregisterAllEntities(void);
 
 	void Update(const Game *game);
 

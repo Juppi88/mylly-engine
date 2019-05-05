@@ -30,10 +30,10 @@ void Asteroid::Spawn(Game *game)
 	Entity::Spawn(game);
 
 	// Create an empty parent object for the asteroid which we can rotate around freely.
-	SetSceneObject(scene_create_object(game->GetScene(), nullptr));
+	SetSceneObject(game->SpawnSceneObject());
 
 	// Create the asteroid object.
-	object_t *asteroidObject = scene_create_object(game->GetScene(), GetSceneObject());
+	object_t *asteroidObject = game->SpawnSceneObject(GetSceneObject());
 
 	// Load and set an asteroid model.
 	model_t *asteroidModel = res_get_model("rock01");
@@ -100,7 +100,7 @@ void Asteroid::Destroy(Game *game)
 		return;
 	}
 
-	game->GetAsteroidHandler()->RemoveReference(this);
+	game->GetScene()->GetAsteroidHandler()->RemoveReference(this);
 
 	// Do final cleanup.
 	Entity::Destroy(game);

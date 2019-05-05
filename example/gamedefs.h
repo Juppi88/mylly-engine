@@ -10,4 +10,5 @@ class Game;
 class InputHandler;
 class Projectile;
 class ProjectileHandler;
+class Scene;
 class Ship;

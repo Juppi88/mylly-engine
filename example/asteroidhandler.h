@@ -13,11 +13,12 @@ public:
 	AsteroidHandler(void);
 	~AsteroidHandler(void);
 
-	void SpawnInitialAsteroids(Game *game, uint32_t count);
+	void SpawnInitialAsteroids(Game *game, AsteroidSize size, uint32_t count);
 
 	void Update(Game *game);
 
 	void RemoveReference(Asteroid *asteroid);
+	void RemoveAllAsteroids(void);
 
 private:
 	void GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const;

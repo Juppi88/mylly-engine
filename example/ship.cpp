@@ -38,10 +38,10 @@ void Ship::Spawn(Game *game)
 
 	// Create an empty parent object for the ship. This is because the ship model is rotated
 	// in a weird way and we want to be able to set the ship's heading without too complex math.
-	SetSceneObject(scene_create_object(game->GetScene(), nullptr));
+	SetSceneObject(game->SpawnSceneObject());
 
 	// Create an object under the empty parent and attach the model to it.
-	object_t *shipObject = scene_create_object(game->GetScene(), GetSceneObject());
+	object_t *shipObject = game->SpawnSceneObject(GetSceneObject());
 	obj_set_model(shipObject, shipModel);
 
 	// Make the model a bit smaller.
@@ -61,13 +61,13 @@ void Ship::Update(Game *game)
 	Entity::Update(game);
 }
 
-void Ship::ProcessInput(Game *game, const InputHandler *input)
+void Ship::ProcessInput(Game *game)
 {
 	float time = get_time().time;
 	float dt = get_time().delta_time;
 
 	// Process ship steering.
-	float steering = input->GetSteering();
+	float steering = game->GetInputHandler()->GetSteering();
 
 	if (steering != 0) {
 
@@ -76,7 +76,7 @@ void Ship::ProcessInput(Game *game, const InputHandler *input)
 	}
 
 	// Process ship movement.
-	float accelerationPower = input->GetAcceleration();
+	float accelerationPower = game->GetInputHandler()->GetAcceleration();
 
 	if (accelerationPower != 0) {
 
@@ -109,12 +109,12 @@ void Ship::ProcessInput(Game *game, const InputHandler *input)
 	SetPosition(target);
 
 	// Process weapon fire.
-	if (input->IsFiring() && time >= m_nextWeaponFire) {
+	if (game->GetInputHandler()->IsFiring() && time >= m_nextWeaponFire) {
 
 		float rad = DEG_TO_RAD(m_heading + 90);
 		Vec2 direction = Vec2(sinf(rad), cosf(rad));
 
-		game->GetProjectileHandler()->FireProjectile(game, this, direction);
+		game->GetScene()->GetProjectileHandler()->FireProjectile(game, this, direction);
 
 		m_nextWeaponFire = time + 1.0f / WEAPON_FIRE_RATE;
 	}
