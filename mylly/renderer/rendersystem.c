@@ -141,7 +141,7 @@ void rsys_render_scene(scene_t *scene)
 
 	arr_foreach(scene->lights, light) {
 
-		if (light == NULL) {
+		if (light == NULL || !light->is_active) {
 			continue;
 		}
 
@@ -161,7 +161,7 @@ void rsys_render_scene(scene_t *scene)
 
 	arr_foreach(scene->cameras, camera) {
 
-		if (camera == NULL) {
+		if (camera == NULL || !camera->is_active) {
 			continue;
 		}
 
@@ -200,7 +200,10 @@ void rsys_render_scene(scene_t *scene)
 	object_t *object;
 
 	arr_foreach(scene->objects, object) {
-		rsys_cull_object(object);
+
+		if (object != NULL && object->is_active) {
+			rsys_cull_object(object);
+		}
 	}
 }
 

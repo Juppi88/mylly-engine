@@ -18,6 +18,8 @@ typedef struct object_t {
 	scene_t *scene; // The scene this object is a part of
 	uint32_t scene_index; // Index in the scene
 
+	bool is_active; // Set to true when the object is processed and rendered normally
+
 	arr_t(struct object_t*) children; // A list of children attached to this object
 
 	vec3_t local_position; // Local position in relation to the parent
@@ -59,6 +61,7 @@ object_t *obj_create(scene_t *scene, object_t *parent);
 void obj_destroy(object_t *obj);
 
 void obj_set_parent(object_t *obj, object_t *parent);
+void obj_set_active(object_t *obj, bool active);
 
 void obj_process(object_t *obj);
 

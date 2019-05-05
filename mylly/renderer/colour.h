@@ -41,8 +41,12 @@ typedef struct colour_t {
 
 // -------------------------------------------------------------------------------------------------
 
+BEGIN_DECLARATIONS;
+
 colour_t col_add(colour_t a, colour_t b);
 colour_t col_multiply(colour_t a, colour_t b);
 colour_t col_lerp(colour_t a, colour_t b, float t);
+
+END_DECLARATIONS;
 
 #endif

@@ -24,6 +24,7 @@ object_t *obj_create(scene_t *scene, object_t *parent)
 	obj->parent = NULL;
 	obj->scene = scene;
 	obj->scene_index = INVALID_INDEX;
+	obj->is_active = true;
 
 	// Move the object to the world origin.
 	obj->local_position = vec3_zero();
@@ -119,9 +120,18 @@ void obj_set_parent(object_t *obj, object_t *parent)
 	obj_set_dirty(obj);
 }
 
-void obj_process(object_t *obj)
+void obj_set_active(object_t *obj, bool active)
 {
 	if (obj == NULL) {
+		return;
+	}
+
+	obj->is_active = active;
+}
+
+void obj_process(object_t *obj)
+{
+	if (obj == NULL || !obj->is_active) {
 		return;
 	}
 

@@ -51,8 +51,6 @@ bool mylly_initialize(int argc, char **argv)
 		return false;
 	}
 
-	time_initialize();
-
 	// Initialize subsystems.
 	rsys_initialize();
 	input_initialize();
@@ -69,6 +67,8 @@ bool mylly_initialize(int argc, char **argv)
 	debug_initialize();
 
 	mgui_initialize(params);
+
+	time_initialize();
 
 	return true;
 }

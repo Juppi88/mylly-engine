@@ -53,7 +53,7 @@ void scene_process_objects(scene_t *scene)
 	object_t *obj;
 	arr_foreach(scene->objects, obj) {
 
-		if (obj != NULL) {
+		if (obj != NULL && obj->is_active) {
 			obj_process(obj);
 		}
 	}

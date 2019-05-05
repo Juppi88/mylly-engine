@@ -1,6 +1,7 @@
 #include "sprite.h"
 #include "renderer/texture.h"
 #include "renderer/mesh.h"
+#include "renderer/shader.h"
 #include "core/memory.h"
 #include "core/string.h"
 #include "math/math.h"
@@ -101,8 +102,13 @@ void sprite_set(sprite_t *sprite, texture_t *texture,
 	sprite_create_mesh(sprite);
 
 	// Sprites don't have a material by default, so shader and texture need to be set separately.
-	mesh_set_shader(sprite->mesh, res_get_shader("default-sprite"));
+	shader_t *shader = res_get_shader("default-sprite");
+
+	mesh_set_shader(sprite->mesh, shader);
 	mesh_set_texture(sprite->mesh, texture);
+
+	// TODO: This should be set via material or shader default values!
+	shader_set_uniform_colour(shader, "Colour", COL_WHITE);
 }
 
 void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice_size)

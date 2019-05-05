@@ -406,11 +406,11 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 
 		glUseProgram(shader_id);
 		active_shader = shader_id;
+	}
 
-		// Update custom uniforms.
-		if (shader->has_updated_uniforms) {
-			rend_update_material_uniforms(shader);
-		}
+	// Update custom uniforms.
+	if (shader->has_updated_uniforms) {
+		rend_update_material_uniforms(shader);
 	}
 
 	// Select the active texture.
