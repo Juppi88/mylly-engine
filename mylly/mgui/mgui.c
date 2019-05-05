@@ -87,6 +87,8 @@ void mgui_remove_references_to_object(widget_t *widget)
 	if (widget == pressed_widget) {
 		pressed_widget = NULL;
 	}
+
+	list_remove(widgets, widget);
 }
 
 widget_t *mgui_get_focused_widget(void)
@@ -190,6 +192,10 @@ void mgui_set_hovered_widget(widget_t *widget)
 		if (hovered_widget->callbacks->on_hovered != NULL) {
 			hovered_widget->callbacks->on_hovered(hovered_widget, false);
 		}
+
+		if (hovered_widget->on_hovered != NULL) {
+			hovered_widget->on_hovered(hovered_widget, false);
+		}
 	}
 
 	hovered_widget = widget;
@@ -205,6 +211,10 @@ void mgui_set_hovered_widget(widget_t *widget)
 
 		if (hovered_widget->callbacks->on_hovered != NULL) {
 			hovered_widget->callbacks->on_hovered(hovered_widget, true);
+		}
+
+		if (hovered_widget->on_hovered != NULL) {
+			hovered_widget->on_hovered(hovered_widget, true);
 		}
 	}
 }
@@ -222,6 +232,10 @@ void mgui_set_pressed_widget(widget_t *widget)
 
 		if (pressed_widget->state & WIDGET_STATE_PRESSABLE) {
 			pressed_widget->has_colour_changed = true;
+		}
+
+		if (pressed_widget->on_pressed != NULL) {
+			pressed_widget->on_pressed(pressed_widget, false);
 		}
 
 		if (pressed_widget->callbacks->on_pressed != NULL) {
@@ -252,6 +266,10 @@ void mgui_set_pressed_widget(widget_t *widget)
 
 		if (pressed_widget->callbacks->on_pressed != NULL) {
 			pressed_widget->callbacks->on_pressed(pressed_widget, true);
+		}
+
+		if (pressed_widget->on_pressed != NULL) {
+			pressed_widget->on_pressed(pressed_widget, true);
 		}
 	}
 }

@@ -69,14 +69,13 @@ void button_set_colours(widget_t *button, colour_t normal, colour_t hovered, col
 	}
 }
 
-void button_set_click_handler(widget_t *button, on_button_clicked_t handler, void *context)
+void button_set_clicked_handler(widget_t *button, on_button_clicked_t handler)
 {
 	if (button == NULL || button->type != WIDGET_TYPE_BUTTON) {
 		return;
 	}
 
 	button->button.on_clicked = handler;
-	button->button.on_clicked_context = context;
 }
 
 static void on_button_process(widget_t *button)
@@ -132,7 +131,7 @@ static void on_button_pressed(widget_t *button, bool pressed)
 
 		// Buton was released but is still hovered -> call click handler.
 		if (button->button.on_clicked != NULL) {
-			button->button.on_clicked(button->button.on_clicked_context);
+			button->button.on_clicked(button);
 		}
 	}
 	else {

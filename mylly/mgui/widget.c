@@ -524,6 +524,25 @@ widget_t *widget_get_grandparent(widget_t *widget)
 	return widget;
 }
 
+void widget_set_pressed_handler(widget_t *widget, on_widget_pressed_t handler)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	widget->on_pressed = handler;
+}
+
+void widget_set_hovered_handler(widget_t *widget, on_widget_hovered_t handler)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	widget->on_hovered = handler;
+}
+
+
 void widget_set_input_handler(widget_t *widget, widget_input_handler_t handler)
 {
 	if (widget == NULL) {
@@ -531,6 +550,15 @@ void widget_set_input_handler(widget_t *widget, widget_input_handler_t handler)
 	}
 
 	widget->input_handler = handler;
+}
+
+void widget_set_user_context(widget_t *widget, void *context)
+{
+	if (widget == NULL) {
+		return;
+	}
+
+	widget->user_context = context;
 }
 
 static void widget_create_mesh(widget_t *widget)

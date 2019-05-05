@@ -130,6 +130,10 @@ typedef struct widget_event_t {
 
 // -------------------------------------------------------------------------------------------------
 
+// Input event handlers.
+typedef void (*on_widget_pressed_t)(widget_t *widget, bool pressed);
+typedef void (*on_widget_hovered_t)(widget_t *widget, bool hovered);
+
 // Override event handler for widget input events (mouse movement and key presses).
 typedef void (*widget_input_handler_t)(widget_event_t *event);
 
@@ -164,8 +168,14 @@ typedef struct widget_t {
 	// Widget mesh and material info.
 	mesh_t *mesh;
 
-	// Callbacks for certain types of events.
+	// Callbacks for certain types of events (internal use only).
 	widget_callbacks_t *callbacks;
+
+	// Input handlers.
+	on_widget_pressed_t on_pressed;
+	on_widget_hovered_t on_hovered;
+
+	void *user_context; // Custom per-widget user context
 
 	// Override input handler.
 	widget_input_handler_t input_handler;
@@ -225,7 +235,10 @@ widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);
 
 widget_t *widget_get_grandparent(widget_t *widget);
 
+void widget_set_pressed_handler(widget_t *widget, on_widget_pressed_t handler);
+void widget_set_hovered_handler(widget_t *widget, on_widget_hovered_t handler);
 void widget_set_input_handler(widget_t *widget, widget_input_handler_t handler);
+void widget_set_user_context(widget_t *widget, void *context);
 
 END_DECLARATIONS;
 

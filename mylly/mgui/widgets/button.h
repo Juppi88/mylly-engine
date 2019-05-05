@@ -8,7 +8,7 @@
 
 // -------------------------------------------------------------------------------------------------
 
-typedef void (*on_button_clicked_t)(void *context);
+typedef void (*on_button_clicked_t)(widget_t *widget);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ BEGIN_DECLARATIONS;
 widget_t *button_create(widget_t *parent);
 
 void button_set_colours(widget_t *button, colour_t normal, colour_t hovered, colour_t pressed);
-void button_set_click_handler(widget_t *button, on_button_clicked_t handler, void *context);
+void button_set_clicked_handler(widget_t *button, on_button_clicked_t handler);
 
 END_DECLARATIONS;
 
