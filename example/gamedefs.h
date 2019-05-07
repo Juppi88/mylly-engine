@@ -12,3 +12,4 @@ class Projectile;
 class ProjectileHandler;
 class Scene;
 class Ship;
+class UI;

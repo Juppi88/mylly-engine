@@ -1,5 +1,6 @@
 #include "menuscene.h"
 #include "game.h"
+#include "ui.h"
 #include "utils.h"
 #include "asteroidhandler.h"
 #include <mylly/core/mylly.h>
@@ -21,6 +22,9 @@ MenuScene::~MenuScene(void)
 void MenuScene::Create(Game *game)
 {
 	Scene::Create(game);
+
+	// Disable some parts of the UI and display the main menu.
+	game->GetUI()->ToggleHUD(false);
 
 	CreateMainMenu(game);
 }
@@ -54,7 +58,7 @@ void MenuScene::CreateMainMenu(Game *game)
 	);
 
 	// Create the logo.
-	widget_t *logo = Utils::CreateLabel(m_menuPanel, "ASTREROIDS",
+	widget_t *logo = Utils::CreateLabel(m_menuPanel, "ASTEROIDS", true,
 		ANCHOR_MIN, 0,
 		ANCHOR_MAX, 0,
 		ANCHOR_MIN, 0,

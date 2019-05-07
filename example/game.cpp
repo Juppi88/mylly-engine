@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "gamescene.h"
 #include "menuscene.h"
+#include "ui.h"
 #include <mylly/core/mylly.h>
 #include <mylly/scene/scene.h>
 
@@ -15,25 +16,25 @@ Game::Game(void)
 
 	m_collisionHandler = new CollisionHandler();
 	m_input = new InputHandler();
+	m_ui = new UI();
 }
 
 Game::~Game(void)
 {
 	delete m_input;
-	m_input = nullptr;
-
+	delete m_ui;
 	delete m_scene;
-	m_scene = nullptr;
 
 	if (m_nextScene != nullptr) {
-
 		delete m_nextScene;
-		m_nextScene = nullptr;
 	}
 }
 
 void Game::SetupGame(void)
 {
+	// Setup UI.
+	m_ui->Create();
+
 	// Load the main menu scene.
 	m_nextScene = new MenuScene();
 	ChangeScene();
@@ -53,8 +54,23 @@ void Game::Update(void)
 {
 	m_scene->Update(this);
 
+	if (IsLoadingLevel()) {
+		return;
+	}
+
 	// Process collisions after moving entities.
 	m_collisionHandler->Update(this);
+
+	// Last, update the UI.
+	m_ui->Update();
+
+	// Wait for the user to press the confirm key when a level has been completed.
+	if (m_isLevelCompleted &&
+		m_input->IsPressingConfirm()) {
+
+		m_isLevelCompleted = false;
+		LoadLevel(++m_currentLevel);
+	}
 }
 
 object_t *Game::SpawnSceneObject(object_t *parent)
@@ -105,6 +121,20 @@ void Game::ChangeScene(void)
 
 	// Start the game.
 	m_scene->SetupLevel(this);
+	
+	m_ui->SetScore(m_score);
+	m_isLevelCompleted = false;
 
 	m_nextScene = nullptr;
+}
+
+void Game::AddScore(uint32_t amount)
+{
+	m_score += amount;
+	m_ui->AddScore(amount);
+}
+
+void Game::OnLevelCompleted(void)
+{
+	m_isLevelCompleted = true;
 }

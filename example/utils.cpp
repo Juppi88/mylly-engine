@@ -39,8 +39,6 @@ widget_t *Utils::CreateButton(widget_t *parent, const char *text,
 {
 	widget_t *button = button_create(parent);
 
-	//widget_set_sprite(button, res_get_sprite("ui-white/button02"));
-	//button_set_colours(button, col(120, 200, 80), col(180, 255, 150), col(100, 190, 70));
 	widget_set_text_font(button, res_get_font("Oxanium-Medium", 48));
 	widget_set_text_colour(button, LABEL_COLOUR);
 	widget_set_text_s(button, text);
@@ -52,7 +50,7 @@ widget_t *Utils::CreateButton(widget_t *parent, const char *text,
 	return button;
 }
 
-widget_t *Utils::CreateLabel(widget_t *parent, const char *text,
+widget_t *Utils::CreateLabel(widget_t *parent, const char *text, bool isLarge,
                              anchor_type_t left_type, int16_t left_offset,
                              anchor_type_t right_type, int16_t right_offset,
                              anchor_type_t top_type, int16_t top_offset,
@@ -60,7 +58,13 @@ widget_t *Utils::CreateLabel(widget_t *parent, const char *text,
 {
 	widget_t *label = label_create(parent);
 
-	widget_set_text_font(label, res_get_font("Oxanium-Medium", 32));
+	if (isLarge) {
+		widget_set_text_font(label, res_get_font("Oxanium-ExtraBold", 0));
+	}
+	else {
+		widget_set_text_font(label, res_get_font("Oxanium-Medium", 32));	
+	}
+	
 	widget_set_text_colour(label, LABEL_COLOUR);
 	widget_set_text_s(label, text);
 

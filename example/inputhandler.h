@@ -10,6 +10,8 @@ enum {
 	BUTTON_LEFT,
 	BUTTON_RIGHT,
 	BUTTON_FIRE,
+	BUTTON_CONFIRM,
+	BUTTON_GODMODE,
 
 	NUM_CONTROLS
 };
@@ -26,6 +28,8 @@ public:
 	float GetAcceleration(void) const;
 
 	bool IsFiring(void) const;
+	bool IsPressingConfirm(void) const;
+	bool IsPressingGodmodeButton(void) const;
 
 private:
 	static bool ExitApp(uint32_t key, bool pressed, void *context);

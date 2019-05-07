@@ -78,6 +78,15 @@ void AsteroidHandler::RemoveAllAsteroids(void)
 	arr_clear(m_asteroids);
 }
 
+void AsteroidHandler::DestroyAllAsteroids(Game *game)
+{
+	Asteroid *asteroid;
+
+	arr_foreach_reverse(m_asteroids, asteroid) {
+		asteroid->Destroy(game);
+	}
+}
+
 void AsteroidHandler::GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const
 {
 	Vec2 min = game->GetBoundsMin();
@@ -111,6 +120,14 @@ void AsteroidHandler::OnAsteroidDestroyed(Asteroid *destroyed, Game *game)
 {
 	// TODO: Spawn some sort of an effect.
 
+	// Increment player score.
+	switch (destroyed->GetSize()) {
+
+		case ASTEROID_SMALL: game->AddScore(100); break;
+		case ASTEROID_MEDIUM: game->AddScore(50); break;
+		case ASTEROID_LARGE: game->AddScore(20); break;
+	}
+	
 	// Smallest asteroids do not split into smaller fragments.
 	if (destroyed->GetSize() == ASTEROID_SMALL) {
 		return;
@@ -137,5 +154,4 @@ void AsteroidHandler::OnAsteroidDestroyed(Asteroid *destroyed, Game *game)
 		// Keep track of active asteroids.
 		arr_push(m_asteroids, asteroid);
 	}
-
 }

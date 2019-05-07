@@ -21,7 +21,7 @@ public:
 	                              anchor_type_t top_type, int16_t top_offset,
 	                              anchor_type_t bottom_type, int16_t bottom_offset);
 
-	static widget_t *CreateLabel(widget_t *parent, const char *text,
+	static widget_t *CreateLabel(widget_t *parent, const char *text, bool isLarge,
 	                             anchor_type_t left_type, int16_t left_offset,
 	                             anchor_type_t right_type, int16_t right_offset,
 	                             anchor_type_t top_type, int16_t top_offset,

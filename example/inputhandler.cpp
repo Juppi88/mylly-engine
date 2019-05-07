@@ -13,6 +13,8 @@ InputHandler::InputHandler(void)
 	input_bind_button(BUTTON_LEFT, 'A');
 	input_bind_button(BUTTON_RIGHT, 'D');
 	input_bind_button(BUTTON_FIRE, MKEY_SPACE);
+	input_bind_button(BUTTON_CONFIRM, MKEY_RETURN);
+	input_bind_button(BUTTON_GODMODE, 'G');
 
 	// Exit the program when escape is pressed.
 	input_bind_key(MKEY_ESCAPE, ExitApp, nullptr);
@@ -45,6 +47,16 @@ float InputHandler::GetAcceleration(void) const
 bool InputHandler::IsFiring(void) const
 {
 	return input_is_button_down(BUTTON_FIRE);
+}
+
+bool InputHandler::IsPressingConfirm(void) const
+{
+	return input_is_button_down(BUTTON_CONFIRM);
+}
+
+bool InputHandler::IsPressingGodmodeButton(void) const
+{
+	return input_is_button_down(BUTTON_GODMODE);
 }
 
 bool InputHandler::ExitApp(uint32_t key, bool pressed, void *context)

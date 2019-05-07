@@ -72,7 +72,7 @@ void Scene::Create(Game *game)
 void Scene::SetBackground(uint32_t backgroundIndex)
 {
 	if (backgroundIndex >= LENGTH(levelBackgrounds)) {
-		backgroundIndex = 0;
+		backgroundIndex %= LENGTH(levelBackgrounds);
 	}
 
 	m_backgroundIndex = backgroundIndex;
