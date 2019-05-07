@@ -19,20 +19,22 @@ GameScene::~GameScene(void)
 void GameScene::Create(Game *game)
 {
 	Scene::Create(game);
-
-	CreateCamera();
-	CreateSpaceBackground();
-	SetupLighting();
 }
 
 void GameScene::SetupLevel(Game *game)
 {
+	// Select the level's background.
+	SetBackground(0);
+
 	// Create the player's ship.
 	m_ship = new Ship();
 	m_ship->Spawn(game);
 
 	// Spawn some asteroids.
 	m_asteroids->SpawnInitialAsteroids(game, ASTEROID_LARGE, 5);
+
+	// Fade in to start the level.
+	FadeCamera(true);
 }
 
 void GameScene::Update(Game *game)
@@ -47,4 +49,6 @@ void GameScene::Update(Game *game)
 	if (!game->IsWithinBoundaries(m_ship->GetPosition())) {
 		m_ship->SetPosition(game->WrapBoundaries(m_ship->GetPosition()));
 	}
+
+	Scene::Update(game);
 }

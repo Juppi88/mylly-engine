@@ -22,15 +22,14 @@ void MenuScene::Create(Game *game)
 {
 	Scene::Create(game);
 
-	CreateCamera();
-	CreateSpaceBackground();
-	SetupLighting();
-
 	CreateMainMenu(game);
 }
 
 void MenuScene::SetupLevel(Game *game)
 {
+	// Select a background for the menu.
+	SetBackground(3);
+
 	// Spawn some asteroids.
 	m_asteroids->SpawnInitialAsteroids(game, ASTEROID_LARGE, 3);
 	m_asteroids->SpawnInitialAsteroids(game, ASTEROID_MEDIUM, 5);
@@ -39,6 +38,8 @@ void MenuScene::SetupLevel(Game *game)
 void MenuScene::Update(Game *game)
 {
 	m_asteroids->Update(game);
+
+	Scene::Update(game);
 }
 
 void MenuScene::CreateMainMenu(Game *game)

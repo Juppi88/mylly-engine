@@ -15,7 +15,7 @@ public:
 
 	virtual void Create(Game *game);
 	virtual void SetupLevel(Game *game) = 0;
-	virtual void Update(Game *game) = 0;
+	virtual void Update(Game *game);
 
 	scene_t *GetSceneRoot(void) const { return m_sceneRoot; }
 	AsteroidHandler *GetAsteroidHandler(void) const { return m_asteroids; }
@@ -23,14 +23,20 @@ public:
 
 	void CalculateBoundaries(Vec2 &outMin, Vec2 &outMax);
 
-protected:
-	void CreateCamera(void);
-	void CreateSpaceBackground(void);
-	void SetupLighting(void);
+	void FadeCamera(bool fadeIn);
 
 protected:
-	static constexpr colour_t AMBIENT_LIGHT_COLOUR = col(50, 70, 120);
-	static constexpr colour_t DIRECTIONAL_LIGHT_COLOUR = col(200, 220, 240);
+	void CreateCamera(void);
+
+	void SetBackground(uint32_t backgroundIndex);
+	object_t *CreateCameraTexture(const char *spriteName, bool isBackground = true);
+	void SetupLighting(void);
+
+	bool IsFading(void) const { return (m_fadeEffectEnds != 0); }
+	void ProcessFade(Game *game);
+
+protected:
+	static constexpr float FADE_DURATION = 0.5f;
 
 	AsteroidHandler *m_asteroids = nullptr;
 	ProjectileHandler *m_projectiles = nullptr;
@@ -39,4 +45,11 @@ protected:
 	camera_t *m_camera = nullptr;
 	object_t *m_spaceBackground = nullptr;
 	light_t *m_directionalLights[2] = { nullptr, nullptr };
+
+	uint32_t m_backgroundIndex = 0;
+
+	object_t *m_fader = nullptr;
+	shader_t *m_fadeShader = nullptr;
+	float m_fadeEffectEnds = 0;
+	bool m_isFadingIn = false;
 };

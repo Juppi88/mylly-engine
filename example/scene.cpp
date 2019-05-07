@@ -3,6 +3,9 @@
 #include "asteroidhandler.h"
 #include "projectilehandler.h"
 #include <mylly/core/mylly.h>
+#include <mylly/core/time.h>
+#include <mylly/renderer/mesh.h>
+#include <mylly/renderer/shader.h>
 #include <mylly/scene/scene.h>
 #include <mylly/scene/object.h>
 #include <mylly/scene/camera.h>
@@ -12,8 +15,22 @@
 
 // -------------------------------------------------------------------------------------------------
 
-constexpr colour_t Scene::AMBIENT_LIGHT_COLOUR;
-constexpr colour_t Scene::DIRECTIONAL_LIGHT_COLOUR;
+// A struct where we can define various level backgrounds with lighting setup that fits them.
+struct LevelBackground {
+
+	const char *spriteName;
+	colour_t ambientLight;
+	colour_t directionalLight;
+	Vec2 lightDirections[2];
+	float lightIntensities[2];
+};
+
+static const LevelBackground levelBackgrounds[] = {
+	{ "space1", col(80, 100, 150), col(160, 210, 240), { Vec2(-10, 5), Vec2(5, -10) }, { 1.3f, 0.5f } }, // 0
+	{ "space2", col(140, 90, 50), col(240, 210, 180), { Vec2(-10, 8), Vec2(-5, 3) }, { 0.7f, 0.7f } }, // 1
+	{ "space3", col(80, 100, 150), col(100, 200, 255), { Vec2(10, -5), Vec2(5, 5) }, { 1.0f, 0.7f } }, // 2
+	{ "space4", col(140, 90, 50), col(240, 220, 200), { Vec2(-10, -8), Vec2(5, 3) }, { 1.0f, 0.4f }  }, // 3
+};
 
 // -------------------------------------------------------------------------------------------------
 
@@ -49,6 +66,37 @@ void Scene::Create(Game *game)
 	m_asteroids = new AsteroidHandler();
 	m_projectiles = new ProjectileHandler();
 
+	CreateCamera();
+}
+
+void Scene::SetBackground(uint32_t backgroundIndex)
+{
+	if (backgroundIndex >= LENGTH(levelBackgrounds)) {
+		backgroundIndex = 0;
+	}
+
+	m_backgroundIndex = backgroundIndex;
+
+	SetupLighting();
+
+	// Create the non-transparent background object first.
+	// NOTE: See the comment at the end of rsys_render_scene() in rendersystem.c!
+	m_spaceBackground = CreateCameraTexture(levelBackgrounds[backgroundIndex].spriteName);
+
+	// Create a fader texture which covers the entire view of the camera.
+	m_fader = CreateCameraTexture("black", false);
+	obj_set_active(m_fader, false);
+
+	// Clone the black sprite's shader so we can control its colour freely.
+	m_fadeShader = shader_clone(m_fader->sprite->mesh->shader);
+	mesh_set_shader(m_fader->sprite->mesh, m_fadeShader);
+}
+
+void Scene::Update(Game *game)
+{
+	if (IsFading()) {
+		ProcessFade(game);
+	}
 }
 
 void Scene::CalculateBoundaries(Vec2 &outMin, Vec2 &outMax)
@@ -74,6 +122,23 @@ void Scene::CalculateBoundaries(Vec2 &outMin, Vec2 &outMax)
 	outMax = vec2(max.x + padding, max.z + padding);
 }
 
+void Scene::FadeCamera(bool fadeIn)
+{
+	m_isFadingIn = fadeIn;
+	m_fadeEffectEnds = get_time().time + FADE_DURATION;
+
+	// Activate the fader object and set its starting colour.
+	obj_set_active(m_fader, true);
+
+	colour_t startColour = col_a(0, 0, 0, 255);
+
+	if (!fadeIn) {
+		startColour = col_a(0, 0, 0, 0);
+	}
+
+	shader_set_uniform_colour(m_fadeShader, "Colour", startColour);
+}
+
 void Scene::CreateCamera(void)
 {
 	// Create a camera object and add it to the scene.
@@ -90,14 +155,14 @@ void Scene::CreateCamera(void)
 	camera_add_post_processing_effect(m_camera, res_get_shader("effect-fxaa"));
 }
 
-void Scene::CreateSpaceBackground(void)
+object_t *Scene::CreateCameraTexture(const char *spriteName, bool isBackground)
 {
-	// Create an object for the background element and attach a space sprite to it.
-	m_spaceBackground = scene_create_object(m_sceneRoot, nullptr);
-	obj_set_position(m_spaceBackground, vec3(0, 20, 0));
+	// Create an object for the background element and attach a sprite to it.
+	object_t *object = scene_create_object(m_sceneRoot, nullptr);
+	obj_set_position(object, vec3(0, (isBackground ? 20.0f : -49.0f), 0));
 
-	sprite_t *sprite = res_get_sprite("space");
-	obj_set_sprite(m_spaceBackground, sprite);
+	sprite_t *sprite = res_get_sprite(spriteName);
+	obj_set_sprite(object, sprite);
 
 	// Get the size of the sprite in world units and scale it to cover the entire view of the camera.
 	Vec2 min, max;
@@ -107,16 +172,20 @@ void Scene::CreateSpaceBackground(void)
 	float viewWidth = max.x() - min.x();
 	float scale = viewWidth / spriteWidth;
 
-	obj_set_local_scale(m_spaceBackground, vec3(scale, scale, 1));
+	obj_set_local_scale(object, vec3(scale, scale, 1));
 
 	// Rotate the sprite to face the camera.
-	obj_set_local_rotation(m_spaceBackground, quat_from_euler_deg(90, 0, 0));
+	obj_set_local_rotation(object, quat_from_euler_deg(90, 0, 0));
+
+	return object;
 }
 
 void Scene::SetupLighting(void)
 {
+	const LevelBackground &background = levelBackgrounds[m_backgroundIndex];
+
 	// Adjust ambient lighting.
-	scene_set_ambient_light(m_sceneRoot, AMBIENT_LIGHT_COLOUR);
+	scene_set_ambient_light(m_sceneRoot, background.ambientLight);
 
 	// Create two directional lights to light the ship and other 3D objects.
 	for (int i = 0; i < 2; i++) {
@@ -127,14 +196,49 @@ void Scene::SetupLighting(void)
 		m_directionalLights[i] = light;
 
 		light_set_type(light, LIGHT_DIRECTIONAL);
-		light_set_colour(light, DIRECTIONAL_LIGHT_COLOUR);
-		light_set_intensity(light, 1.5f);
+		light_set_colour(light, background.directionalLight);
+		light_set_intensity(light, background.lightIntensities[i]);
 
-		if (i == 0) {
-			light_set_direction(light, vec3(10, -3, 5));
+		Vec2 direction = background.lightDirections[i];
+		light_set_direction(light, vec3(direction.x(), -3, direction.y()));
+	}
+}
+
+void Scene::ProcessFade(Game *game)
+{
+	float time = get_time().time;
+
+	if (time >= m_fadeEffectEnds) {
+
+		m_fadeEffectEnds = 0;
+		obj_set_active(m_fader, false);
+
+		if (m_isFadingIn) {
+
+			// When fading in, we're loading a new scene.
 		}
 		else {
-			light_set_direction(light, vec3(-10, -3, -5));
+
+			// When fading out, we're unloading an old scene. Tell the game to change to a new one.
+			game->ChangeScene();
 		}
+		return;
 	}
+
+	float timeLeft = m_fadeEffectEnds - time;
+	float t = 1.0f - (timeLeft / FADE_DURATION);
+
+	colour_t start, end;
+
+	if (m_isFadingIn) {
+		start = col_a(0, 0, 0, 255);
+		end = col_a(0, 0, 0, 0);
+	}
+	else {
+		start = col_a(0, 0, 0, 0);
+		end = col_a(0, 0, 0, 255);
+	}
+
+	colour_t fadeColour = col_lerp(start, end, t);
+	shader_set_uniform_colour(m_fadeShader, "Colour", fadeColour);
 }

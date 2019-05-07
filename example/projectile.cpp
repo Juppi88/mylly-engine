@@ -2,6 +2,7 @@
 #include "projectilehandler.h"
 #include "game.h"
 #include <mylly/scene/object.h>
+#include <mylly/scene/light.h>
 #include <mylly/resources/resources.h>
 #include <mylly/core/time.h>
 #include <mylly/math/math.h>
@@ -42,6 +43,14 @@ void Projectile::Spawn(Game *game)
 	// Rotate the sprite towards the camera.
 	obj_set_local_rotation(GetSceneObject(), quat_from_euler_deg(90, 0, 0));
 	obj_set_local_scale(GetSceneObject(), vec3(0.15f, 0.15f, 0.15f));
+
+	// Add a light component to the projectile so it lights the asteroids it hits.
+	light_t *light = obj_add_light(GetSceneObject());
+
+	light_set_type(light, LIGHT_POINT);
+	light_set_range(light, 10.0f);
+	light_set_colour(light, col(100, 150, 200));
+	light_set_intensity(light, 3);
 
 	// Projectiles are automatically destroyed after a while if they don't hit anything.
 	m_expiresTime = get_time().time + LIFETIME;

@@ -24,18 +24,29 @@ Game::~Game(void)
 
 	delete m_scene;
 	m_scene = nullptr;
+
+	if (m_nextScene != nullptr) {
+
+		delete m_nextScene;
+		m_nextScene = nullptr;
+	}
 }
 
 void Game::SetupGame(void)
 {
 	// Load the main menu scene.
-	ChangeScene(new MenuScene());
+	m_nextScene = new MenuScene();
+	ChangeScene();
 }
 
 void Game::LoadLevel(uint32_t level)
 {
 	m_currentLevel = level;
-	ChangeScene(new GameScene());
+
+	// Change the scene behind a camera blocking texture. When the fade finishes, it will call
+	// ChangeScene in this class.
+	m_nextScene = new GameScene();
+	m_scene->FadeCamera(false);
 }
 
 void Game::Update(void)
@@ -79,20 +90,21 @@ Vec2 Game::WrapBoundaries(const Vec2 &position) const
 	return wrapped;
 }
 
-void Game::ChangeScene(Scene *nextScene)
+void Game::ChangeScene(void)
 {
-	// Unload the current scene.
 	if (m_scene != nullptr) {
-
+	
 		delete m_scene;
 		m_collisionHandler->UnregisterAllEntities();
 	}
 
 	// Initialize the next scene.
-	m_scene = nextScene;
+	m_scene = m_nextScene;
 	m_scene->Create(this);
 	m_scene->CalculateBoundaries(m_boundsMin, m_boundsMax);
 
 	// Start the game.
 	m_scene->SetupLevel(this);
+
+	m_nextScene = nullptr;
 }

@@ -23,7 +23,7 @@ private:
 	static constexpr float TURN_SPEED = 180; // degrees/sec
 	static constexpr float ACCELERATION = 40; // units/sec^2
 	static constexpr float MAX_SPEED = 20; // units/sec
-	static constexpr float WEAPON_FIRE_RATE = 3; // shots/sec
+	static constexpr float WEAPON_FIRE_RATE = 6; // shots/sec
 
 	float m_heading = 0;
 	float m_nextWeaponFire = 0;

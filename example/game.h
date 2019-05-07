@@ -20,6 +20,7 @@ public:
 	bool IsSetup(void) const { return (m_scene != nullptr); }
 
 	void LoadLevel(uint32_t level);
+	void ChangeScene(void);
 
 	void Update(void);
 
@@ -31,12 +32,10 @@ public:
 	Vec2 WrapBoundaries(const Vec2 &position) const;
 
 private:
-	void ChangeScene(Scene *nextScene);
-
-private:
 	InputHandler *m_input = nullptr;
 	CollisionHandler *m_collisionHandler = nullptr;
 	Scene *m_scene = nullptr;
+	Scene *m_nextScene = nullptr;
 
 	Vec2 m_boundsMin = Vec2();
 	Vec2 m_boundsMax = Vec2();
