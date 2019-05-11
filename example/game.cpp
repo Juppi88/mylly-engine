@@ -40,6 +40,21 @@ void Game::SetupGame(void)
 	ChangeScene();
 }
 
+void Game::StartNewGame(void)
+{
+	// Reset score and ships.
+	m_score = 0;
+	m_ships = 3;
+	m_currentLevel = 1;
+	m_isLevelCompleted = false;
+	m_isRespawning = false;
+
+	m_ui->SetScore(0);
+	m_ui->SetShipCount(3);
+
+	LoadLevel(1);
+}
+
 void Game::LoadLevel(uint32_t level)
 {
 	m_currentLevel = level;
@@ -70,6 +85,24 @@ void Game::Update(void)
 
 		m_isLevelCompleted = false;
 		LoadLevel(++m_currentLevel);
+	}
+
+	if (m_isRespawning &&
+		m_input->IsPressingConfirm()) {
+
+		m_isRespawning = false;
+
+		if (m_ships > 0) {
+
+			// The player has ships left, respawn into the middle of the map.
+			((GameScene *)m_scene)->RespawnShip(this);
+		}
+		else {
+
+			// No more ships left, return to main menu.
+			m_nextScene = new MenuScene();
+			m_scene->FadeCamera(false);
+		}
 	}
 }
 
@@ -137,4 +170,13 @@ void Game::AddScore(uint32_t amount)
 void Game::OnLevelCompleted(void)
 {
 	m_isLevelCompleted = true;
+}
+
+void Game::OnShipDestroyed(void)
+{
+	m_isRespawning = true;
+
+	if (m_ships > 0) {
+		--m_ships;
+	}
 }

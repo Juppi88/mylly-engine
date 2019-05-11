@@ -2,6 +2,9 @@
 #include "utils.h"
 #include <mylly/core/time.h>
 #include <mylly/mgui/widget.h>
+#include <mylly/mgui/widgets/panel.h>
+#include <mylly/resources/resources.h>
+#include <mylly/scene/sprite.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -26,12 +29,35 @@ void UI::Create(void)
 		ANCHOR_MAX, 0
 	);
 
+	// Score label
 	m_scoreLabel = Utils::CreateLabel(m_hudPanel, "0", false,
 		ANCHOR_MIN, 0,
 		ANCHOR_MAX, 0,
-		ANCHOR_MIN, 0,
-		ANCHOR_MIN, 150
+		ANCHOR_MIN, 25,
+		ANCHOR_MIN, 125
 	);
+
+	// Ship icons
+	sprite_t *icon = res_get_sprite("shipicons/red");
+	int16_t width = (int16_t)icon->size.x;
+	int16_t height = (int16_t)icon->size.y;
+
+	for (int i = 0; i < 3; i++) {
+
+		m_shipSprites[i] = panel_create(m_scoreLabel);
+
+		widget_set_sprite(m_shipSprites[i], icon);
+		widget_set_colour(m_shipSprites[i], Utils::LABEL_COLOUR);
+
+		int x_offset = (i - 1) * 50;
+
+		widget_set_anchors(m_shipSprites[i],
+			ANCHOR_MIDDLE, -width / 2 + x_offset,
+			ANCHOR_MIDDLE, width / 2 + x_offset,
+			ANCHOR_MAX, 0,
+			ANCHOR_MAX, height
+		);
+	}
 
 	m_levelLabel = Utils::CreateLabel(m_hudPanel, "Level 0", true,
 		ANCHOR_MIN, 0,
@@ -126,20 +152,27 @@ void UI::AddScore(uint32_t amount)
 	m_scoreCounterEnds = get_time().time + SCORE_COUNTER_DURATION;
 }
 
+void UI::SetShipCount(uint32_t ships)
+{
+	if (ships > LENGTH(m_shipSprites)) {
+		ships = LENGTH(m_shipSprites);
+	}
+
+	for (uint32_t i = 0; i < LENGTH(m_shipSprites); i++) {
+		widget_set_visible(m_shipSprites[i], (i < ships));
+	}
+}
+
 void UI::ShowLevelLabel(uint32_t level)
 {
-	widget_set_visible(m_levelLabel, true);
-	widget_set_text_colour(m_levelLabel, Utils::LABEL_COLOUR);
-	widget_set_text(m_levelLabel, "LEVEL %u", level);
+	char levelText[128];
+	snprintf(levelText, sizeof(levelText), "LEVEL %u", level);
 
 	if (level == 1) {
-
-		widget_set_visible(m_helpLabel, true);
-		widget_set_text_colour(m_helpLabel, Utils::LABEL_COLOUR);
-		widget_set_text_s(m_helpLabel, "Destroy all the asteroids");
+		DisplayInfoLabels(levelText, "Destroy all the asteroids");
 	}
 	else {
-		widget_set_visible(m_helpLabel, false);
+		DisplayInfoLabels(levelText);
 	}
 
 	m_levelFadeEnds = get_time().time + LEVEL_DURATION;
@@ -147,15 +180,38 @@ void UI::ShowLevelLabel(uint32_t level)
 
 void UI::ShowLevelCompletedLabel(void)
 {
+	DisplayInfoLabels("LEVEL COMPLETED", "Press ENTER to continue");
+}
+
+void UI::ShowRespawnLabel(void)
+{
+	DisplayInfoLabels("SHIP DESTROYED", "Press ENTER to respawn");
+}
+
+void UI::ShowGameOverLabel(void)
+{
+	DisplayInfoLabels("GAME OVER", "Press ENTER to return to main menu");
+}
+
+void UI::HideInfoLabels(void)
+{
+	widget_set_visible(m_levelLabel, false);
+	widget_set_visible(m_helpLabel, false);
+}
+
+void UI::DisplayInfoLabels(const char *levelText, const char *infoText)
+{
 	widget_set_visible(m_levelLabel, true);
-	widget_set_visible(m_helpLabel, true);
+	widget_set_visible(m_helpLabel, infoText != nullptr);
 
 	widget_set_text_colour(m_levelLabel, Utils::LABEL_COLOUR);
 	widget_set_text_colour(m_helpLabel, Utils::LABEL_COLOUR);
 
-	widget_set_text_s(m_levelLabel, "LEVEL COMPLETED");
-	widget_set_text_s(m_helpLabel, "Press ENTER to continue");
+	widget_set_text_s(m_levelLabel, levelText);
 
-	// In case someone beats the level in like two seconds.
+	if (infoText != nullptr) {
+		widget_set_text_s(m_helpLabel, infoText);
+	}
+
 	m_levelFadeEnds = 0;
 }

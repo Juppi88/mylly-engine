@@ -12,6 +12,8 @@ public:
 	virtual void SetupLevel(Game *game) override;
 	virtual void Update(Game *game) override;
 
+	void RespawnShip(Game *game);
+
 private:
 	
 private:

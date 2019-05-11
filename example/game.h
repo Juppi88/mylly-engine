@@ -20,6 +20,7 @@ public:
 	void SetupGame(void);
 	bool IsSetup(void) const { return (m_scene != nullptr); }
 
+	void StartNewGame(void);
 	void LoadLevel(uint32_t level);
 	void ChangeScene(void);
 
@@ -34,10 +35,12 @@ public:
 
 	uint32_t GetLevel(void) const { return m_currentLevel; }
 	uint32_t GetScore(void) const { return m_score; }
+	uint32_t GetShips(void) const { return m_ships; }
 	void AddScore(uint32_t amount);
 
 	bool IsLevelCompleted(void) const { return m_isLevelCompleted; }
 	void OnLevelCompleted(void);
+	void OnShipDestroyed(void);
 
 private:
 	bool IsLoadingLevel(void) const { return (m_nextScene != nullptr); }
@@ -54,5 +57,7 @@ private:
 
 	uint32_t m_currentLevel = 1;
 	uint32_t m_score = 0;
+	uint32_t m_ships = 3;
 	bool m_isLevelCompleted = false;
+	bool m_isRespawning = false;
 };

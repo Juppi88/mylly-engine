@@ -119,3 +119,14 @@ void Ship::ProcessInput(Game *game)
 		m_nextWeaponFire = time + 1.0f / WEAPON_FIRE_RATE;
 	}
 }
+
+void Ship::OnCollideWith(Entity *other)
+{
+	Entity::OnCollideWith(other);
+
+	// Flag the ship as destroyed. The scene will destroy the ship when convenient and spawn
+	// an explosion or some other cool effect.
+	if (other->GetType() == ENTITY_ASTEROID) {
+		m_isDestroyed = true;
+	}
+}

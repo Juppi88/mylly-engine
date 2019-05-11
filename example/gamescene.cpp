@@ -45,8 +45,38 @@ void GameScene::SetupLevel(Game *game)
 
 void GameScene::Update(Game *game)
 {
-	m_ship->ProcessInput(game);
-	m_ship->Update(game);
+	if (m_ship != nullptr) {
+
+		if (m_ship->IsDestroyed()) {
+
+			// Remove the ship from the game.
+			// TODO: Spawn an explosion or some other cool effect!
+			m_ship->Destroy(game);
+			m_ship = nullptr;
+
+			// Inform the game handler that the ship was destroyed.
+			game->OnShipDestroyed();
+
+			// Update UI.
+			game->GetUI()->SetShipCount(game->GetShips());
+
+			if (game->GetShips() == 0) {
+				game->GetUI()->ShowGameOverLabel();
+			}
+			else {
+				game->GetUI()->ShowRespawnLabel();
+			}
+		}
+		else {
+			m_ship->ProcessInput(game);
+			m_ship->Update(game);
+
+			// Enforce ship's boundaries.
+			if (!game->IsWithinBoundaries(m_ship->GetPosition())) {
+				m_ship->SetPosition(game->WrapBoundaries(m_ship->GetPosition()));
+			}
+		}
+	}
 
 	m_asteroids->Update(game);
 	m_projectiles->Update(game);
@@ -54,11 +84,6 @@ void GameScene::Update(Game *game)
 	// Godmode button for testing: destroy all asteroids.
 	if (game->GetInputHandler()->IsPressingGodmodeButton()) {
 		m_asteroids->DestroyAllAsteroids(game);
-	}
-
-	// Enforce ship's boundaries.
-	if (!game->IsWithinBoundaries(m_ship->GetPosition())) {
-		m_ship->SetPosition(game->WrapBoundaries(m_ship->GetPosition()));
 	}
 
 	// Complete the level when all asteroids have been destroyed.
@@ -70,4 +95,16 @@ void GameScene::Update(Game *game)
 	}
 
 	Scene::Update(game);
+}
+
+void GameScene::RespawnShip(Game *game)
+{
+	if (m_ship != nullptr) {
+		return;
+	}
+
+	m_ship = new Ship();
+	m_ship->Spawn(game);
+
+	game->GetUI()->HideInfoLabels();
 }

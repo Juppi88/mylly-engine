@@ -98,7 +98,7 @@ void MenuScene::OnButtonHovered(widget_t *button, bool hovered)
 void MenuScene::OnSelectedStartGame(widget_t *button)
 {
 	Game *game = (Game *)button->user_context;
-	game->LoadLevel(1);
+	game->StartNewGame();
 }
 
 void MenuScene::OnSelectedExitGame(widget_t *button)
