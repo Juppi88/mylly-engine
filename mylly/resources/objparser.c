@@ -174,6 +174,19 @@ void obj_parser_process_line(obj_parser_t *parser, const char *line)
 	}
 	else if (string_equals(type, "usemtl")) { // usemtl = use a material from the .mtl file
 
+		// Add a new, empty object group to the list of groups and put upcoming faces to it.
+		if (arr_last(parser->groups).vertices.count != 0) {
+		
+			char *material = NULL;
+
+			if (parser->material != NULL) {
+				material = string_duplicate(parser->material);
+			}
+
+			obj_group_t empty = { material, parser->smooth_shading, arr_initializer };
+			arr_push(parser->groups, empty);
+		}
+
 		// Get the current vertex group (i.e. the last one to be pushed to the group list).
 		obj_group_t *group = &arr_last(parser->groups);
 
