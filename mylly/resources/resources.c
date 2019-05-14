@@ -1215,12 +1215,12 @@ static void res_load_material(const char *file_name)
 		if (material->shader != NULL) {
 			material->shader = shader_clone(material->shader);
 		}
+
+		// Apply shader parameters.
+		material_apply_parameters(material);
 		
 		arr_push(materials, material);
 	}
-
-	// Apply shader parameters.
-	material_apply_parameters(material);
 
 	// Release the temporary parser data.
 	mtl_parser_destroy(&parser);
