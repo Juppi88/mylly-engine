@@ -197,6 +197,9 @@ void rsys_render_scene(scene_t *scene)
 	}
 
 	// TODO: Find which scene objects are visible in the current camera (for now add all objects).
+	// TODO: Sort transparent objects by depth! Otherwise if we render a transparent object first
+	// which is in front of other objects, it will render the clear colour! (see fader sprite in the
+	// example project)
 	object_t *object;
 
 	arr_foreach(scene->objects, object) {

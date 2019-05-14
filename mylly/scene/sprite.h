@@ -42,6 +42,8 @@ void sprite_set(sprite_t *sprite, texture_t *texture,
 
 void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice_size);
 
+void sprite_set_shader(sprite_t *sprite, shader_t *shader);
+
 END_DECLARATIONS;
 
 #endif

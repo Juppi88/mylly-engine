@@ -79,7 +79,7 @@ shader_t *shader_clone(shader_t *original)
 			shader_add_uniform(shader, uniform->name, uniform->type);
 		}
 	}
-
+	
 	// TODO: Add reference counting to duplicated resources!
 	return shader;
 }
@@ -183,6 +183,15 @@ void shader_set_uniform_colour(shader_t *shader, const char *name, colour_t valu
 {
 	// Convenience method for setting a colour to a vec4 type uniform field.
 	shader_set_uniform_vector(shader, name, col_to_vec4(value));
+}
+
+void shader_set_render_queue(shader_t *shader, SHADER_QUEUE queue)
+{
+	if (shader == NULL || queue < 0 || queue >= NUM_QUEUES) {
+		return;
+	}
+
+	shader->queue = queue;
 }
 
 bool shader_load_from_source(

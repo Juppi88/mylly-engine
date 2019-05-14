@@ -83,6 +83,8 @@ static void rend_destroy_framebuffers(void);
 static void rend_draw_post_processing_effects(rview_t *view);
 static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index);
 
+static void rend_set_blend_mode(int queue, bool post_processing);
+
 // -------------------------------------------------------------------------------------------------
 
 bool rend_initialize(void)
@@ -187,7 +189,7 @@ void rend_shutdown(void)
 
 void rend_begin_draw(void)
 {
-	glClearColor(0, 0, 0, 1);
+	glClearColor(1, 0, 1, 1);
 	glClearDepth(1.0f);
 	
 	// Clear the framebuffers.
@@ -200,9 +202,9 @@ void rend_begin_draw(void)
 	// Clear hardware buffer.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -272,6 +274,9 @@ void rend_draw_views(rview_t *first_view)
 		// Draw meshes from each view.
 		list_foreach(views, view) {
 
+			// Apply appropriate blending mode for the queue.
+			rend_set_blend_mode(queue, false);
+
 			bool post_process = (view->post_processing_effects.count != 0);
 			
 			// Bind the post processing framebuffer if the view defines any post processing effects.
@@ -285,6 +290,9 @@ void rend_draw_views(rview_t *first_view)
 
 			// Render the view again with post processing.
 			if (post_process) {
+
+				// Disable blending for render textures.
+				rend_set_blend_mode(queue, true);
 				rend_draw_post_processing_effects(view);
 			}
 		}
@@ -924,7 +932,7 @@ static void rend_draw_post_processing_effects(rview_t *view)
 	uint16_t width, height;
 	mylly_get_resolution(&width, &height);
 	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, 0, 0);
-	
+
 
 	// Apply each post processing effect in order.
 	for (uint32_t i = 0, c = view->post_processing_effects.count; i < c; i++) {
@@ -988,4 +996,22 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 	// Draw the framebuffer's contents into a screen sized quad.
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, framebuffer_vertices);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+static void rend_set_blend_mode(int queue, bool post_processing)
+{
+	if (post_processing ||
+		queue == QUEUE_BACKGROUND ||
+		queue == QUEUE_GEOMETRY) {
+
+		// Disable blending for objects in the background and non-transparent geometry.
+		glDisable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ZERO);
+	}
+	else {
+
+		// Enable blending for everything that is or could be transparent.
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 }

@@ -145,6 +145,18 @@ void sprite_set_nine_slice(sprite_t *sprite, vec2_t slice_position, vec2_t slice
 	);
 }
 
+void sprite_set_shader(sprite_t *sprite, shader_t *shader)
+{
+	if (sprite == NULL) {
+		return;
+	}
+
+	mesh_set_shader(sprite->mesh, shader);
+
+	// TODO: This should be set via material or shader default values!
+	shader_set_uniform_colour(shader, "Colour", COL_WHITE);
+}
+
 static void sprite_create_mesh(sprite_t *sprite)
 {
 	if (sprite == NULL) {

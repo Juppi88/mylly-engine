@@ -158,6 +158,10 @@ void shader_set_uniform_float(shader_t *shader, const char *name, float value);
 void shader_set_uniform_vector(shader_t *shader, const char *name, vec4_t value);
 void shader_set_uniform_colour(shader_t *shader, const char *name, colour_t value);
 
+void shader_set_render_queue(shader_t *shader, SHADER_QUEUE queue);
+
+// -------------------------------------------------------------------------------------------------
+
 bool shader_load_from_source(
 	shader_t *shader,
 	size_t num_lines, const char **lines,
