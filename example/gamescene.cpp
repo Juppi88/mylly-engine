@@ -2,6 +2,8 @@
 #include "game.h"
 #include "ship.h"
 #include "ui.h"
+#include "ufo.h"
+#include "utils.h"
 #include "asteroidhandler.h"
 #include "projectilehandler.h"
 #include "inputhandler.h"
@@ -16,6 +18,10 @@ GameScene::GameScene(void) :
 GameScene::~GameScene(void)
 {
 	delete m_ship;
+
+	if (m_ufo) {
+		delete m_ufo;
+	}
 }
 
 void GameScene::Create(Game *game)
@@ -45,6 +51,21 @@ void GameScene::SetupLevel(Game *game)
 
 void GameScene::Update(Game *game)
 {
+	// Check whether a UFO should appear in the game.
+	if (game->ShouldUFOSpawn() && m_ufo == nullptr) {
+
+		Vec2 spawnPosition, spawnDirection;
+		
+		Utils::GetRandomSpawnPosition(game->GetBoundsMin(), game->GetBoundsMax(),
+		                              spawnPosition, spawnDirection);
+
+		m_ufo = new Ufo();
+		m_ufo->Spawn(game);
+		m_ufo->SetPosition(spawnPosition);
+
+		game->ResetUFOCounter();
+	}
+
 	if (m_ship != nullptr) {
 
 		if (m_ship->IsDestroyed()) {
@@ -78,6 +99,28 @@ void GameScene::Update(Game *game)
 		}
 	}
 
+	// Update UFO if it is in the game.
+	if (m_ufo != nullptr) {
+
+		if (m_ufo->IsDestroyed()) {
+
+			// Remove the UFO from the game.
+			// TODO: Spawn an explosion or some other cool effect!
+			m_ufo->Destroy(game);
+			m_ufo = nullptr;
+
+			// Destroying an UFO will give the player 1000 points.
+			game->AddScore(1000);
+		}
+		else {
+			m_ufo->Update(game);
+
+			if (!game->IsWithinBoundaries(m_ufo->GetPosition())) {
+				m_ufo->SetPosition(game->WrapBoundaries(m_ufo->GetPosition()));
+			}
+		}
+	}
+
 	m_asteroids->Update(game);
 	m_projectiles->Update(game);
 
@@ -86,8 +129,9 @@ void GameScene::Update(Game *game)
 		m_asteroids->DestroyAllAsteroids(game);
 	}
 
-	// Complete the level when all asteroids have been destroyed.
+	// Complete the level when all asteroids and the UFO have been destroyed.
 	if (m_asteroids->AllAsteroidsDestroyed() &&
+		m_ufo == nullptr &&
 		!game->IsLevelCompleted()) {
 
 		game->OnLevelCompleted();

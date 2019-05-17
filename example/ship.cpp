@@ -1,6 +1,7 @@
 #include "ship.h"
 #include "game.h"
 #include "projectilehandler.h"
+#include "projectile.h"
 #include "inputhandler.h"
 #include <mylly/scene/object.h>
 #include <mylly/scene/scene.h>
@@ -45,7 +46,6 @@ void Ship::Spawn(Game *game)
 	obj_set_model(shipObject, shipModel);
 
 	// Make the model a bit smaller.
-	//obj_set_local_scale(shipObject, vec3(0.01f, 0.01f, 0.01f));
 	obj_set_local_scale(shipObject, vec3(0.8f, 0.8f, 0.8f));
 
 	// Rotate the ship model so it's top side up, heading right.
@@ -124,9 +124,11 @@ void Ship::OnCollideWith(Entity *other)
 {
 	Entity::OnCollideWith(other);
 
-	// Flag the ship as destroyed. The scene will destroy the ship when convenient and spawn
+	// Set the ship's health to 0. The scene will destroy the ship when convenient and spawn
 	// an explosion or some other cool effect.
-	if (other->GetType() == ENTITY_ASTEROID) {
-		m_isDestroyed = true;
+	if (other->GetType() == ENTITY_ASTEROID ||
+		(other->GetType() == ENTITY_PROJECTILE && !((Projectile *)other)->IsOwnedByPlayer())) {
+
+		Kill();
 	}
 }

@@ -2,6 +2,7 @@
 #include "asteroidhandler.h"
 #include "game.h"
 #include "utils.h"
+#include "projectile.h"
 #include <mylly/scene/scene.h>
 #include <mylly/scene/object.h>
 #include <mylly/scene/model.h>
@@ -60,19 +61,19 @@ void Asteroid::SetSize(AsteroidSize size)
 		case ASTEROID_LARGE:
 			scale = 3.0f;
 			mass = 300.0f;
-			m_health = 3;
+			SetHealth(3);
 			break;
 
 		case ASTEROID_MEDIUM:
 			scale = 2.0f;
 			mass = 150.0f;
-			m_health = 2;
+			SetHealth(2);
 			break;
 
 		default:
 			mass = 50.0f;
 			scale = 1.0f;
-			m_health = 1;
+			SetHealth(1);
 			break;
 	}
 
@@ -150,11 +151,10 @@ void Asteroid::OnCollideWith(Entity *other)
 {
 	Entity::OnCollideWith(other);
 
-	if (other->GetType() == ENTITY_PROJECTILE) {
+	if (other->GetType() == ENTITY_PROJECTILE &&
+		((Projectile *)other)->IsOwnedByPlayer()) { // Ignore hits by UFO projectiles
 
 		// Calculate damage to the asteroid.
-		if (!IsDestroyed()) {
-			--m_health;
-		}
+		DecreaseHealth();
 	}
 }

@@ -20,6 +20,7 @@ public:
 	virtual void Update(Game *game) override;
 
 	Entity *GetOwner(void) const { return m_owner; }
+	bool IsOwnedByPlayer(void) const { return (m_owner != nullptr && m_owner->GetType() == ENTITY_SHIP); }
 	float GetSpeed(void) const { return SPEED; }
 
 	virtual void OnCollideWith(Entity *other) override;
@@ -30,5 +31,4 @@ private:
 
 	Entity *m_owner = nullptr; // Entity which fired the projectile
 	float m_expiresTime = 0; // Time when the projectile should self-destruct
-	bool m_hitTarget = false; // Set to true when the projectile hits its target (i.e. an asteroid)
 };

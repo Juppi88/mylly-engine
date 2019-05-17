@@ -31,9 +31,6 @@ public:
 
 	virtual void OnCollideWith(Entity *other) override;
 
-	int GetHealth(void) const { return m_health; }
-	bool IsDestroyed(void) const { return m_health == 0; }
-
 private:
 	float GetSpeedMultiplier(void) const { return 3.0f / (m_size + 1); }
 
@@ -43,5 +40,4 @@ private:
 
 	AsteroidSize m_size = ASTEROID_SMALL;
 	Vec3 m_rotation = Vec3();
-	int m_health = 1;
 };

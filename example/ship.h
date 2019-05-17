@@ -18,8 +18,6 @@ public:
 
 	virtual void OnCollideWith(Entity *other) override;
 
-	bool IsDestroyed(void) const { return m_isDestroyed; }
-
 private:
 	void UpdateControls(const InputHandler *input);
 
@@ -31,6 +29,4 @@ private:
 
 	float m_heading = 0;
 	float m_nextWeaponFire = 0;
-
-	bool m_isDestroyed = false;
 };

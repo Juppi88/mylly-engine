@@ -164,6 +164,15 @@ object_t *Scene::CreateCameraTexture(const char *spriteName, bool isBackground)
 	sprite_t *sprite = res_get_sprite(spriteName);
 	obj_set_sprite(object, sprite);
 
+	// Create a copy of the default sprite shader and make it draw in the background queue.
+	if (isBackground) {
+
+		shader_t *bg_shader = shader_clone(sprite->mesh->shader);
+		shader_set_render_queue(bg_shader, QUEUE_BACKGROUND);
+
+		sprite_set_shader(sprite, bg_shader);
+	}
+
 	// Get the size of the sprite in world units and scale it to cover the entire view of the camera.
 	Vec2 min, max;
 	CalculateBoundaries(min, max);

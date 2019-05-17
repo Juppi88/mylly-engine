@@ -23,7 +23,9 @@ void AsteroidHandler::SpawnInitialAsteroids(Game *game, AsteroidSize size, uint3
 
 		// Randomize initial values.
 		Vec2 spawnPosition, spawnDirection;
-		GetRandomSpawnPosition(game, spawnPosition, spawnDirection);
+		
+		Utils::GetRandomSpawnPosition(game->GetBoundsMin(), game->GetBoundsMax(),
+		                              spawnPosition, spawnDirection);
 		
 		asteroid->SetSize(size);
 		asteroid->SetPosition(spawnPosition);
@@ -84,35 +86,6 @@ void AsteroidHandler::DestroyAllAsteroids(Game *game)
 
 	arr_foreach_reverse(m_asteroids, asteroid) {
 		asteroid->Destroy(game);
-	}
-}
-
-void AsteroidHandler::GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const
-{
-	Vec2 min = game->GetBoundsMin();
-	Vec2 max = game->GetBoundsMax();
-
-	switch (Utils::Random(0, 4)) {
-
-		case 0: // Left
-			position = Vec2(min.x(), Utils::Random(min.y(), max.y()));
-			direction = vec2(Utils::Random(0.0f, 1.0f), Utils::Random(-1.0f, 1.0f));
-			break;
-
-		case 1: // Right
-			position = Vec2(max.x(), Utils::Random(min.y(), max.y()));
-			direction = Vec2(Utils::Random(0.0f, -1.0f), Utils::Random(-1.0f, 1.0f));
-			break;
-
-		case 2: // Top
-			position = Vec2(Utils::Random(min.x(), max.x()), max.y());
-			direction = Vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, -1.0f));
-			break;
-
-		default: // Bottom
-			position = Vec2(Utils::Random(min.x(), max.x()), min.y());
-			direction = Vec2(Utils::Random(-1.0f, 1.0f), Utils::Random(0.0f, 1.0f));
-			break;
 	}
 }
 

@@ -44,6 +44,7 @@ void Game::StartNewGame(void)
 {
 	// Reset score and ships.
 	m_score = 0;
+	m_scoreSinceLastUFO = 0;
 	m_ships = 3;
 	m_currentLevel = 1;
 	m_isLevelCompleted = false;
@@ -164,7 +165,25 @@ void Game::ChangeScene(void)
 void Game::AddScore(uint32_t amount)
 {
 	m_score += amount;
+	m_scoreSinceLastUFO += amount;
+
 	m_ui->AddScore(amount);
+}
+
+float Game::GetDifficultyMultiplier(void) const
+{
+	// Each level the game gets harder (more asteroids, harder UFO encounters). This multiplier
+	// controls the difficulty of the UFO, as in UFO speed and accuracy.
+
+	// This difficulty multiplier starts from 1 and linearly ramps up each level until reaching
+	// its maximum value of 2 on level 10.
+	float difficulty = 1.0f + (m_currentLevel - 1) / (10.0f - 1);
+
+	if (difficulty > 2) {
+		difficulty = 2;
+	}
+
+	return difficulty;
 }
 
 void Game::OnLevelCompleted(void)
@@ -179,4 +198,19 @@ void Game::OnShipDestroyed(void)
 	if (m_ships > 0) {
 		--m_ships;
 	}
+}
+
+bool Game::ShouldUFOSpawn(void) const
+{
+	if (m_currentLevel < 3) {
+		return (m_scoreSinceLastUFO >= 2500);
+	}
+	else if (m_currentLevel < 5) {
+		return (m_scoreSinceLastUFO >= 3500);
+	}
+	else if (m_currentLevel < 7) {
+		return (m_scoreSinceLastUFO >= 4500);
+	}
+
+	return (m_scoreSinceLastUFO >= 5000);
 }

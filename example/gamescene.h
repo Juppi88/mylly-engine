@@ -14,8 +14,9 @@ public:
 
 	void RespawnShip(Game *game);
 
-private:
-	
+	Ship *GetPlayerShip(void) const { return m_ship; }
+
 private:
 	Ship *m_ship = nullptr;
+	Ufo *m_ufo = nullptr;
 };
