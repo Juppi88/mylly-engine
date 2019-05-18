@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.h"
+#include "game.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -20,6 +21,7 @@ public:
 
 private:
 	void UpdateControls(const InputHandler *input);
+	void FireWeapon(Game *game);
 
 private:
 	static constexpr float TURN_SPEED = 180; // degrees/sec

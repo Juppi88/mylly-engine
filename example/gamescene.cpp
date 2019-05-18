@@ -4,6 +4,7 @@
 #include "ui.h"
 #include "ufo.h"
 #include "utils.h"
+#include "powerup.h"
 #include "asteroidhandler.h"
 #include "projectilehandler.h"
 #include "inputhandler.h"
@@ -91,11 +92,6 @@ void GameScene::Update(Game *game)
 		else {
 			m_ship->ProcessInput(game);
 			m_ship->Update(game);
-
-			// Enforce ship's boundaries.
-			if (!game->IsWithinBoundaries(m_ship->GetPosition())) {
-				m_ship->SetPosition(game->WrapBoundaries(m_ship->GetPosition()));
-			}
 		}
 	}
 
@@ -114,10 +110,22 @@ void GameScene::Update(Game *game)
 		}
 		else {
 			m_ufo->Update(game);
+		}
+	}
 
-			if (!game->IsWithinBoundaries(m_ufo->GetPosition())) {
-				m_ufo->SetPosition(game->WrapBoundaries(m_ufo->GetPosition()));
-			}
+	// Update uncollected powerup.
+	if (m_powerUp != nullptr) {
+
+		if (m_powerUp->IsDestroyed()) {
+
+			// Inform the game handler that the player collected the powerup.
+			game->OnPowerUpCollected();
+
+			m_powerUp->Destroy(game);
+			m_powerUp = nullptr;
+		}
+		else {
+			m_powerUp->Update(game);
 		}
 	}
 
@@ -151,4 +159,21 @@ void GameScene::RespawnShip(Game *game)
 	m_ship->Spawn(game);
 
 	game->GetUI()->HideInfoLabels();
+}
+
+void GameScene::OnEntityDestroyed(Game *game, Entity *entity)
+{
+	if (entity->GetType() == ENTITY_ASTEROID ||
+		entity->GetType() == ENTITY_UFO) {
+
+		// Spawn a powerup crate if one isn't in the game yet and the player has earned it.
+		if (m_powerUp == nullptr &&
+			game->HasPlayerEarnedPowerUp()) {
+
+			m_powerUp = new PowerUp();
+			m_powerUp->Spawn(game);
+
+			m_powerUp->SetPosition(entity->GetPosition());
+		}
+	}
 }

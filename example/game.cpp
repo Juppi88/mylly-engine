@@ -45,6 +45,8 @@ void Game::StartNewGame(void)
 	// Reset score and ships.
 	m_score = 0;
 	m_scoreSinceLastUFO = 0;
+	m_scoreSinceLastPowerUp = 0;
+	m_currentPowerUp = POWERUP_NONE;
 	m_ships = 3;
 	m_currentLevel = 1;
 	m_isLevelCompleted = false;
@@ -166,6 +168,7 @@ void Game::AddScore(uint32_t amount)
 {
 	m_score += amount;
 	m_scoreSinceLastUFO += amount;
+	m_scoreSinceLastPowerUp += amount;
 
 	m_ui->AddScore(amount);
 }
@@ -198,6 +201,10 @@ void Game::OnShipDestroyed(void)
 	if (m_ships > 0) {
 		--m_ships;
 	}
+
+	// Reset powerups.
+	m_scoreSinceLastPowerUp = 0;
+	m_currentPowerUp = POWERUP_NONE;
 }
 
 bool Game::ShouldUFOSpawn(void) const
@@ -213,4 +220,47 @@ bool Game::ShouldUFOSpawn(void) const
 	}
 
 	return (m_scoreSinceLastUFO >= 5000);
+}
+
+bool Game::HasPlayerEarnedPowerUp(void) const
+{
+	// Player already has all the powerups.
+	if (m_currentPowerUp == LAST_POWERUP) {
+		return false;
+	}
+
+	if (m_currentPowerUp == POWERUP_NONE &&
+		m_scoreSinceLastPowerUp >= 3000) {
+
+		return true;
+	}
+
+	if (m_currentPowerUp == POWERUP_WEAPON_DOUBLE &&
+		m_scoreSinceLastPowerUp >= 5000) {
+
+		return true;
+	}
+
+	return false;
+}
+
+void Game::OnPowerUpCollected(void)
+{
+	// Reset powerup counter.
+	m_scoreSinceLastPowerUp = 0;
+
+	switch (m_currentPowerUp) {
+
+		case POWERUP_NONE:
+			m_currentPowerUp = POWERUP_WEAPON_DOUBLE;
+			break;
+
+		case POWERUP_WEAPON_DOUBLE:
+			m_currentPowerUp = POWERUP_WEAPON_WIDE;
+			break;
+
+		default:
+			m_currentPowerUp = LAST_POWERUP; // No more powerups to be earned!
+			break;
+	}
 }

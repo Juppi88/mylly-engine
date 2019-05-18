@@ -20,7 +20,8 @@ ProjectileHandler::~ProjectileHandler(void)
 	arr_clear(m_projectiles);
 }
 
-Projectile *ProjectileHandler::FireProjectile(Game *game, Entity *entity, const Vec2 &direction)
+Projectile *ProjectileHandler::FireProjectile(Game *game, Entity *entity,
+                                              const Vec2 &spawnPosition, const Vec2 &direction)
 {
 	if (game == nullptr || entity == nullptr) {
 		return nullptr;
@@ -29,7 +30,7 @@ Projectile *ProjectileHandler::FireProjectile(Game *game, Entity *entity, const 
 	Projectile *projectile = new Projectile();
 	projectile->SetOwner(entity);
 	projectile->Spawn(game);
-	projectile->SetPosition(entity->GetPosition());
+	projectile->SetPosition(spawnPosition);
 
 	// Calculate an initial velocity for the asteroid.
 	Vec2 velocity = direction;
@@ -50,12 +51,6 @@ void ProjectileHandler::Update(Game *game)
 	Projectile *projectile;
 
 	arr_foreach_reverse(m_projectiles, projectile) {
-
-		// Enforce game area boundaries.
-		if (!game->IsWithinBoundaries(projectile->GetPosition())) {
-			projectile->SetPosition(game->WrapBoundaries(projectile->GetPosition()));
-		}
-
 		projectile->Update(game);
 	}
 }

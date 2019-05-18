@@ -8,6 +8,7 @@ class CollisionHandler;
 class Entity;
 class Game;
 class InputHandler;
+class PowerUp;
 class Projectile;
 class ProjectileHandler;
 class Scene;

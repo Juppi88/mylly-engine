@@ -240,7 +240,9 @@ ai_state_t Ufo::FireWeaponsWhenCloseEnough(void)
 	direction = Vec2(cosf(heading), -sinf(heading));
 
 	// Fire!
-	m_game->GetScene()->GetProjectileHandler()->FireProjectile(m_game, this, direction);
+	m_game->GetScene()->GetProjectileHandler()->FireProjectile(
+		m_game, this, GetPosition(), direction
+	);
 
 	// Set weapon on cooldown.
 	m_nextWeaponFire = time + 1.0f / WEAPON_FIRE_RATE;

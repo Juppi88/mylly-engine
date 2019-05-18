@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entity.h"
+#include "floatingobject.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ enum AsteroidSize {
 
 // -------------------------------------------------------------------------------------------------
 
-class Asteroid : public Entity
+class Asteroid : public FloatingObject
 {
 	friend class AsteroidHandler;
 
@@ -22,7 +22,6 @@ class Asteroid : public Entity
 public:
 	virtual void Spawn(Game *game) override;
 	virtual void Destroy(Game *game) override;
-	virtual void Update(Game *game) override;
 
 	AsteroidSize GetSize(void) const { return m_size; }
 	void SetSize(AsteroidSize size);
@@ -39,5 +38,4 @@ private:
 	static constexpr float MOVEMENT_SPEED_MAX = 6.0f;
 
 	AsteroidSize m_size = ASTEROID_SMALL;
-	Vec3 m_rotation = Vec3();
 };

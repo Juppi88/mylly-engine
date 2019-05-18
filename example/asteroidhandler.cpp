@@ -54,13 +54,7 @@ void AsteroidHandler::Update(Game *game)
 
 	// Update all active asteroids.
 	arr_foreach(m_asteroids, asteroid) {
-
 		asteroid->Update(game);
-
-		// Enforce game area boundaries.
-		if (!game->IsWithinBoundaries(asteroid->GetPosition())) {
-			asteroid->SetPosition(game->WrapBoundaries(asteroid->GetPosition()));
-		}
 	}
 }
 

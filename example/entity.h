@@ -12,6 +12,7 @@ enum EntityType {
 	ENTITY_ASTEROID,
 	ENTITY_PROJECTILE,
 	ENTITY_UFO,
+	ENTITY_POWERUP,
 };
 
 // -------------------------------------------------------------------------------------------------

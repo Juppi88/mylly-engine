@@ -13,7 +13,8 @@ public:
 	ProjectileHandler(void);
 	~ProjectileHandler(void);
 
-	Projectile *FireProjectile(Game *game, Entity *entity, const Vec2 &direction);
+	Projectile *FireProjectile(Game *game, Entity *entity,
+	                           const Vec2 &spawnPosition, const Vec2 &direction);
 
 	void Update(Game *game);
 

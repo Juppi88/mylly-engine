@@ -35,6 +35,9 @@ void Entity::Destroy(Game *game)
 		return;
 	}
 
+	// Inform the current scene that this entity was destroyed.
+	game->GetScene()->OnEntityDestroyed(game, this);
+
 	game->GetCollisionHandler()->UnregisterEntity(this);
 	delete this;
 }
@@ -63,6 +66,11 @@ void Entity::Update(Game *game)
 	// Reset collision entity on each frame before recalculating collisions.
 	m_previousCollisionEntity = m_collisionEntity;
 	m_collisionEntity = nullptr;
+
+	// Ensure the entity stays within the game area.
+	if (!game->IsWithinBoundaries(GetPosition())) {
+		SetPosition(game->WrapBoundaries(GetPosition()));
+	}
 }
 
 void Entity::SetPosition(const Vec2 &position)
