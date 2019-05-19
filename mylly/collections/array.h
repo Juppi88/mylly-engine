@@ -89,6 +89,9 @@
 #define arr_last(arr)\
 	((arr).items[(arr).count - 1])
 
+#define arr_is_empty(arr)\
+	((arr).count != 0)
+
 // --------------------------------------------------------------------------------
 
 BEGIN_DECLARATIONS;

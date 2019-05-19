@@ -32,6 +32,7 @@ void scene_register_light(scene_t *scene, object_t *object);
 
 void scene_remove_references_to_object(scene_t *scene, object_t *object);
 
+camera_t *scene_get_main_camera(scene_t *scene);
 void scene_set_ambient_light(scene_t *scene, colour_t light_colour);
 
 END_DECLARATIONS;

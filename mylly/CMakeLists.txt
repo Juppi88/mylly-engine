@@ -45,6 +45,12 @@ target_include_directories(mylly PUBLIC INTERFACE_INCLUDE_DIRECTORIES
 	${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
+# This is a hack - figure out how to achieve this in a nicer way.
+set(MYLLY_INCLUDE_DIRS
+	"${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/.."
+	CACHE INTERNAL ""
+)
+
 ####################################################################################################
 ##### Dependencies
 ####################################################################################################

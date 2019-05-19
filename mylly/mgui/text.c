@@ -277,7 +277,7 @@ static void text_refresh_vertices(text_t *text)
 
 		// Calculate the position of each glyph. As a comment I am not sure why the Y coordinate
 		// works as well as it does, but as long as it does...
-		vec2_t p = vec2(pos_x + g->bearing.x, (g->size.y - g->bearing.y) - g->size.y);
+		vec2_t p = vec2(pos_x + g->bearing.x, -g->bearing.y);
 		vec2_t s = g->size;
 
 		vertices[base + 0] = vertex_ui(vec2(p.x, p.y),               vec2(g->uv1.x, g->uv1.y), text->colour);
@@ -286,11 +286,11 @@ static void text_refresh_vertices(text_t *text)
 		vertices[base + 3] = vertex_ui(vec2(p.x + s.x, (p.y + s.y)), vec2(g->uv2.x, g->uv2.y), text->colour);
 
 		// Update tallest and shortest coordinates.
-		if (p.y < min_y) {
-			min_y = p.y;
+		if (p.y + g->bearing.y < min_y) {
+			min_y = p.y + g->bearing.y;
 		}
-		if (p.y + s.y > max_y) {
-			max_y = p.y + s.y;
+		if (p.y + s.y + g->bearing.y > max_y) {
+			max_y = p.y + s.y + g->bearing.y;
 		}
 		
 		// Advance current position.

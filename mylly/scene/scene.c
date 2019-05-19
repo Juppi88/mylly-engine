@@ -193,6 +193,19 @@ void scene_remove_references_to_object(scene_t *scene, object_t *object)
 	arr_set(scene->objects, object->scene_index, NULL);
 }
 
+camera_t *scene_get_main_camera(scene_t *scene)
+{
+	// The main camera of the scene is the first camera without a render target. Since the cameras
+	// don't support render targets, it will be the first camera that exists.
+	if (scene != NULL &&
+		!arr_is_empty(scene->cameras)) {
+
+		return arr_first(scene->cameras)->camera;
+	}
+
+	return NULL;
+}
+
 void scene_set_ambient_light(scene_t *scene, colour_t light_colour)
 {
 	if (scene == NULL) {
