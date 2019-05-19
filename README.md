@@ -24,13 +24,11 @@ The project is structured as follows:
 ```
 mylly
 ├── engine
-├── example
 ├── external
 └── test
 ```
 
 * **_engine_** contains the code of the engine library. More detailed information about the structure of the engine itself can be found [in the folder itself](engine/).
-* **_example_** is a minimal example project which features Mylly to render a simple 3D scene.
 * **_external_** contains the 3rd party libraries used in the development of the engine (with the exception of OpenGL). See **_Dependencies_** below.
 * **_test_** contains the unit testing suite for the engine.
 
