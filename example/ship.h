@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.h"
+#include "game.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -18,10 +19,9 @@ public:
 
 	virtual void OnCollideWith(Entity *other) override;
 
-	bool IsDestroyed(void) const { return m_isDestroyed; }
-
 private:
 	void UpdateControls(const InputHandler *input);
+	void FireWeapon(Game *game);
 
 private:
 	static constexpr float TURN_SPEED = 180; // degrees/sec
@@ -31,6 +31,4 @@ private:
 
 	float m_heading = 0;
 	float m_nextWeaponFire = 0;
-
-	bool m_isDestroyed = false;
 };

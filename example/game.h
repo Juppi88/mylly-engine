@@ -6,6 +6,17 @@
 
 // -------------------------------------------------------------------------------------------------
 
+enum PowerUpType {
+
+	POWERUP_NONE, // Regular poor weapon
+	POWERUP_WEAPON_DOUBLE, // Double shooter
+	POWERUP_WEAPON_WIDE, // Scattergun
+
+	LAST_POWERUP = POWERUP_WEAPON_WIDE
+};
+
+// -------------------------------------------------------------------------------------------------
+
 class Game
 {
 public:
@@ -38,9 +49,18 @@ public:
 	uint32_t GetShips(void) const { return m_ships; }
 	void AddScore(uint32_t amount);
 
+	float GetDifficultyMultiplier(void) const;
+
 	bool IsLevelCompleted(void) const { return m_isLevelCompleted; }
 	void OnLevelCompleted(void);
 	void OnShipDestroyed(void);
+
+	bool ShouldUFOSpawn(void) const;
+	void ResetUFOCounter(void) { m_scoreSinceLastUFO = 0; }
+
+	bool HasPlayerEarnedPowerUp(void) const;
+	PowerUpType GetCurrentPowerUp(void) const { return m_currentPowerUp; }
+	void OnPowerUpCollected(void);
 
 private:
 	bool IsLoadingLevel(void) const { return (m_nextScene != nullptr); }
@@ -60,4 +80,9 @@ private:
 	uint32_t m_ships = 3;
 	bool m_isLevelCompleted = false;
 	bool m_isRespawning = false;
+
+	uint32_t m_scoreSinceLastUFO = 0;
+
+	uint32_t m_scoreSinceLastPowerUp = 0;
+	PowerUpType m_currentPowerUp = POWERUP_NONE;
 };

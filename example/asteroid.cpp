@@ -2,6 +2,7 @@
 #include "asteroidhandler.h"
 #include "game.h"
 #include "utils.h"
+#include "projectile.h"
 #include <mylly/scene/scene.h>
 #include <mylly/scene/object.h>
 #include <mylly/scene/model.h>
@@ -13,7 +14,7 @@
 // -------------------------------------------------------------------------------------------------
 
 Asteroid::Asteroid(void) :
-	Entity(ENTITY_ASTEROID)
+	FloatingObject(ENTITY_ASTEROID)
 {
 }
 
@@ -52,6 +53,8 @@ void Asteroid::SetSize(AsteroidSize size)
 		return;
 	}
 
+	m_size = size;
+
 	// Set the asteroid's health and model's scale based on the size of the asteroid.
 	float scale, mass;
 
@@ -60,27 +63,27 @@ void Asteroid::SetSize(AsteroidSize size)
 		case ASTEROID_LARGE:
 			scale = 3.0f;
 			mass = 300.0f;
-			m_health = 3;
+			SetHealth(3);
 			break;
 
 		case ASTEROID_MEDIUM:
 			scale = 2.0f;
 			mass = 150.0f;
-			m_health = 2;
+			SetHealth(2);
 			break;
 
 		default:
 			mass = 50.0f;
 			scale = 1.0f;
-			m_health = 1;
+			SetHealth(1);
 			break;
 	}
 
 	obj_set_local_scale(GetSceneObject(), vec3(scale, scale, scale));
-	m_size = size;
-
+	
 	SetBoundingRadius(0.8f * scale);
 	SetMass(100.0f * scale);
+	SetMaxSpeed(GetSpeedMultiplier() * MOVEMENT_SPEED_MAX);
 }
 
 void Asteroid::SetDirection(const Vec2 &direction)
@@ -106,55 +109,14 @@ void Asteroid::Destroy(Game *game)
 	Entity::Destroy(game);
 }
 
-void Asteroid::Update(Game *game)
-{
-	if (!IsSpawned()) {
-		return;
-	}
-
-	float dt = get_time().delta_time;
-
-	// Limit the asteroid's speed.
-	Vec2 velocity = GetVelocity();
-
-	float speed = velocity.Normalize();
-
-	if (speed > GetSpeedMultiplier() * MOVEMENT_SPEED_MAX) {
-		speed = GetSpeedMultiplier() * MOVEMENT_SPEED_MAX;
-	}
-
-	velocity *= speed;
-	SetVelocity(velocity);
-
-	// Move the asteroid.
-	Vec2 movement = GetVelocity() * dt;
-	SetPosition(GetPosition() + movement);
-
-	// Rotate the asteroid.
-	Vec2 direction = GetVelocity();
-	direction.Normalize();
-
-	Vec3 euler = Vec3(direction.y(), 0, -direction.x());
-	euler *= RAD_TO_DEG(dt);
-
-	m_rotation += euler;
-
-	obj_set_local_rotation(GetSceneObject(),
-		quat_from_euler_deg(-m_rotation.x(), m_rotation.y(), -m_rotation.z()));
-
-	// Call base update to draw entity debug visualizers.
-	Entity::Update(game);
-}
-
 void Asteroid::OnCollideWith(Entity *other)
 {
 	Entity::OnCollideWith(other);
 
-	if (other->GetType() == ENTITY_PROJECTILE) {
+	if (other->GetType() == ENTITY_PROJECTILE &&
+		((Projectile *)other)->IsOwnedByPlayer()) { // Ignore hits by UFO projectiles
 
 		// Calculate damage to the asteroid.
-		if (!IsDestroyed()) {
-			--m_health;
-		}
+		DecreaseHealth();
 	}
 }

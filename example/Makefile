@@ -7,8 +7,9 @@ LDFLAGS = -L../mylly/build/bin -lmylly -L../external/jsmn
 # Include library dependencies.
 include ../mylly/deps.mk
 
-OBJS = main.o asteroid.o asteroidhandler.o collisionhandler.o entity.o game.o gamescene.o\
-       inputhandler.o menuscene.o projectile.o projectilehandler.o scene.o ship.o ui.o utils.o
+OBJS = main.o asteroid.o asteroidhandler.o collisionhandler.o entity.o floatingobject.o\
+       game.o gamescene.o inputhandler.o menuscene.o powerup.o projectile.o projectilehandler.o\
+       scene.o ship.o ufo.o ui.o utils.o
 DEPS =
 
 builddirs:

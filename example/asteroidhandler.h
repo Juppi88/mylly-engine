@@ -25,7 +25,6 @@ public:
 	void DestroyAllAsteroids(Game *game);
 
 private:
-	void GetRandomSpawnPosition(const Game *game, Vec2 &position, Vec2 &direction) const;
 	void OnAsteroidDestroyed(Asteroid *destroyed, Game *game);
 
 private:

@@ -64,7 +64,7 @@ typedef struct {
 
 } ai_task_node_t;
 
-#define ai_task_node(data, process) (ai_task_node_t){ data, process }
+#define ai_task(data, process) (ai_task_node_t){ (void *)data, process }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ typedef struct {
 
 } ai_decorator_node_t;
 
-#define ai_decorator_node(data, decorate) (ai_decorator_node_t){ data, decorate }
+#define ai_decorator(data, decorate) (ai_decorator_node_t){ (void *)data, decorate }
 
 // -------------------------------------------------------------------------------------------------
 

@@ -81,7 +81,7 @@ void Projectile::Update(Game *game)
 	Entity::Update(game);
 
 	// Destroy the projectile if it has hit something (an asteroid) or has been flying for a while.
-	if (m_hitTarget ||
+	if (IsDestroyed() ||
 		get_time().time >= m_expiresTime) {
 
 		Destroy(game);
@@ -96,6 +96,6 @@ void Projectile::OnCollideWith(Entity *other)
 	if (other != m_owner &&
 		other->GetType() != ENTITY_PROJECTILE) {
 
-		m_hitTarget = true;
+		Kill();
 	}
 }

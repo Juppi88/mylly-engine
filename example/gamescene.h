@@ -14,8 +14,12 @@ public:
 
 	void RespawnShip(Game *game);
 
-private:
-	
+	Ship *GetPlayerShip(void) const { return m_ship; }
+
+	virtual void OnEntityDestroyed(Game *game, Entity *entity) override;
+
 private:
 	Ship *m_ship = nullptr;
+	Ufo *m_ufo = nullptr;
+	PowerUp *m_powerUp = nullptr;
 };

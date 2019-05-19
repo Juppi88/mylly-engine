@@ -11,6 +11,8 @@ enum EntityType {
 	ENTITY_SHIP,
 	ENTITY_ASTEROID,
 	ENTITY_PROJECTILE,
+	ENTITY_UFO,
+	ENTITY_POWERUP,
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -45,6 +47,9 @@ public:
 	bool WasCollidingWith(Entity *other) const { return (m_previousCollisionEntity == other); }
 	virtual void OnCollideWith(Entity *other);
 
+	int GetHealth(void) const { return m_health; }
+	bool IsDestroyed(void) const { return (m_health == 0); }
+
 protected:
 	Entity(EntityType type);
 
@@ -55,6 +60,10 @@ protected:
 	void SetSceneObject(object_t *obj) { m_sceneObject = obj; }
 
 	void SetCollidable(bool isCollidable) { m_isCollidable = isCollidable; }
+
+	void SetHealth(int health) { m_health = health; }
+	void DecreaseHealth(int amount = 1) { if (!IsDestroyed()) { --m_health; } }
+	void Kill(void) { m_health = 0; }
 
 private:
 	Entity(void);
@@ -74,4 +83,6 @@ private:
 	bool m_isCollidable = true;
 	Entity *m_collisionEntity = nullptr;
 	Entity *m_previousCollisionEntity = nullptr;
+
+	int m_health = 1;
 };
