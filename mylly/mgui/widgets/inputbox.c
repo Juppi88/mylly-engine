@@ -376,7 +376,7 @@ static bool on_inputbox_character_injected(widget_t *inputbox, uint32_t c)
 	}
 
 	// Terminate the buffer.
-	tmp[++i] = 0;
+	tmp[i] = 0;
 
 	// Copy the updated buffer into the text object.
 	widget_set_text_s(inputbox, tmp);
