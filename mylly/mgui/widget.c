@@ -13,6 +13,7 @@
 static bool widget_is_point_inside_bounding_box(widget_t *widget, vec2i_t point);
 static void widget_create_mesh(widget_t *widget);
 static void widget_refresh_mesh(widget_t *widget);
+static void widget_update_anchors(widget_t *widget, bool recurse_to_parent);
 static bool widget_process_anchors(widget_t *widget);
 static void widget_recalculate_bounding_box(widget_t *widget);
 
@@ -120,11 +121,7 @@ void widget_process(widget_t *widget)
 	}
 
 	// Update anchors.
-	if (widget->has_moved || 
-		(widget->parent != NULL && widget->parent->has_resized)) {
-
-		widget_process_anchors(widget);
-	}
+	widget_update_anchors(widget, false);
 
 	// Widget type specific processing.
 	if (widget->callbacks->on_process != NULL) {
@@ -240,11 +237,7 @@ vec2i_t widget_get_position(widget_t *widget)
 	}
 
 	// Update anchors.
-	if (widget->has_moved || 
-		(widget->parent != NULL && widget->parent->has_resized)) {
-
-		widget_process_anchors(widget);
-	}
+	widget_update_anchors(widget, true);
 
 	return widget->position;
 }
@@ -256,11 +249,7 @@ vec2i_t widget_get_world_position(widget_t *widget)
 	}
 
 	// Update anchors.
-	if (widget->has_moved || 
-		(widget->parent != NULL && widget->parent->has_resized)) {
-
-		widget_process_anchors(widget);
-	}
+	widget_update_anchors(widget, true);
 
 	return widget->world_position;
 }
@@ -272,11 +261,7 @@ vec2i_t widget_get_size(widget_t *widget)
 	}
 
 	// Update anchors.
-	if (widget->has_moved || 
-		(widget->parent != NULL && widget->parent->has_resized)) {
-
-		widget_process_anchors(widget);
-	}
+	widget_update_anchors(widget, true);
 
 	return widget->size;
 }
@@ -375,7 +360,6 @@ void widget_set_visible(widget_t *widget, bool visible)
 	if (widget == NULL) {
 		return;
 	}
-
 	if (visible) {
 		widget->state &= ~WIDGET_STATE_INVISIBLE;
 	}
@@ -678,6 +662,19 @@ static void widget_refresh_mesh(widget_t *widget)
 	}
 
 	widget->mesh->is_vertex_data_dirty = true;
+}
+
+static void widget_update_anchors(widget_t *widget, bool recurse_to_parent)
+{
+	if (recurse_to_parent && widget->parent != NULL) {
+		widget_update_anchors(widget->parent, recurse_to_parent);
+	}
+
+	if (widget->has_moved ||
+		(widget->parent != NULL && widget->parent->has_resized)) {
+
+		widget_process_anchors(widget);
+	}
 }
 
 static bool widget_process_anchors(widget_t *widget)

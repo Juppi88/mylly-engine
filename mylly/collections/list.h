@@ -85,4 +85,10 @@
 #define list_contains(list, item)\
 	((item)->__entry.list_reference == &(list))
 
+#define list_next(item)\
+	(item)->__entry.next
+
+#define list_previous(item)\
+	(item)->__entry.previous
+
 #endif
