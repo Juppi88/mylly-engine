@@ -10,6 +10,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static void inputbox_remove_character(widget_t *inputbox, uint32_t position);
+static void inputbox_switch_focus(widget_t *inputbox, bool forward);
 
 static void on_inputbox_focused(widget_t *inputbox, bool focused);
 static void on_inputbox_refresh_vertices(widget_t *inputbox);
@@ -102,6 +103,72 @@ static void inputbox_remove_character(widget_t *inputbox, uint32_t position)
 	inputbox->inputbox.cursor_position = position - 1;
 
 	inputbox->has_colour_changed = true;
+}
+
+static void inputbox_switch_focus(widget_t *inputbox, bool forward)
+{
+	if (inputbox->parent == NULL) {
+		return;
+	}
+
+	// Switch focus to the next/previous sibling.
+	widget_t *child, *next = NULL;
+	bool exit_on_next = false;
+
+	if (forward) {
+
+		list_foreach(inputbox->parent->children, child) {
+
+			if (child->type != WIDGET_TYPE_INPUTBOX) {
+				continue;
+			}
+
+			// Get the first possible inputbox as a backup if the current inputbox is the last one
+			// in the list.
+			if (next == NULL) {
+				next = child;
+			}
+
+			// This is the next inputbox from the current one. Exit the search loop.
+			if (exit_on_next) {
+
+				next = child;
+				break;
+			}
+
+			// Found the current inputbox. The next one is the one we're looking.
+			if (child == inputbox) {
+				exit_on_next = true;
+			}
+		}
+	}
+	else {
+
+		list_foreach_reverse(inputbox->parent->children, child) {
+
+			if (child->type != WIDGET_TYPE_INPUTBOX) {
+				continue;
+			}
+			if (next == NULL) {
+				next = child;
+			}
+			if (exit_on_next) {
+				
+				next = child;
+				break;
+			}
+			if (child == inputbox) {
+				exit_on_next = true;
+			}
+		}
+	}
+
+	// Switch focus.
+	if (next != NULL &&
+		next != inputbox) {
+
+		mgui_set_focused_widget(next);
+	}
 }
 
 static void on_inputbox_focused(widget_t *inputbox, bool focused)
@@ -234,6 +301,13 @@ static bool on_inputbox_key_pressed(widget_t *inputbox, uint32_t key, bool press
 
 			// Delete removes a character to the right of cursor.
 			inputbox_remove_character(inputbox, inputbox->inputbox.cursor_position + 1);
+			return false;
+
+		case MKEY_TAB:
+
+			// Change focus to either previous or next inputbox.
+			// TODO: Select text when switching focus!
+			inputbox_switch_focus(inputbox, !input_is_key_down(MKEY_SHIFT));
 			return false;
 
 		default:

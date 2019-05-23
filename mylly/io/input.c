@@ -46,6 +46,11 @@ void input_shutdown(void)
 	}
 }
 
+bool input_is_key_down(uint32_t key_symbol)
+{
+	return (input_sys_get_key_pressed_frame(key_symbol) != 0);
+}
+
 void input_bind_button(button_code_t button, uint32_t key_symbol)
 {
 	button_symbols[button] = key_symbol;

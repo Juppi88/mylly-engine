@@ -197,6 +197,11 @@ bool input_sys_process_messages(void *params)
 				code -= ('a' - 'A');
 			}
 
+			// Hack for shifted keys.
+			switch (code) {
+				case XK_ISO_Left_Tab: code = MKEY_TAB; break;
+			}
+
 			// Handle key down event and related binds.
 			if (!input_handle_keyboard_event(INPUT_KEY_DOWN, code)) {
 				return false;

@@ -37,6 +37,9 @@ typedef enum mouse_wheel_t {
 void input_initialize(void);
 void input_shutdown(void);
 
+// Raw key states.
+bool input_is_key_down(uint32_t key_symbol);
+
 // -------------------------------------------------------------------------------------------------
 
 // Bind an arbitrary button index to a key symbol from 'input/keys.h'. The value can then be used
