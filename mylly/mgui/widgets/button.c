@@ -10,7 +10,7 @@ const uint32_t BUTTON_COLOUR_LERP_TIME = 150;
 
 static void on_button_process(widget_t *button);
 static void on_button_hovered(widget_t *button, bool hovered);
-static void on_button_pressed(widget_t *button, bool pressed);
+static void on_button_pressed(widget_t *button, bool pressed, int16_t x, int16_t y);
 static void button_interpolate_colour(widget_t *button, colour_t from, colour_t to);
 
 // -------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	on_button_hovered,
 	on_button_pressed,
+	NULL,
 	NULL,
 	NULL,
 };
@@ -116,8 +117,11 @@ static void on_button_hovered(widget_t *button, bool hovered)
 	}
 }
 
-static void on_button_pressed(widget_t *button, bool pressed)
+static void on_button_pressed(widget_t *button, bool pressed, int16_t x, int16_t y)
 {
+	UNUSED(x);
+	UNUSED(y);
+	
 	if (button == NULL) {
 		return;
 	}

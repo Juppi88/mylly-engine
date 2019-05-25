@@ -170,7 +170,7 @@ void mgui_set_dragged_widget(widget_t *widget)
 
 	// Drag the widget's root instead of the child widget.
 	if (dragged_widget != NULL) {
-		dragged_widget = widget_get_grandparent(dragged_widget);
+		dragged_widget = widget_get_draggable_parent(dragged_widget);
 	}
 }
 
@@ -219,14 +219,11 @@ void mgui_set_hovered_widget(widget_t *widget)
 	}
 }
 
-void mgui_set_pressed_widget(widget_t *widget)
+void mgui_set_pressed_widget(widget_t *widget, int16_t x, int16_t y)
 {
-	if (widget == pressed_widget) {
-		return;
-	}
-
 	// Update the state of the previous widget.
-	if (pressed_widget != NULL) {
+	if (pressed_widget != NULL &&
+		pressed_widget != widget) {
 
 		pressed_widget->state &= ~WIDGET_STATE_PRESSED;
 
@@ -239,7 +236,7 @@ void mgui_set_pressed_widget(widget_t *widget)
 		}
 
 		if (pressed_widget->callbacks->on_pressed != NULL) {
-			pressed_widget->callbacks->on_pressed(pressed_widget, false);
+			pressed_widget->callbacks->on_pressed(pressed_widget, false, x, y);
 		}
 	}
 
@@ -265,7 +262,7 @@ void mgui_set_pressed_widget(widget_t *widget)
 		}
 
 		if (pressed_widget->callbacks->on_pressed != NULL) {
-			pressed_widget->callbacks->on_pressed(pressed_widget, true);
+			pressed_widget->callbacks->on_pressed(pressed_widget, true, x, y);
 		}
 
 		if (pressed_widget->on_pressed != NULL) {

@@ -8,7 +8,7 @@
 // -------------------------------------------------------------------------------------------------
 
 static void on_checkbox_refresh_vertices(widget_t *checkbox);
-static void on_checkbox_pressed(widget_t *checkbox, bool pressed);
+static void on_checkbox_pressed(widget_t *checkbox, bool pressed, int16_t x, int16_t y);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	NULL,
 	on_checkbox_pressed,
+	NULL,
 	NULL,
 	NULL,
 };
@@ -126,8 +127,11 @@ static void on_checkbox_refresh_vertices(widget_t *checkbox)
 	vertices[19] = vertex_ui(vertices[7].pos, vec2(uv2.x, uv2.y), colour);
 }
 
-static void on_checkbox_pressed(widget_t *checkbox, bool pressed)
+static void on_checkbox_pressed(widget_t *checkbox, bool pressed, int16_t x, int16_t y)
 {
+	UNUSED(x);
+	UNUSED(y);
+	
 	if (checkbox == NULL) {
 		return;
 	}

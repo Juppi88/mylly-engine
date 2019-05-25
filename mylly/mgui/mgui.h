@@ -47,7 +47,7 @@ widget_t *mgui_get_pressed_widget(void);
 void mgui_set_focused_widget(widget_t *widget);
 void mgui_set_dragged_widget(widget_t *widget);
 void mgui_set_hovered_widget(widget_t *widget);
-void mgui_set_pressed_widget(widget_t *widget);
+void mgui_set_pressed_widget(widget_t *widget, int16_t x, int16_t y);
 
 END_DECLARATIONS;
 

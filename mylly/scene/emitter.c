@@ -111,6 +111,7 @@ void emitter_start(emitter_t *emitter,
 	}
 
 	emitter->max_particles = max_particles;
+	emitter->initial_burst = burst;
 	emitter->is_active = true;
 	emitter->is_emitting = (emit_rate > 0);
 	emitter->emit_duration = emit_duration;
@@ -200,8 +201,12 @@ void emitter_set_particle_end_size(emitter_t *emitter, float min, float max)
 
 static void emitter_initialize_particles(emitter_t *emitter)
 {
-	if (emitter == NULL || emitter->particles != NULL) {
+	if (emitter == NULL) {
 		return;
+	}
+
+	if (emitter->particles != NULL) {
+		DESTROY(emitter->particles);
 	}
 
 	// Create a storage for all the particles of the system.
@@ -224,7 +229,9 @@ static void emitter_create_mesh(emitter_t *emitter)
 	}
 
 	if (emitter->mesh != NULL) {
+
 		mesh_destroy(emitter->mesh);
+		//emitter->mesh = NULL;
 	}
 
 	// Create the vertices and indices for the mesh.

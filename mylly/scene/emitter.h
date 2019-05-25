@@ -63,6 +63,7 @@ typedef struct emitter_t {
 	float emit_rate; // Number of particles to be emitted per second after the initial burst
 	float time_emitting; // Number of seconds the emitter has been emitting particles
 	float time_since_emit; // Time elapsed since a particle was emitted the last time
+	uint16_t initial_burst; // The initial burst of particles
 
 	// The shape of the particle emitter.
 	emit_shape_type_t shape_type;

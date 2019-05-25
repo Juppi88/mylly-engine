@@ -5,6 +5,7 @@
 #include "renderer/mesh.h"
 #include "renderer/font.h"
 #include "resources/resources.h"
+#include "math/math.h"
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
@@ -210,7 +211,7 @@ static void text_reallocate_vertices(text_t *text)
 	DESTROY(indices);
 }
 
-float text_calculate_width(text_t *text, int end_index)
+int16_t text_calculate_width(text_t *text, int end_index)
 {
 	if (text == NULL ||
 		text->buffer == NULL ||
@@ -225,7 +226,7 @@ float text_calculate_width(text_t *text, int end_index)
 		end_index = (int)text->buffer_length;
 	}
 
-	float width = 0.0f;
+	int16_t width = 0.0f;
 
 	for (int i = 0; i < end_index; i++) {
 
@@ -238,10 +239,60 @@ float text_calculate_width(text_t *text, int end_index)
 		}
 
 		// Advance current position.
-		width += g->advance.x;
+		width += (int16_t)g->advance.x;
 	}
 
 	return width;
+}
+
+uint32_t text_get_closest_character(text_t *text, int16_t x, int16_t *out_x)
+{
+	if (text == NULL || string_is_null_or_empty(text->buffer)) {
+		return 0;
+	}
+
+	int16_t position = 0;
+	int16_t closest_position = 0;
+	uint32_t closest = 0;
+
+	for (uint32_t i = 0; i < text->buffer_length; i++) {
+
+		// Get the glyph for the character at the current position.
+		glyph_t *g = font_get_glyph(text->font, (uint8_t)text->buffer[i]);
+
+		// Some glyphs may not have a visual representation, so skip them.
+		if (g == NULL) {
+			continue;
+		}
+
+		// Advance current position.
+		position += (int16_t)g->advance.x;
+
+		if (position < x) {
+
+			closest_position = position;
+			closest = i + 1;
+		}
+		else {
+
+			// Going further, so we've already found the closest character.
+			break;
+		}
+	}
+
+	// If the position is further to the right than the width of the text, the position is beyond
+	// the last character of the text.
+	if (x > position) {
+
+		closest = text->buffer_length;
+		closest_position = position;
+	}
+
+	if (out_x != NULL) {
+		*out_x = closest_position;
+	}
+
+	return closest;
 }
 
 static void text_refresh_vertices(text_t *text)

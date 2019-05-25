@@ -29,6 +29,7 @@ static widget_callbacks_t callbacks = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -502,6 +503,21 @@ widget_t *widget_get_grandparent(widget_t *widget)
 	}
 
 	while (widget->parent != NULL) {
+		widget = widget->parent;
+	}
+
+	return widget;
+}
+
+widget_t *widget_get_draggable_parent(widget_t *widget)
+{
+	if (widget == NULL) {
+		return NULL;
+	}
+
+	while (widget->parent != NULL &&
+	       (widget->state & WIDGET_STATE_DRAGGABLE) == 0) {
+		
 		widget = widget->parent;
 	}
 

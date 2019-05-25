@@ -51,9 +51,10 @@ typedef enum widget_state_t {
 	WIDGET_STATE_PRESSED = 0x10,
 	WIDGET_STATE_HOVERABLE = 0x20,
 	WIDGET_STATE_PRESSABLE = 0x40,
-	WIDGET_STATE_CONSUME_CHILD_PRESSES = 0x80, // Consume child clicks (i.e. label of a checkbox)
-	WIDGET_STATE_HAS_MESH = 0x100, // Widget has a mesh i.e. it is visible
-	WIDGET_STATE_EXT_MESH = 0x200, // Use an extended mesh with space for an additional sprite
+	WIDGET_STATE_DRAGGABLE = 0x80,
+	WIDGET_STATE_CONSUME_CHILD_PRESSES = 0x100, // Consume child clicks (i.e. label of a checkbox)
+	WIDGET_STATE_HAS_MESH = 0x200, // Widget has a mesh i.e. it is visible
+	WIDGET_STATE_EXT_MESH = 0x400, // Use an extended mesh with space for an additional sprite
 
 } widget_state_t;
 
@@ -67,7 +68,8 @@ typedef struct widget_callbacks_t {
 	void (*on_refresh_vertices)(widget_t *widget);
 	void (*on_focused)(widget_t *widget, bool focused);
 	void (*on_hovered)(widget_t *widget, bool hovered);
-	void (*on_pressed)(widget_t *widget, bool pressed);
+	void (*on_pressed)(widget_t *widget, bool pressed, int16_t x, int16_t y);
+	void (*on_dragged)(widget_t *widget, int16_t x, int16_t y);
 	bool (*on_key_pressed)(widget_t *widget, uint32_t key, bool pressed);
 	bool (*on_character_injected)(widget_t *widget, uint32_t c);
 
@@ -234,6 +236,7 @@ bool widget_is_point_inside(widget_t *widget, vec2i_t point);
 widget_t *widget_get_child_at_position(widget_t *widget, vec2i_t point);
 
 widget_t *widget_get_grandparent(widget_t *widget);
+widget_t *widget_get_draggable_parent(widget_t *widget);
 
 void widget_set_pressed_handler(widget_t *widget, on_widget_pressed_t handler);
 void widget_set_hovered_handler(widget_t *widget, on_widget_hovered_t handler);

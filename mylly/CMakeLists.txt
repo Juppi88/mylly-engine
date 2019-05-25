@@ -24,8 +24,8 @@ endif (USE_CLANG)
 
 # Compiler flags.
 set(CMAKE_C_FLAGS         "-Wall -Wextra -DCGLM_ALL_UNALIGNED")
-set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS} -g -D_DEBUG -DDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O4 -DNDEBUG")
+set(CMAKE_C_FLAGS_DEBUG   "-g -D_DEBUG -DDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O4 -DNDEBUG")
 
 ####################################################################################################
 ##### Project definition

@@ -59,7 +59,8 @@ void text_update(text_t *text);
 
 // Calculates the length of the text in pixels up until character at position end_index.
 // If end_index is negative, the length of the entire text is calculated.
-float text_calculate_width(text_t *text, int end_index);
+int16_t text_calculate_width(text_t *text, int end_index);
+uint32_t text_get_closest_character(text_t *text, int16_t x, int16_t *out_x);
 
 END_DECLARATIONS;
 
