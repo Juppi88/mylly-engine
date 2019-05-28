@@ -55,7 +55,8 @@ void texture_destroy(texture_t *texture);
 
 bool texture_load_png(texture_t *texture, void *data, size_t data_length, TEX_FILTER filter);
 bool texture_load_jpeg(texture_t *texture, void *data, size_t data_length, TEX_FILTER filter);
-bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width, uint16_t height);
+bool texture_load_bitmap(texture_t *texture, uint8_t *data, uint16_t width, uint16_t height,
+                         TEX_FORMAT format, TEX_FILTER filter);
 
 END_DECLARATIONS;
 

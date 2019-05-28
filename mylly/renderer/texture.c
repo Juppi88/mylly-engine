@@ -305,7 +305,8 @@ static void texture_jpeg_loader_no_op(j_decompress_ptr cinfo)
 	UNUSED(cinfo);
 }
 
-bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width, uint16_t height)
+bool texture_load_bitmap(texture_t *texture, uint8_t *data, uint16_t width, uint16_t height,
+                         TEX_FORMAT format, TEX_FILTER filter)
 {
 	if (texture == NULL || data == NULL) {
 		return false;
@@ -320,7 +321,7 @@ bool texture_load_glyph_bitmap(texture_t *texture, uint8_t *data, uint16_t width
 
 	// Generate a GPU object for this texture.
 	texture->gpu_texture = rend_generate_texture(texture->data, texture->width, texture->height,
-                                                 TEX_FORMAT_GRAYSCALE, TEX_FILTER_POINT);
+                                                 format, filter);
 
 	return true;
 }

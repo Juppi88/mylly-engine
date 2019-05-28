@@ -1064,7 +1064,9 @@ static void res_load_font_list(FT_Library freetype)
 	// Create a special renderer texture from the glyph bitmap.
 	texture_t *texture = texture_create(FONT_TEXTURE_NAME, NULL);
 
-	if (texture_load_glyph_bitmap(texture, bitmap, (uint16_t)TEX_WIDTH, (uint16_t)TEX_HEIGHT)) {
+	if (texture_load_bitmap(texture, bitmap, (uint16_t)TEX_WIDTH, (uint16_t)TEX_HEIGHT,
+		                     TEX_FORMAT_GRAYSCALE, TEX_FILTER_POINT)) {
+
 		texture->resource.is_loaded = true;
 	}
 	else {
