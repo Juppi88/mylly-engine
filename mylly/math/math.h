@@ -25,6 +25,7 @@
 #define ABS(a) ((a) < 0 ? -(a) : (a))
 
 #define CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
+#define CLAMP01(x) ((x) < 0 ? 0 : ((x) > 1 ? 1 : (x)))
 
 #define SIGN(x) ((x) < 0 ? -1 : 1)
 

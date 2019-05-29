@@ -64,7 +64,7 @@ void checkbox_set_toggled(widget_t *checkbox, bool toggled)
 
 	// Call toggled status callback.
 	if (checkbox->checkbox.on_toggled != NULL) {
-		checkbox->checkbox.on_toggled(checkbox->checkbox.on_toggled_context);
+		checkbox->checkbox.on_toggled(checkbox);
 	}
 }
 
@@ -95,14 +95,13 @@ void checkbox_set_icon_colour(widget_t *checkbox, colour_t colour)
 	checkbox->has_colour_changed = true;
 }
 
-void checkbox_set_toggled_handler(widget_t *checkbox, on_checkbox_toggled_t handler, void *context)
+void checkbox_set_toggled_handler(widget_t *checkbox, on_checkbox_toggled_t handler)
 {
 	if (checkbox == NULL || checkbox->type != WIDGET_TYPE_CHECKBOX) {
 		return;
 	}
 
 	checkbox->checkbox.on_toggled = handler;
-	checkbox->checkbox.on_toggled_context = context;
 }
 
 static void on_checkbox_refresh_vertices(widget_t *checkbox)
@@ -144,7 +143,7 @@ static void on_checkbox_pressed(widget_t *checkbox, bool pressed, int16_t x, int
 
 		// Call toggled status callback.
 		if (checkbox->checkbox.on_toggled != NULL) {
-			checkbox->checkbox.on_toggled(checkbox->checkbox.on_toggled_context);
+			checkbox->checkbox.on_toggled(checkbox);
 		}
 	}
 }

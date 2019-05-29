@@ -7,7 +7,7 @@
 
 // -------------------------------------------------------------------------------------------------
 
-typedef void (*on_checkbox_toggled_t)(void *context);
+typedef void (*on_checkbox_toggled_t)(widget_t *checkbox);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -19,7 +19,6 @@ typedef struct checkbox_t {
 
 	// Click handler
 	on_checkbox_toggled_t on_toggled;
-	void *on_toggled_context;
 
 } checkbox_t;
 
@@ -32,7 +31,7 @@ widget_t *checkbox_create(widget_t *parent);
 void checkbox_set_toggled(widget_t *checkbox, bool toggled);
 void checkbox_set_icon(widget_t *checkbox, sprite_t *icon);
 void checkbox_set_icon_colour(widget_t *checkbox, colour_t colour);
-void checkbox_set_toggled_handler(widget_t *checkbox, on_checkbox_toggled_t handler, void *context);
+void checkbox_set_toggled_handler(widget_t *checkbox, on_checkbox_toggled_t handler);
 
 END_DECLARATIONS;
 

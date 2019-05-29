@@ -18,10 +18,16 @@ static widget_t *pressed_widget;
 void mgui_initialize(const mgui_parameters_t config)
 {
 	mgui_parameters = config;
+
+	// Per-component type initialization.
+	colourpicker_create_texture();
 }
 
 void mgui_shutdown(void)
 {
+	// Per-component type cleanup.
+	colourpicker_destroy_texture();
+
 	// Destroy widgets which are yet to be destroyed.
 	widget_t *widget, *tmp;
 
