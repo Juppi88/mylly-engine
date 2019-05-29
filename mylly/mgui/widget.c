@@ -5,6 +5,7 @@
 #include "renderer/rendersystem.h"
 #include "resources/resources.h"
 #include "scene/sprite.h"
+#include "io/log.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -561,6 +562,23 @@ void widget_set_user_context(widget_t *widget, void *context)
 	widget->user_context = context;
 }
 
+void widget_set_custom_shader(widget_t *widget, shader_t *shader)
+{
+	if (widget == NULL ||
+		shader == NULL) {
+
+		return;
+	}
+
+	if (widget->mesh != NULL) {
+
+		log_warning("MGUI", "Unable to set custom shader, mesh is already created.");
+		return;
+	}
+
+	widget->custom_shader = shader;
+}
+
 static void widget_create_mesh(widget_t *widget)
 {
 	// Create a new mesh to store the widgets vertices into.
@@ -619,8 +637,14 @@ static void widget_create_mesh(widget_t *widget)
 		mesh_set_indices(widget->mesh, indices, num_indices);
 	}
 
-	// Use a default UI shader for rendering the widget.
-	mesh_set_shader(widget->mesh, res_get_shader("default-ui"));
+	// Use a default UI shader for rendering the widget, unless a custom one is specified.
+	shader_t *shader = widget->custom_shader;
+
+	if (shader == NULL) {
+		shader = res_get_shader("default-ui");
+	}
+
+	mesh_set_shader(widget->mesh, shader);
 
 	// Use the texture of the sprite sheet.
 	if (widget->sprite != NULL) {

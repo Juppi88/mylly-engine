@@ -5,10 +5,12 @@
 #include "mgui/mgui.h"
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
+#include "mgui/widgets/colourpicker.h"
 #include "mgui/widgets/grid.h"
 #include "mgui/widgets/inputbox.h"
 #include "mgui/widgets/label.h"
 #include "mgui/widgets/panel.h"
+#include "mgui/widgets/slider.h"
 #include "collections/list.h"
 #include "renderer/vertex.h"
 #include "renderer/buffer.h"
@@ -31,10 +33,12 @@ typedef enum widget_type_t {
 	WIDGET_TYPE_WIDGET,
 	WIDGET_TYPE_BUTTON,
 	WIDGET_TYPE_CHECKBOX,
+	WIDGET_TYPE_COLOURPICKER,
 	WIDGET_TYPE_GRID,
 	WIDGET_TYPE_INPUTBOX,
 	WIDGET_TYPE_LABEL,
 	WIDGET_TYPE_PANEL,
+	WIDGET_TYPE_SLIDER,
 
 	NUM_WIDGET_TYPES
 
@@ -177,6 +181,9 @@ typedef struct widget_t {
 	on_widget_pressed_t on_pressed;
 	on_widget_hovered_t on_hovered;
 
+	// Per-widget custom shader.
+	shader_t *custom_shader;
+
 	void *user_context; // Custom per-widget user context
 
 	// Override input handler.
@@ -188,10 +195,12 @@ typedef struct widget_t {
 	union {
 		button_t button;
 		checkbox_t checkbox;
+		colourpicker_t colour_picker;
 		grid_t grid;
 		inputbox_t inputbox;
 		label_t label;
 		panel_t panel;
+		slider_t slider;
 	};
 
 } widget_t;
@@ -242,6 +251,8 @@ void widget_set_pressed_handler(widget_t *widget, on_widget_pressed_t handler);
 void widget_set_hovered_handler(widget_t *widget, on_widget_hovered_t handler);
 void widget_set_input_handler(widget_t *widget, widget_input_handler_t handler);
 void widget_set_user_context(widget_t *widget, void *context);
+
+void widget_set_custom_shader(widget_t *widget, shader_t *shader);
 
 END_DECLARATIONS;
 
