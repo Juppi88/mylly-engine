@@ -43,7 +43,8 @@ typedef struct colour_t {
 
 BEGIN_DECLARATIONS;
 
-colour_t col_hsv(float h, float s, float v);
+colour_t col_from_hsv(float h, float s, float v);
+void col_to_hsv(colour_t col, float *h, float *s, float *v);
 
 colour_t col_add(colour_t a, colour_t b);
 colour_t col_multiply(colour_t a, colour_t b);

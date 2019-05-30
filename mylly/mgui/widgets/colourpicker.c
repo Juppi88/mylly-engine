@@ -129,7 +129,7 @@ void colourpicker_create_texture(void)
 			float saturation = 1.0f * j / PICKER_TEXTURE_HEIGHT;
 			float value = 1.0f;
 
-			colour_t colour = col_hsv(hue, saturation, value);
+			colour_t colour = col_from_hsv(hue, saturation, value);
 
 			*(colour_t *)&bitmap[j * PICKER_TEXTURE_WIDTH + i] = colour;
 		}
@@ -190,7 +190,7 @@ static void colourpicker_handle_click(widget_t *picker, int16_t click_x, int16_t
 	float saturation = 1.0f - (float)y / size.y;
 	float value = picker->colour_picker.brightness;
 
-	colour_t colour = col_hsv(hue, saturation, value);
+	colour_t colour = col_from_hsv(hue, saturation, value);
 	colour.a = picker->colour_picker.alpha;
 	
 	if (picker->colour_picker.on_selected != NULL) {
