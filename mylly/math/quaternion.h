@@ -34,6 +34,8 @@ vec3_t quat_to_euler(quat_t quat);
 quat_t quat_multiply(quat_t a, quat_t b);
 vec3_t quat_rotate_vec3(quat_t q, vec3_t v);
 
+quat_t quat_inverse(quat_t q);
+
 // --------------------------------------------------------------------------------
 
 static INLINE void quat_print(quat_t quat)

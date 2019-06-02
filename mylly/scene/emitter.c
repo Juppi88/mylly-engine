@@ -1,6 +1,8 @@
 #include "emitter.h"
 #include "object.h"
 #include "sprite.h"
+#include "scene.h"
+#include "camera.h"
 #include "core/memory.h"
 #include "core/time.h"
 #include "renderer/mesh.h"
@@ -15,7 +17,8 @@ static void emitter_initialize_particles(emitter_t *emitter);
 static void emitter_create_mesh(emitter_t *emitter);
 static void emitter_emit(emitter_t *emitter, uint16_t count);
 static vec3_t emitter_randomize_position(emitter_t *emitter);
-static void emitter_update_particle(emitter_t *emitter, particle_t *particle);
+static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle, vec3_t *camera);
+static int emitter_sort_particles(const void *p1, const void *p2);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -60,6 +63,29 @@ void emitter_process(emitter_t *emitter)
 		return;
 	}
 
+	// Calculate camera position in relation to the emitter. This is used for depth sorting.
+	// TODO: We're using the main camera to sort particles by depth. If there are multiple cameras
+	// being used, this should be done per camera.
+	vec3_t camera_pos = vec3_zero();
+	scene_t *scene = emitter->parent->scene;
+
+	if (scene != NULL) {
+		camera_t *camera = scene_get_main_camera(scene);
+
+		if (camera != NULL) {
+
+			camera_pos = obj_get_position(camera->parent);
+			camera_pos = vec3_subtract(camera_pos, obj_get_position(emitter->parent));
+
+			// Take into account the rotation of the particle emitter by rotating the camera
+			// direction vector with the inverse of the object's rotation.
+			quat_t rotation = obj_get_rotation(emitter->parent);
+			rotation = quat_inverse(rotation);
+
+			camera_pos = quat_rotate_vec3(rotation, camera_pos);
+		}
+	}
+
 	// If the emitter is actively emitting particles, create new ones by activating old particles.
 	if (emitter->is_emitting) {
 
@@ -94,9 +120,45 @@ void emitter_process(emitter_t *emitter)
 	for (int i = 0; i < emitter->max_particles; i++) {
 
 		if (emitter->particles[i].is_active) {
-			emitter_update_particle(emitter, &emitter->particles[i]);
+			emitter_update_particle(emitter, &emitter->particles[i], &camera_pos);
 		}
 	}
+
+	// Sort the particles by distance to camera. Sort the reference array for faster sorting.
+	qsort(emitter->particle_references, emitter->max_particles, sizeof(particle_t*),
+	      emitter_sort_particles);
+
+	// Update the index buffer with the sorted particle indices.
+	size_t num_active_particles = 0;
+
+	for (int i = 0; i < emitter->max_particles; i++) {
+
+		particle_t *particle = emitter->particle_references[i];
+
+		// Skip inactive particles.
+		if (!particle->is_active) {
+			continue;
+		}
+
+		int base = particle->base_index;
+
+		emitter->mesh->indices[0 + 6 * i] = 0 + 4 * base;
+		emitter->mesh->indices[1 + 6 * i] = 1 + 4 * base;
+		emitter->mesh->indices[2 + 6 * i] = 2 + 4 * base;
+		emitter->mesh->indices[3 + 6 * i] = 2 + 4 * base;
+		emitter->mesh->indices[4 + 6 * i] = 1 + 4 * base;
+		emitter->mesh->indices[5 + 6 * i] = 3 + 4 * base;
+
+		num_active_particles++;
+
+/*		printf("%.1f - %.1f %.1f %.1f - %.1f %.1f %.1f\n",
+			sqrtf(emitter->particle_references[i]->camera_distance),
+			particle->position.x, particle->position.y, particle->position.z,
+			camera_pos.x, camera_pos.y, camera_pos.z);*/
+	}
+
+	mesh_refresh_indices(emitter->mesh);
+	emitter->mesh->num_indices_to_render = 6 * num_active_particles; // TODO: Create a setter
 
 	// TODO: We could possibly only refresh the range of particles which were updated?
 	mesh_refresh_vertices(emitter->mesh);
@@ -211,6 +273,7 @@ static void emitter_initialize_particles(emitter_t *emitter)
 
 	// Create a storage for all the particles of the system.
 	emitter->particles = mem_alloc_fast(emitter->max_particles * sizeof(particle_t));
+	emitter->particle_references = mem_alloc_fast(emitter->max_particles * sizeof(particle_t*));
 
 	// Setup the particles as non-active.
 	for (int i = 0; i < emitter->max_particles; i++) {
@@ -219,6 +282,8 @@ static void emitter_initialize_particles(emitter_t *emitter)
 		emitter->particles[i].position = vec3_zero();
 		emitter->particles[i].start_colour = COL_TRANSPARENT;
 		emitter->particles[i].end_colour = COL_TRANSPARENT;
+
+		emitter->particle_references[i] = &emitter->particles[i];
 	}
 }
 
@@ -302,6 +367,8 @@ static void emitter_create_mesh(emitter_t *emitter)
 		emitter->particles[i].vertices[1] = &emitter->mesh->part_vertices[1 + 4 * i];
 		emitter->particles[i].vertices[2] = &emitter->mesh->part_vertices[2 + 4 * i];
 		emitter->particles[i].vertices[3] = &emitter->mesh->part_vertices[3 + 4 * i];
+
+		emitter->particles[i].base_index = i;
 	}
 
 	// Delete temporary data.
@@ -330,27 +397,29 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			emitter->particles[i].time_alive = 0;
 
 			// Randomize particle details.
-			emitter->particles[i].life = randomf(emitter->life.min, emitter->life.max);
+			emitter->particles[i].life =
+				randomf(emitter->life.min, emitter->life.max);
 
-			emitter->particles[i].position = emitter_randomize_position(emitter);
+			emitter->particles[i].position =
+				emitter_randomize_position(emitter);
 
-			emitter->particles[i].velocity = randomv(emitter->velocity.min,
-	                                                 emitter->velocity.max);
+			emitter->particles[i].velocity =
+				randomv(emitter->velocity.min, emitter->velocity.max);
 
-			emitter->particles[i].acceleration = randomv(emitter->acceleration.min,
-				                                         emitter->acceleration.max);
+			emitter->particles[i].acceleration =
+				randomv(emitter->acceleration.min, emitter->acceleration.max);
 
-			emitter->particles[i].start_colour = randomc(emitter->start_colour.min,
-	                                                     emitter->start_colour.max);
-			emitter->particles[i].end_colour = randomc(emitter->end_colour.min,
+			emitter->particles[i].start_colour =
+				randomc(emitter->start_colour.min, emitter->start_colour.max);
 
-	                                                   emitter->end_colour.max);
+			emitter->particles[i].end_colour =
+				randomc(emitter->end_colour.min, emitter->end_colour.max);
 
-			emitter->particles[i].start_size = randomf(emitter->start_size.min,
-	                                                   emitter->start_size.max);
+			emitter->particles[i].start_size =
+				randomf(emitter->start_size.min, emitter->start_size.max);
 			
-			emitter->particles[i].end_size = randomf(emitter->end_size.min,
-	                                                 emitter->end_size.max);
+			emitter->particles[i].end_size =
+				randomf(emitter->end_size.min, emitter->end_size.max);
 
 			emitted++;
 		}
@@ -388,7 +457,7 @@ static vec3_t emitter_randomize_position(emitter_t *emitter)
 	}
 }
 
-static void emitter_update_particle(emitter_t *emitter, particle_t *particle)
+static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle, vec3_t *camera)
 {
 	UNUSED(emitter);
 	
@@ -400,6 +469,7 @@ static void emitter_update_particle(emitter_t *emitter, particle_t *particle)
 	if (particle->time_alive >= particle->life) {
 
 		particle->is_active = false;
+		particle->camera_distance = -1.0f;
 
 		for (int i = 0; i < 4; i++) {
 			particle->vertices[i]->colour = COL_TRANSPARENT;
@@ -421,6 +491,9 @@ static void emitter_update_particle(emitter_t *emitter, particle_t *particle)
 	float size = lerpf(particle->start_size, particle->end_size, t);
 	colour_t colour = lerpc(particle->start_colour, particle->end_colour, t);
 
+	// Update distance to main camera for depth sorting.
+	particle->camera_distance = vec3_distance_sq(particle->position, *camera);
+
 	// Copy updated data to vertices.
 	for (int i = 0; i < 4; i++) {
 
@@ -428,4 +501,19 @@ static void emitter_update_particle(emitter_t *emitter, particle_t *particle)
 		particle->vertices[i]->colour = colour;
 		particle->vertices[i]->size = size;
 	}
+}
+
+static int emitter_sort_particles(const void *p1, const void *p2)
+{
+	const particle_t *particle1 = *(const particle_t **)p1;
+	const particle_t *particle2 = *(const particle_t **)p2;
+
+	if (particle1->camera_distance > particle2->camera_distance) {
+		return -1;
+	}
+	else if (particle1->camera_distance < particle2->camera_distance) {
+		return 1;
+	}
+
+	return 0;
 }

@@ -52,3 +52,11 @@ vec3_t quat_rotate_vec3(quat_t q, vec3_t v)
 
 	return result;
 }
+
+quat_t quat_inverse(quat_t q)
+{
+	quat_t result;
+	glm_quat_inv(q.vec, result.vec);
+
+	return result;
+}

@@ -424,6 +424,15 @@ void mesh_refresh_vertices(mesh_t *mesh)
 	mesh->is_vertex_data_dirty = true;
 }
 
+void mesh_refresh_indices(mesh_t *mesh)
+{
+	if (mesh == NULL || mesh->indices == NULL) {
+		return;
+	}
+
+	mesh->is_index_data_dirty = true;
+}
+
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices)
 {
 	if (mesh == NULL || indices == NULL) {

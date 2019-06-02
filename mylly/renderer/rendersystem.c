@@ -369,6 +369,20 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
                              sizeof(vindex_t), &mesh->index_buffer, true, true);
 	}
 	else {
+		if (mesh->is_index_data_dirty) {
+
+			size_t num_indices = mesh->num_indices;
+
+			if (mesh->num_indices_to_render != 0) {
+				num_indices = mesh->num_indices_to_render;
+			}
+
+			vbcache_upload_buffer(mesh->index_buffer, mesh->indices, num_indices,
+                                  sizeof(vindex_t), true, false);
+
+			mesh->is_index_data_dirty = false;
+		}
+
 		vbcache_refresh_buffer(mesh->index_buffer);
 	}
 

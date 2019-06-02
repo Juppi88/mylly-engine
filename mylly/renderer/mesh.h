@@ -33,6 +33,7 @@ typedef struct mesh_t {
 
 	size_t num_vertices;
 	bool is_vertex_data_dirty; // Set to true when the data on the GPU needs refreshing
+	bool is_index_data_dirty; // Ditto for indices
 
 	vindex_t *indices; // Array of vertex indices
 	size_t num_indices; // Number of indices in the allocated buffer
@@ -68,6 +69,7 @@ void mesh_calculate_tangents(mesh_t *mesh, bool smooth_shading);
 
 void mesh_prealloc_vertices(mesh_t *mesh, vertex_type_t type, size_t num_vertices);
 void mesh_refresh_vertices(mesh_t *mesh);
+void mesh_refresh_indices(mesh_t *mesh);
 
 void mesh_set_indices(mesh_t *mesh, const vindex_t *indices, size_t num_indices);
 

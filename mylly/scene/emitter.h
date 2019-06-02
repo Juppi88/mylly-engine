@@ -13,6 +13,7 @@ typedef struct particle_t {
 
 	float life;
 	float time_alive;
+	float camera_distance; // Distance to camera, used for depth sorting
 	bool is_active;
 	vec3_t position;
 	vec3_t velocity;
@@ -20,6 +21,7 @@ typedef struct particle_t {
 	colour_t start_colour, end_colour;
 	float start_size, end_size;
 	vertex_particle_t *vertices[4];
+	int base_index; // The first index of this quad
 
 } particle_t;
 
@@ -27,16 +29,20 @@ typedef struct particle_t {
 
 // Type of shape to emit particles from
 typedef enum {
+
 	SHAPE_POINT,
 	SHAPE_CIRCLE,
 	SHAPE_BOX
+
 } emit_shape_type_t;
 
 // Emitter shape data
 typedef union emit_shape_t {
+
 	struct { vec3_t centre; } point;
 	struct { vec3_t centre; float radius; } circle;
 	struct { vec3_t min, max; } box;
+
 } emit_shape_t;
 
 // Macros to initialize the shape struct above
@@ -57,6 +63,7 @@ typedef struct emitter_t {
 	mesh_t *mesh; // Mesh for every particle emitted by this emitter
 
 	particle_t *particles; // Individual particle data
+	particle_t **particle_references; // An array containing a reference to each particle
 	uint16_t max_particles; // Maximum number of particles alive at a time
 
 	float emit_duration; // Number of seconds to emit particles for

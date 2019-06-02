@@ -9,14 +9,21 @@ varying vec4 colour;
 
 void main()
 {
-	vec3 position = Vertex;
-	position *= ParticleSize;
-	position += ParticleCentre;
+	// Convert particle centre position to world space.
+	vec3 position = mat3(MatrixModel()) * ParticleCentre;
 
-	gl_Position = toclipspace(position);
+	// Rotate towards the camera (billboard).
+	mat4 view = MatrixView();
+	vec3 cameraRight = vec3(view[0][0], view[1][0], view[2][0]);
+	vec3 cameraUp = vec3(view[0][1], view[1][1], view[2][1]);
 
-	// TODO: Orient towards the camera!
-	
+	position +=
+	    cameraRight * Vertex.x * ParticleSize +
+	    cameraUp * Vertex.y * ParticleSize;
+
+	// Convert to clip space.
+	gl_Position = MatrixProjection() * MatrixView() * vec4(position, 1);
+
 	texCoord = TexCoord;
 	colour = Colour;
 }
