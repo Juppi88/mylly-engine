@@ -501,6 +501,9 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 		rend_bind_shader_attribute(shader, ATTR_CENTRE, 3, GL_FLOAT, GL_FALSE,
                         sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, centre));
 
+		rend_bind_shader_attribute(shader, ATTR_EMIT_POSITION, 4, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, emit_position));
+
 		rend_bind_shader_attribute(shader, ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
                         sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, uv));
 

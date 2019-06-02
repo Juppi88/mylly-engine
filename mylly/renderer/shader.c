@@ -19,6 +19,7 @@ static const char *shader_attribute_names[NUM_SHADER_ATTRIBUTES] = {
 	"TexCoord",
 	"Colour",
 	"ParticleCentre",
+	"ParticleEmitPosition",
 	"ParticleSize",
 	"Tangent"
 };

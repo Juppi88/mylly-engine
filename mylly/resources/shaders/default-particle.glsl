@@ -10,16 +10,19 @@ varying vec4 colour;
 void main()
 {
 	// Convert particle centre position to world space.
-	vec3 position = mat3(MatrixModel()) * ParticleCentre;
+	mat4 model = MatrixModel();
+	vec4 worldCentre = model * vec4(ParticleCentre, 1);
 
 	// Rotate towards the camera (billboard).
-	mat4 view = MatrixView();
-	vec3 cameraRight = vec3(view[0][0], view[1][0], view[2][0]);
-	vec3 cameraUp = vec3(view[0][1], view[1][1], view[2][1]);
+	vec3 position =
+		worldCentre.xyz +
+	    CameraRight() * Vertex.x * ParticleSize +
+	    CameraUp() * Vertex.y * ParticleSize;
 
-	position +=
-	    cameraRight * Vertex.x * ParticleSize +
-	    cameraUp * Vertex.y * ParticleSize;
+	// World space particles.
+	if (ParticleEmitPosition.w != 0) {
+		position += ParticleEmitPosition.xyz - ObjWorldPosition();
+	}
 
 	// Convert to clip space.
 	gl_Position = MatrixProjection() * MatrixView() * vec4(position, 1);

@@ -17,7 +17,7 @@ static void emitter_initialize_particles(emitter_t *emitter);
 static void emitter_create_mesh(emitter_t *emitter);
 static void emitter_emit(emitter_t *emitter, uint16_t count);
 static vec3_t emitter_randomize_position(emitter_t *emitter);
-static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle, vec3_t *camera);
+static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle);
 static int emitter_sort_particles(const void *p1, const void *p2);
 
 // -------------------------------------------------------------------------------------------------
@@ -86,6 +86,9 @@ void emitter_process(emitter_t *emitter)
 		}
 	}
 
+	emitter->camera_position = camera_pos;
+	emitter->world_position = obj_get_position(emitter->parent);
+
 	// If the emitter is actively emitting particles, create new ones by activating old particles.
 	if (emitter->is_emitting) {
 
@@ -120,7 +123,7 @@ void emitter_process(emitter_t *emitter)
 	for (int i = 0; i < emitter->max_particles; i++) {
 
 		if (emitter->particles[i].is_active) {
-			emitter_update_particle(emitter, &emitter->particles[i], &camera_pos);
+			emitter_update_particle(emitter, &emitter->particles[i]);
 		}
 	}
 
@@ -150,11 +153,6 @@ void emitter_process(emitter_t *emitter)
 		emitter->mesh->indices[5 + 6 * i] = 3 + 4 * base;
 
 		num_active_particles++;
-
-/*		printf("%.1f - %.1f %.1f %.1f - %.1f %.1f %.1f\n",
-			sqrtf(emitter->particle_references[i]->camera_distance),
-			particle->position.x, particle->position.y, particle->position.z,
-			camera_pos.x, camera_pos.y, camera_pos.z);*/
 	}
 
 	mesh_refresh_indices(emitter->mesh);
@@ -180,6 +178,7 @@ void emitter_start(emitter_t *emitter,
 	emitter->emit_rate = emit_rate;
 	emitter->time_emitting = 0;
 	emitter->time_since_emit = 0;
+	emitter->world_position = obj_get_position(emitter->parent);
 
 	// Initialize particle data.
 	emitter_initialize_particles(emitter);
@@ -261,6 +260,13 @@ void emitter_set_particle_end_size(emitter_t *emitter, float min, float max)
 	}
 }
 
+void emitter_set_world_space(emitter_t *emitter, bool is_world_space)
+{
+	if (emitter != NULL) {
+		emitter->is_world_space = is_world_space;
+	}
+}
+
 static void emitter_initialize_particles(emitter_t *emitter)
 {
 	if (emitter == NULL) {
@@ -310,6 +316,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 			vec3(-0.5f, -0.5f, 0),
 			vec3_zero(),
+			vec4_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
 			0
@@ -319,6 +326,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 			vec3(0.5f, -0.5f, 0),
 			vec3_zero(),
+			vec4_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
 			0
@@ -328,6 +336,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 			vec3(-0.5f, 0.5f, 0),
 			vec3_zero(),
+			vec4_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
 			0
@@ -337,6 +346,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 
 			vec3(0.5f, 0.5f, 0),
 			vec3_zero(),
+			vec4_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
 			0
@@ -395,6 +405,7 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			// Mark the particle as active (i.e. emit it)
 			emitter->particles[i].is_active = true;
 			emitter->particles[i].time_alive = 0;
+			emitter->particles[i].emit_position = emitter->world_position;
 
 			// Randomize particle details.
 			emitter->particles[i].life =
@@ -457,7 +468,7 @@ static vec3_t emitter_randomize_position(emitter_t *emitter)
 	}
 }
 
-static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle, vec3_t *camera)
+static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle)
 {
 	UNUSED(emitter);
 	
@@ -491,13 +502,25 @@ static inline void emitter_update_particle(emitter_t *emitter, particle_t *parti
 	float size = lerpf(particle->start_size, particle->end_size, t);
 	colour_t colour = lerpc(particle->start_colour, particle->end_colour, t);
 
+	vec4_t emit_position = vec4_zero();
+	vec3_t position = particle->position;
+
 	// Update distance to main camera for depth sorting.
-	particle->camera_distance = vec3_distance_sq(particle->position, *camera);
+	if (emitter->is_world_space) {
+
+		emit_position = vec3_to_vec4(particle->emit_position);
+
+		vec3_t offset = vec3_subtract(emitter->world_position, particle->emit_position);
+		position = vec3_subtract(position, offset);
+	}
+
+	particle->camera_distance = vec3_distance_sq(position, emitter->camera_position);
 
 	// Copy updated data to vertices.
 	for (int i = 0; i < 4; i++) {
 
 		particle->vertices[i]->centre = particle->position;
+		particle->vertices[i]->emit_position = emit_position;
 		particle->vertices[i]->colour = colour;
 		particle->vertices[i]->size = size;
 	}

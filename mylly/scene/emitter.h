@@ -15,6 +15,7 @@ typedef struct particle_t {
 	float time_alive;
 	float camera_distance; // Distance to camera, used for depth sorting
 	bool is_active;
+	vec3_t emit_position;
 	vec3_t position;
 	vec3_t velocity;
 	vec3_t acceleration;
@@ -58,6 +59,7 @@ typedef struct emitter_t {
 
 	bool is_active; // Set to true when the emitter has particles that are still alive
 	bool is_emitting; // Set to true when the emitter is emitting particles
+	bool is_world_space; // Set to true when particles are emitted in world space (as opposed to local)
 
 	sprite_t *sprite; // The particle sprite
 	mesh_t *mesh; // Mesh for every particle emitted by this emitter
@@ -71,6 +73,9 @@ typedef struct emitter_t {
 	float time_emitting; // Number of seconds the emitter has been emitting particles
 	float time_since_emit; // Time elapsed since a particle was emitted the last time
 	uint16_t initial_burst; // The initial burst of particles
+
+	vec3_t world_position; // Cached world position of the emitter object
+	vec3_t camera_position; // Cached position of the camera rendering the particles
 
 	// The shape of the particle emitter.
 	emit_shape_type_t shape_type;
@@ -107,6 +112,7 @@ void emitter_set_particle_start_colour(emitter_t *emitter, colour_t min, colour_
 void emitter_set_particle_end_colour(emitter_t *emitter, colour_t min, colour_t max);
 void emitter_set_particle_start_size(emitter_t *emitter, float min, float max);
 void emitter_set_particle_end_size(emitter_t *emitter, float min, float max);
+void emitter_set_world_space(emitter_t *emitter, bool is_world_space);
 
 // -------------------------------------------------------------------------------------------------
 

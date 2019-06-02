@@ -47,6 +47,15 @@ widget_t *checkbox_create(widget_t *parent)
 	return widget;
 }
 
+bool checkbox_is_toggled(widget_t *checkbox)
+{
+	if (checkbox == NULL || checkbox->type != WIDGET_TYPE_CHECKBOX) {
+		return false;
+	}
+
+	return checkbox->checkbox.is_toggled;
+}
+
 void checkbox_set_toggled(widget_t *checkbox, bool toggled)
 {
 	if (checkbox == NULL || checkbox->type != WIDGET_TYPE_CHECKBOX) {
