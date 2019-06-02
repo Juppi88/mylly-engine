@@ -319,6 +319,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 			vec4_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
+			0,
 			0
 		);
 
@@ -329,6 +330,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 			vec4_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv1.y),
 			COL_TRANSPARENT,
+			0,
 			0
 		);
 
@@ -339,6 +341,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 			vec4_zero(),
 			vec2(emitter->sprite->uv1.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
+			0,
 			0
 		);
 
@@ -349,6 +352,7 @@ static void emitter_create_mesh(emitter_t *emitter)
 			vec4_zero(),
 			vec2(emitter->sprite->uv2.x, emitter->sprite->uv2.y),
 			COL_TRANSPARENT,
+			0,
 			0
 		);
 
@@ -432,6 +436,12 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			emitter->particles[i].end_size =
 				randomf(emitter->end_size.min, emitter->end_size.max);
 
+			emitter->particles[i].rotation =
+				randomf(0, 2 * PI);
+
+			emitter->particles[i].rotation_speed =
+				randomf(emitter->rotation_speed.min, emitter->rotation_speed.max);
+
 			emitted++;
 		}
 	}
@@ -496,6 +506,7 @@ static inline void emitter_update_particle(emitter_t *emitter, particle_t *parti
 	particle->position.x += delta * particle->velocity.x;
 	particle->position.y += delta * particle->velocity.y;
 	particle->position.z += delta * particle->velocity.z;
+	particle->rotation += delta * DEG_TO_RAD(particle->rotation_speed);
 
 	// Update size and colour.
 	float t = (particle->time_alive / particle->life);
@@ -523,6 +534,7 @@ static inline void emitter_update_particle(emitter_t *emitter, particle_t *parti
 		particle->vertices[i]->emit_position = emit_position;
 		particle->vertices[i]->colour = colour;
 		particle->vertices[i]->size = size;
+		particle->vertices[i]->rotation = particle->rotation;
 	}
 }
 

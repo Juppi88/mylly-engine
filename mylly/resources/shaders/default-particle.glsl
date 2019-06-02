@@ -13,11 +13,17 @@ void main()
 	mat4 model = MatrixModel();
 	vec4 worldCentre = model * vec4(ParticleCentre, 1);
 
+	// Rotate the particle billboard.
+	vec2 vertex = vec2(
+		Vertex.x * cos(ParticleRotation) - Vertex.y * sin(ParticleRotation),
+		Vertex.x * sin(ParticleRotation) + Vertex.y * cos(ParticleRotation)
+	);
+
 	// Rotate towards the camera (billboard).
 	vec3 position =
 		worldCentre.xyz +
-	    CameraRight() * Vertex.x * ParticleSize +
-	    CameraUp() * Vertex.y * ParticleSize;
+	    CameraRight() * vertex.x * ParticleSize +
+	    CameraUp() * vertex.y * ParticleSize;
 
 	// World space particles.
 	if (ParticleEmitPosition.w != 0) {

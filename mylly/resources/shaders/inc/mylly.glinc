@@ -79,6 +79,7 @@ float     DeltaTime() { return VectorArr[VEC_TIME].w; }
 	attribute vec3 ParticleCentre;
 	attribute vec4 ParticleEmitPosition;
 	attribute vec4 Colour;
+	attribute float ParticleRotation;
 	attribute float ParticleSize;
 #endif
 

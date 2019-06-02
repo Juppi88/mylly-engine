@@ -21,6 +21,8 @@ typedef struct particle_t {
 	vec3_t acceleration;
 	colour_t start_colour, end_colour;
 	float start_size, end_size;
+	float rotation;
+	float rotation_speed;
 	vertex_particle_t *vertices[4];
 	int base_index; // The first index of this quad
 
@@ -89,6 +91,7 @@ typedef struct emitter_t {
 	struct { colour_t min, max; } end_colour; // Particle end colour
 	struct { float min, max; } start_size; // Particle initial size in game units
 	struct { float min, max; } end_size; // Particle final size in game units
+	struct { float min, max; } rotation_speed; // Particle rotation speed in degrees/second
 
 } emitter_t;
 

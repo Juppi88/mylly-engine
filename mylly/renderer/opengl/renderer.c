@@ -447,6 +447,9 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 		glDisableVertexAttribArray(i);
 	}
 
+	// Disable depth write for particles.
+	glDepthMask(vertex_type != VERTEX_PARTICLE);
+
 	// Set pointers to vertex attributes.
 	switch (vertex_type) {
 
@@ -509,6 +512,9 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 
 		rend_bind_shader_attribute(shader, ATTR_COLOUR, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                         sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, colour));
+
+		rend_bind_shader_attribute(shader, ATTR_ROTATION, 1, GL_FLOAT, GL_FALSE,
+                        sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, rotation));
 
 		rend_bind_shader_attribute(shader, ATTR_SIZE, 1, GL_FLOAT, GL_FALSE,
                         sizeof(vertex_particle_t), (void *)offsetof(vertex_particle_t, size));

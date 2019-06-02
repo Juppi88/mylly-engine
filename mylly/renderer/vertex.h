@@ -49,12 +49,13 @@ typedef struct vertex_particle_t {
 	vec4_t emit_position; // The position from which the particle was emitted, vec4_zero if local
 	vec2_t uv; // Texture coordinates for the particle texture
 	colour_t colour; // Colour of the particle
+	float rotation; // Rotation of the particle
 	float size; // Size of the particle quad
 
 } vertex_particle_t;
 
-#define vertex_particle(pos, centre, emit_position, uv, colour, size) \
-	(vertex_particle_t){ pos, centre, emit_position, uv, colour, size }
+#define vertex_particle(pos, centre, emit_position, uv, colour, rotation, size) \
+	(vertex_particle_t){ pos, centre, emit_position, uv, colour, rotation, size }
 
 // -------------------------------------------------------------------------------------------------
 
