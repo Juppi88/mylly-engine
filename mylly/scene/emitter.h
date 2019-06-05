@@ -4,8 +4,7 @@
 
 #include "core/defines.h"
 #include "renderer/vertex.h"
-
-BEGIN_DECLARATIONS;
+#include "resources/resource.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -57,6 +56,8 @@ typedef union emit_shape_t {
 
 typedef struct emitter_t {
 
+	resource_t resource; // Resource info
+
 	object_t *parent; // The object this animator is attached to
 
 	bool is_active; // Set to true when the emitter has particles that are still alive
@@ -97,15 +98,23 @@ typedef struct emitter_t {
 
 // -------------------------------------------------------------------------------------------------
 
+BEGIN_DECLARATIONS;
+
 emitter_t *emitter_create(object_t *parent);
+emitter_t *emitter_create_from_resource(const char *name, const char *path); // For internal use
+
 void emitter_destroy(emitter_t *emitter);
 void emitter_process(emitter_t *emitter);
 
-void emitter_start(emitter_t *emitter,
-                   uint16_t max_particles, uint16_t burst,
-                   float emit_rate, float emit_duration);
+void emitter_start(emitter_t *emitter);
+void emitter_stop(emitter_t *emitter);
 
 void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const emit_shape_t shape);
+void emitter_set_world_space(emitter_t *emitter, bool is_world_space);
+void emitter_set_max_particles(emitter_t *emitter, int num_particles);
+void emitter_set_initial_burst(emitter_t *emitter, int num_particles);
+void emitter_set_emit_duration(emitter_t *emitter, float duration);
+void emitter_set_emit_rate(emitter_t *emitter, float particles_per_sec);
 
 void emitter_set_particle_sprite(emitter_t *emitter, sprite_t *sprite);
 void emitter_set_particle_life_time(emitter_t *emitter, float min, float max);
@@ -115,10 +124,10 @@ void emitter_set_particle_start_colour(emitter_t *emitter, colour_t min, colour_
 void emitter_set_particle_end_colour(emitter_t *emitter, colour_t min, colour_t max);
 void emitter_set_particle_start_size(emitter_t *emitter, float min, float max);
 void emitter_set_particle_end_size(emitter_t *emitter, float min, float max);
-void emitter_set_world_space(emitter_t *emitter, bool is_world_space);
-
-// -------------------------------------------------------------------------------------------------
+void emitter_set_particle_rotation_speed(emitter_t *emitter, float min, float max);
 
 END_DECLARATIONS;
+
+// -------------------------------------------------------------------------------------------------
 
 #endif

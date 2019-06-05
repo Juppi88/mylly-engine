@@ -4,11 +4,13 @@
 #include "scene.h"
 #include "camera.h"
 #include "core/memory.h"
+#include "core/string.h"
 #include "core/time.h"
 #include "renderer/mesh.h"
 #include "resources/resources.h"
 #include "math/math.h"
 #include "math/random.h"
+#include "io/log.h"
 #include <stdlib.h>
 
 // -------------------------------------------------------------------------------------------------
@@ -43,6 +45,23 @@ emitter_t *emitter_create(object_t *parent)
 	return emitter;
 }
 
+emitter_t *emitter_create_from_resource(const char *name, const char *path)
+{
+	emitter_t *emitter = emitter_create(NULL);
+
+	if (emitter != NULL) {
+
+		emitter->resource.res_name = string_duplicate(name);
+		emitter->resource.name = emitter->resource.res_name;
+
+		if (path != NULL) {
+			emitter->resource.path = string_duplicate(path);
+		}
+	}
+
+	return emitter;
+}
+
 void emitter_destroy(emitter_t *emitter)
 {
 	if (emitter == NULL) {
@@ -53,6 +72,8 @@ void emitter_destroy(emitter_t *emitter)
 		mesh_destroy(emitter->mesh);
 	}
 
+	DESTROY(emitter->resource.res_name);
+	DESTROY(emitter->resource.path);
 	DESTROY(emitter->particles);
 	DESTROY(emitter);
 }
@@ -120,11 +141,21 @@ void emitter_process(emitter_t *emitter)
 	}
 
 	// Update all active particles.
+	bool has_active_particles = false;
+
 	for (int i = 0; i < emitter->max_particles; i++) {
 
 		if (emitter->particles[i].is_active) {
+
 			emitter_update_particle(emitter, &emitter->particles[i]);
+			has_active_particles = true;
 		}
+	}
+
+	if (!has_active_particles) {
+
+		// Stop the particle system.
+		emitter->is_active = false;
 	}
 
 	// Sort the particles by distance to camera. Sort the reference array for faster sorting.
@@ -162,20 +193,26 @@ void emitter_process(emitter_t *emitter)
 	mesh_refresh_vertices(emitter->mesh);
 }
 
-void emitter_start(emitter_t *emitter,
-                   uint16_t max_particles, uint16_t burst,
-                   float emit_rate, float emit_duration)
+void emitter_start(emitter_t *emitter)
 {
-	if (emitter == NULL || emitter->sprite == NULL || max_particles == 0) {
+	if (emitter == NULL) {
 		return;
 	}
 
-	emitter->max_particles = max_particles;
-	emitter->initial_burst = burst;
+	if (emitter->sprite == NULL) {
+
+		log_message("Emitter", "Particle system has no sprite selected.");
+		return;		
+	}
+
+	if (emitter->max_particles == 0) {
+
+		log_message("Emitter", "Particle system has a maximum particle count of 0.");
+		return;
+	}
+
 	emitter->is_active = true;
-	emitter->is_emitting = (emit_rate > 0);
-	emitter->emit_duration = emit_duration;
-	emitter->emit_rate = emit_rate;
+	emitter->is_emitting = (emitter->emit_rate > 0);
 	emitter->time_emitting = 0;
 	emitter->time_since_emit = 0;
 	emitter->world_position = obj_get_position(emitter->parent);
@@ -187,7 +224,16 @@ void emitter_start(emitter_t *emitter,
 	emitter_create_mesh(emitter);
 
 	// Emit the initial burst of particles.
-	emitter_emit(emitter, burst);
+	emitter_emit(emitter, emitter->initial_burst);
+}
+
+void emitter_stop(emitter_t *emitter)
+{
+	if (emitter == NULL) {
+		return;
+	}
+
+	emitter->is_emitting = false;
 }
 
 void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const emit_shape_t shape)
@@ -195,6 +241,51 @@ void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const em
 	if (emitter != NULL) {
 		emitter->shape_type = type;
 		emitter->shape = shape;
+	}
+}
+
+void emitter_set_world_space(emitter_t *emitter, bool is_world_space)
+{
+	if (emitter != NULL) {
+		emitter->is_world_space = is_world_space;
+	}
+}
+
+void emitter_set_max_particles(emitter_t *emitter, int num_particles)
+{
+	if (emitter == NULL) {
+		return;
+	}
+
+	if (emitter->mesh != NULL) {
+
+		// Don't allow changing the maximum number of particles for a particle system which already
+		// has a particle mesh. Use emitter_start() to restart the system instead.
+		log_warning("Emitter", "Cannot set max particles when the particle system is active.");
+		return;
+	}
+
+	emitter->max_particles = (uint16_t)CLAMP(num_particles, 0, 65535);
+}
+
+void emitter_set_initial_burst(emitter_t *emitter, int num_particles)
+{
+	if (emitter != NULL) {
+		emitter->initial_burst = (uint16_t)CLAMP(num_particles, 0, 65535);
+	}
+}
+
+void emitter_set_emit_duration(emitter_t *emitter, float duration)
+{
+	if (emitter != NULL) {
+		emitter->emit_duration = MAX(0, duration);
+	}
+}
+
+void emitter_set_emit_rate(emitter_t *emitter, float particles_per_sec)
+{
+	if (emitter != NULL) {
+		emitter->emit_rate = MAX(0, particles_per_sec);
 	}
 }
 
@@ -260,10 +351,11 @@ void emitter_set_particle_end_size(emitter_t *emitter, float min, float max)
 	}
 }
 
-void emitter_set_world_space(emitter_t *emitter, bool is_world_space)
+void emitter_set_particle_rotation_speed(emitter_t *emitter, float min, float max)
 {
 	if (emitter != NULL) {
-		emitter->is_world_space = is_world_space;
+		emitter->rotation_speed.min = min;
+		emitter->rotation_speed.max = max;
 	}
 }
 

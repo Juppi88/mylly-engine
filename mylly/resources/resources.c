@@ -2,6 +2,7 @@
 #include "resourceparser.h"
 #include "objparser.h"
 #include "mtlparser.h"
+#include "emitterparser.h"
 #include "collections/array.h"
 #include "core/string.h"
 #include "io/file.h"
@@ -15,6 +16,7 @@
 #include "scene/model.h"
 #include "scene/sprite.h"
 #include "scene/spriteanimation.h"
+#include "scene/emitter.h"
 #include "math/math.h"
 #include <ft2build.h>
 #include <stdlib.h>
@@ -24,6 +26,7 @@
 
 // A temporary structure storing the contents of a shader source file.
 struct shader_contents_t {
+
 	arr_t(char*) lines;
 	arr_t(char*) uniforms;
 	arr_t(UNIFORM_TYPE) uniform_types;
@@ -39,6 +42,7 @@ static arr_t(sprite_anim_t*) animations;
 static arr_t(font_t*) fonts;
 static arr_t(model_t*) models;
 static arr_t(material_t*) materials;
+static arr_t(emitter_t*) emitters;
 
 static const char *parsed_file_name;
 
@@ -72,6 +76,8 @@ static void res_parse_obj_model_line(char *line, size_t length, void *context);
 static void res_load_material(const char *file_name);
 static void res_parse_material_line(char *line, size_t length, void *context);
 
+static void res_load_emitter(const char *file_name);
+
 // -------------------------------------------------------------------------------------------------
 
 void res_initialize(void)
@@ -100,6 +106,7 @@ void res_initialize(void)
 	res_load_all_in_directory("./textures", ".sprite", RES_SPRITE);
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
 	res_load_all_in_directory("./models", ".obj", RES_MODEL);
+	res_load_all_in_directory("./effects", ".fx", RES_EMITTER);
 	
 	// Initialize FreeType.
 	FT_Library freetype;
@@ -189,6 +196,16 @@ void res_shutdown(void)
 		}
 	}
 
+	emitter_t *emitter;
+	arr_foreach(emitters, emitter) {
+
+		if (emitter != NULL) {
+
+			// TODO: Add reference counting to resources.
+			emitter_destroy(emitter);
+		}
+	}
+
 	arr_clear(shaders);
 	arr_clear(sprites);
 	arr_clear(textures);
@@ -196,6 +213,7 @@ void res_shutdown(void)
 	arr_clear(fonts);
 	arr_clear(models);
 	arr_clear(materials);
+	arr_clear(emitters);
 }
 
 // TODO: Load unloaded resources when requested.
@@ -320,6 +338,23 @@ material_t *res_get_material(const char *name)
 	return NULL;
 }
 
+emitter_t *res_get_emitter(const char *name)
+{
+	emitter_t *emitter;
+	arr_foreach(emitters, emitter) {
+
+		if (string_equals(emitter->resource.res_name, name)) {
+
+			// TODO: Add reference counting to resources.
+			return emitter;
+		}
+	}
+
+	log_warning("Resources", "Could not find a particle emitter named '%s'.", name);
+
+	return NULL;
+}
+
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
 {
 	// Create the empty sprite container.
@@ -363,6 +398,10 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 
 		case RES_MATERIAL:
 			file_for_each_in_directory(path, extension, res_load_material);
+			break;
+
+		case RES_EMITTER:
+			file_for_each_in_directory(path, extension, res_load_emitter);
 			break;
 
 		default:
@@ -1235,4 +1274,54 @@ static void res_parse_material_line(char *line, size_t length, void *context)
 	// Feed the .mtl file line to the parser.
 	mtl_parser_t *parser = (mtl_parser_t *)context;
 	mtl_parser_process_line(parser, line);
+}
+
+
+static void res_load_emitter(const char *file_name)
+{
+	// Store the name of the file for possible error messages.
+	parsed_file_name = file_name;
+
+	// Read the contents of the .sprite file to a buffer.
+	char *text;
+	size_t length;
+
+	if (!file_read_all_text(file_name, &text, &length)) {
+		return;
+	}
+
+	// Initialize a resource parser object.
+	emitter_parser_t parser;
+	
+	// Parse the text from the file.
+	if (!emitter_parser_init(&parser, file_name, text, length)) {
+
+		// Resource could not be parsed (syntax error or not a JSON resource file).
+		log_warning("Resources", "Failed to load effect '%s'.", file_name);
+
+		emitter_parser_destroy(&parser);
+		mem_free(text);
+
+		return;
+	}
+
+	// Tell the parser the file end has been reached to flush all parsed resources.
+	emitter_parser_end_file(&parser);
+
+	// Add all parsed resources into the resource system.
+	emitter_t *emitter;
+
+	arr_foreach(parser.emitters, emitter) {
+
+		emitter->resource.index = arr_last_index(emitters);
+		emitter->resource.is_loaded = true;
+
+		printf("Pushaan emitterin %s\n", emitter->resource.name);
+		
+		arr_push(emitters, emitter);
+	}
+
+	// Release the temporary parser data.
+	emitter_parser_destroy(&parser);
+	mem_free(text);
 }

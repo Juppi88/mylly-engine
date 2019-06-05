@@ -4,6 +4,8 @@
 
 #include "core/defines.h"
 #include "jsmn/jsmn.h"
+#include "math/vector.h"
+#include "renderer/colour.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -30,5 +32,7 @@ char *res_parser_get_text(res_parser_t *parser, int token, char *dst, size_t dst
 int res_parser_get_int(res_parser_t *parser, int token);
 bool res_parser_get_bool(res_parser_t *parser, int token);
 float res_parser_get_float(res_parser_t *parser, int token);
+vec3_t res_parser_get_vector(res_parser_t *parser, int *token);
+colour_t res_parser_get_colour(res_parser_t *parser, int *token);
 
 #endif

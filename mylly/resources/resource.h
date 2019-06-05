@@ -15,6 +15,7 @@ typedef enum {
 	RES_FONT,
 	RES_MODEL,
 	RES_MATERIAL,
+	RES_EMITTER,
 
 } res_type_t;
 

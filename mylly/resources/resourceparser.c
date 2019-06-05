@@ -134,3 +134,56 @@ float res_parser_get_float(res_parser_t *parser, int token)
 
 	return atof(tmp);
 }
+
+vec3_t res_parser_get_vector(res_parser_t *parser, int *token_ptr)
+{
+	int token = *token_ptr;
+
+	// Expect a 3 element vector.
+	if (parser == NULL ||
+		token >= parser->num_tokens - 3 ||
+		parser->tokens[token + 1].type != JSMN_PRIMITIVE ||
+		parser->tokens[token + 2].type != JSMN_PRIMITIVE ||
+		parser->tokens[token + 3].type != JSMN_PRIMITIVE) {
+
+		return vec3_zero();
+	}
+
+	float x = res_parser_get_float(parser, ++token);
+	float y = res_parser_get_float(parser, ++token);
+	float z = res_parser_get_float(parser, ++token);
+
+	*token_ptr = token;
+
+	return vec3(x, y, z);
+}
+
+colour_t res_parser_get_colour(res_parser_t *parser, int *token_ptr)
+{
+	int token = *token_ptr;
+
+	// Expect a 4 element array.
+	if (parser == NULL ||
+		token >= parser->num_tokens - 4 ||
+		parser->tokens[token + 1].type != JSMN_PRIMITIVE ||
+		parser->tokens[token + 2].type != JSMN_PRIMITIVE ||
+		parser->tokens[token + 3].type != JSMN_PRIMITIVE ||
+		parser->tokens[token + 4].type != JSMN_PRIMITIVE) {
+
+		return COL_WHITE;
+	}
+
+	int r = res_parser_get_int(parser, ++token);
+	int g = res_parser_get_int(parser, ++token);
+	int b = res_parser_get_int(parser, ++token);
+	int a = res_parser_get_int(parser, ++token);
+
+	*token_ptr = token;
+
+	return col_a(
+		CLAMP(r, 0, 255),
+		CLAMP(g, 0, 255),
+		CLAMP(b, 0, 255),
+		CLAMP(a, 0, 255)
+	);
+}
