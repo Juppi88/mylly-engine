@@ -18,7 +18,7 @@
 static void emitter_initialize_particles(emitter_t *emitter);
 static void emitter_create_mesh(emitter_t *emitter);
 static void emitter_emit(emitter_t *emitter, uint16_t count);
-static vec3_t emitter_randomize_position(emitter_t *emitter);
+static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos, vec3_t *vel);
 static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle);
 static int emitter_sort_particles(const void *p1, const void *p2);
 
@@ -29,10 +29,11 @@ emitter_t *emitter_create(object_t *parent)
 	NEW(emitter_t, emitter);
 
 	emitter->parent = parent;
-	emitter->shape_type = SHAPE_POINT;
-	emitter->shape = shape_point(vec3_zero());
+	emitter->shape = shape_circle(vec3_zero(), 0);
 	emitter->life.min = 1;
 	emitter->life.max = 1;
+	emitter->speed.min = 1;
+	emitter->speed.max = 1;
 	emitter->start_colour.min = COL_WHITE;
 	emitter->start_colour.max = COL_WHITE;
 	emitter->end_colour.min = COL_WHITE;
@@ -236,10 +237,9 @@ void emitter_stop(emitter_t *emitter)
 	emitter->is_emitting = false;
 }
 
-void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const emit_shape_t shape)
+void emitter_set_emit_shape(emitter_t *emitter, const emit_shape_t shape)
 {
 	if (emitter != NULL) {
-		emitter->shape_type = type;
 		emitter->shape = shape;
 	}
 }
@@ -304,11 +304,11 @@ void emitter_set_particle_life_time(emitter_t *emitter, float min, float max)
 	}
 }
 
-void emitter_set_particle_velocity(emitter_t *emitter, vec3_t min, vec3_t max)
+void emitter_set_particle_speed(emitter_t *emitter, float min, float max)
 {
 	if (emitter != NULL) {
-		emitter->velocity.min = min;
-		emitter->velocity.max = max;
+		emitter->speed.min = min;
+		emitter->speed.max = max;
 	}
 }
 
@@ -504,14 +504,14 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			emitter->particles[i].emit_position = emitter->world_position;
 
 			// Randomize particle details.
+			emitter_randomize_position_velocity(
+				emitter,
+				&emitter->particles[i].position,
+				&emitter->particles[i].velocity
+			);
+
 			emitter->particles[i].life =
 				randomf(emitter->life.min, emitter->life.max);
-
-			emitter->particles[i].position =
-				emitter_randomize_position(emitter);
-
-			emitter->particles[i].velocity =
-				randomv(emitter->velocity.min, emitter->velocity.max);
 
 			emitter->particles[i].acceleration =
 				randomv(emitter->acceleration.min, emitter->acceleration.max);
@@ -539,34 +539,54 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 	}
 }
 
-static vec3_t emitter_randomize_position(emitter_t *emitter)
+static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos, vec3_t *vel)
 {
-	float r, t;
+	vec3_t position;
+	vec3_t direction;
+	float radius;
+	float speed = randomf(emitter->speed.min, emitter->speed.max); // Randomize speed
 
-	switch (emitter->shape_type) {
-
-		case SHAPE_POINT:
-			return emitter->shape.point.centre;
+	switch (emitter->shape.type) {
 
 		case SHAPE_CIRCLE:
-			r = randomf(0, emitter->shape.circle.radius); // Randomize a distance from the centre
-			t = randomf(0, 2 * PI); // Randomize an angle
+			position = random_point_on_shpere(); // Randomize a point on a unit sphere
+			radius = randomf(0, emitter->shape.circle.radius); // Randomize a radius
 
-			return vector3(
-				emitter->shape.circle.centre.x + r * cosf(t),
-				emitter->shape.circle.centre.y + r * sinf(t),
-				emitter->shape.circle.centre.z
+			*pos = vector3(
+				emitter->shape.position.x + radius * position.x,
+				emitter->shape.position.y + radius * position.y,
+				emitter->shape.position.z + radius * position.z
 			);
+
+			*vel = vec3_multiply(position, speed);
+			break;
 
 		case SHAPE_BOX:
-			return vector3(
-				randomf(emitter->shape.box.min.x, emitter->shape.box.max.x),
-				randomf(emitter->shape.box.min.y, emitter->shape.box.max.y),
-				randomf(emitter->shape.box.min.z, emitter->shape.box.max.z)
+			*pos = vector3(
+				emitter->shape.position.x + emitter->shape.box.extents.x * randomf(-1.0f, 1.0f),
+				emitter->shape.position.y + emitter->shape.box.extents.y * randomf(-1.0f, 1.0f),
+				emitter->shape.position.z + emitter->shape.box.extents.z * randomf(-1.0f, 1.0f)
 			);
 
-		default:
-			return vec3_zero();
+			// Box shaped emitter always emits forward.
+			direction = obj_get_forward_vector(emitter->parent);
+			*vel = vec3_multiply(direction, speed);
+			break;
+
+		case SHAPE_CONE:
+			position = random_point_on_cone(DEG_TO_RAD(emitter->shape.cone.angle));
+			radius = emitter->shape.cone.radius;
+			radius *= randomf(1 - CLAMP01(emitter->shape.cone.emit_volume), 1);
+
+			*pos = vector3(
+				emitter->shape.position.x + radius * position.x,
+				emitter->shape.position.y + radius * position.y,
+				emitter->shape.position.z + radius * position.z
+			);
+
+			direction = vec3_normalized(position);
+			*vel = vec3_multiply(direction, speed);
+			break;
 	}
 }
 

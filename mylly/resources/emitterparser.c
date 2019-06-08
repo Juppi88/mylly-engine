@@ -115,8 +115,7 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 	char sprite_name[100] = { 0 };
 	int token = *next_token;
 
-	emit_shape_t shape = shape_box(vec3_zero(), vec3_zero());
-	emit_shape_type_t shape_type = SHAPE_POINT;
+	emit_shape_t shape = shape_circle(vec3_zero(), 0);
 
 	for (; token < parser->parser.num_tokens; ++token) {
 
@@ -226,19 +225,19 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 			);
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "velocity_min", JSMN_ARRAY)) {
+		else if (res_parser_field_equals(&parser->parser, token, "speed_min", JSMN_PRIMITIVE)) {
 
-			emitter_set_particle_velocity(emitter,
-				res_parser_get_vector(&parser->parser, (++token, &token)),
-				emitter->velocity.max
+			emitter_set_particle_speed(emitter,
+				res_parser_get_float(&parser->parser, ++token),
+				emitter->speed.max
 			);
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "velocity_max", JSMN_ARRAY)) {
+		else if (res_parser_field_equals(&parser->parser, token, "speed_max", JSMN_PRIMITIVE)) {
 
-			emitter_set_particle_velocity(emitter,
-				emitter->velocity.min,
-				res_parser_get_vector(&parser->parser, (++token, &token))
+			emitter_set_particle_speed(emitter,
+				emitter->speed.min,
+				res_parser_get_float(&parser->parser, ++token)
 			);
 		}
 
@@ -290,27 +289,39 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 			);
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "emit_centre", JSMN_ARRAY)) {
+		else if (res_parser_field_equals(&parser->parser, token, "emit_position", JSMN_ARRAY)) {
 
-			shape.point.centre = res_parser_get_vector(&parser->parser, (++token, &token));
+			shape.position = res_parser_get_vector(&parser->parser, (++token, &token));
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "emit_radius", JSMN_PRIMITIVE)) {
+		else if (res_parser_field_equals(&parser->parser, token, "emit_circle_radius", JSMN_PRIMITIVE)) {
 
+			shape.type = SHAPE_CIRCLE;
 			shape.circle.radius = res_parser_get_float(&parser->parser, ++token);
-			shape_type = (shape.circle.radius > 0 ? SHAPE_CIRCLE : SHAPE_POINT);
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "emit_box_min", JSMN_ARRAY)) {
+		else if (res_parser_field_equals(&parser->parser, token, "emit_box_extents", JSMN_ARRAY)) {
 
-			shape.box.min = res_parser_get_vector(&parser->parser, (++token, &token));
-			shape_type = SHAPE_BOX;
+			shape.type = SHAPE_BOX;
+			shape.box.extents = res_parser_get_vector(&parser->parser, (++token, &token));
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "emit_box_max", JSMN_ARRAY)) {
+		else if (res_parser_field_equals(&parser->parser, token, "emit_cone_angle", JSMN_PRIMITIVE)) {
 
-			shape.box.max = res_parser_get_vector(&parser->parser, (++token, &token));
-			shape_type = SHAPE_BOX;
+			shape.type = SHAPE_CONE;
+			shape.cone.angle = res_parser_get_float(&parser->parser, ++token);
+		}
+
+		else if (res_parser_field_equals(&parser->parser, token, "emit_cone_radius", JSMN_PRIMITIVE)) {
+
+			shape.type = SHAPE_CONE;
+			shape.cone.radius = res_parser_get_float(&parser->parser, ++token);
+		}
+
+		else if (res_parser_field_equals(&parser->parser, token, "emit_cone_volume", JSMN_PRIMITIVE)) {
+
+			shape.type = SHAPE_CONE;
+			shape.cone.emit_volume = res_parser_get_float(&parser->parser, ++token);
 		}
 
 		else {
@@ -325,12 +336,8 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 		}
 	}
 
-	// TODO: Validate everything!
-	// Do it in emitter setters
-	// Add setters for max particles, emit rate etc
-
 	// Set emit shape.
-	emitter_set_emit_shape(emitter, shape_type, shape);
+	emitter_set_emit_shape(emitter, shape);
 
 	*next_token = token;
 	return true;

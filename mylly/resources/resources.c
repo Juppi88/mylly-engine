@@ -1316,8 +1316,6 @@ static void res_load_emitter(const char *file_name)
 		emitter->resource.index = arr_last_index(emitters);
 		emitter->resource.is_loaded = true;
 
-		printf("Pushaan emitterin %s\n", emitter->resource.name);
-		
 		arr_push(emitters, emitter);
 	}
 

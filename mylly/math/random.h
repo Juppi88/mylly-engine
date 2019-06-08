@@ -46,6 +46,9 @@ static INLINE colour_t randomc(const colour_t a, const colour_t b)
 	);
 }
 
+vec3_t random_point_on_shpere(void);
+vec3_t random_point_on_cone(float angle);
+
 // -------------------------------------------------------------------------------------------------
 
 END_DECLARATIONS;

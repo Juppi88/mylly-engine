@@ -32,25 +32,39 @@ typedef struct particle_t {
 // Type of shape to emit particles from
 typedef enum {
 
-	SHAPE_POINT,
 	SHAPE_CIRCLE,
-	SHAPE_BOX
+	SHAPE_BOX,
+	SHAPE_CONE,
 
 } emit_shape_type_t;
 
 // Emitter shape data
-typedef union emit_shape_t {
+typedef struct emit_shape_t {
 
-	struct { vec3_t centre; } point;
-	struct { vec3_t centre; float radius; } circle;
-	struct { vec3_t min, max; } box;
+	emit_shape_type_t type; // Type of shape
+	vec3_t position; // Offset from the emitter's base position
+
+	union {
+		struct { float radius; } circle;
+		struct { vec3_t extents; } box;
+		struct {
+			float angle; // Angle of the cone at the centre
+			float radius; // Maximum distance from the centre particles emit from
+			float emit_volume; // Percentage of the volume emitting particles, 0 = edge, 1 = all
+		} cone;
+	};
 
 } emit_shape_t;
 
 // Macros to initialize the shape struct above
-#define shape_point(c) (emit_shape_t){ .point = { .centre = c } }
-#define shape_circle(c, r) (emit_shape_t){ .circle = { .centre = c, .radius = r } }
-#define shape_box(low, high) (emit_shape_t){ .box = { .min = low, .max = high } }
+#define shape_circle(pos, r) (emit_shape_t){\
+	.type = SHAPE_CIRCLE, .position = (pos), .circle = { .radius = (r) } }
+
+#define shape_box(pos, ext) (emit_shape_t){\
+	.type = SHAPE_BOX, .position = (pos), .box = { .extents = (ext) } }
+
+#define shape_cone(pos, angle, r, vol) (emit_shape_t){ .type = SHAPE_CONE, .position = (pos),\
+	.cone = { .angle = (angle), .radius = (r), .emit_volume = (vol) } }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -81,12 +95,11 @@ typedef struct emitter_t {
 	vec3_t camera_position; // Cached position of the camera rendering the particles
 
 	// The shape of the particle emitter.
-	emit_shape_type_t shape_type;
 	emit_shape_t shape;
 
 	// Particle system data
 	struct { float min, max; } life; // Particle life time in seconds
-	struct { vec3_t min, max; } velocity; // Limits for particle start velocity
+	struct { float min, max; } speed; // Particle start speed in units per second
 	struct { vec3_t min, max; } acceleration; // Limits for particle acceleration
 	struct { colour_t min, max; } start_colour; // Particle start colour
 	struct { colour_t min, max; } end_colour; // Particle end colour
@@ -109,7 +122,7 @@ void emitter_process(emitter_t *emitter);
 void emitter_start(emitter_t *emitter);
 void emitter_stop(emitter_t *emitter);
 
-void emitter_set_emit_shape(emitter_t *emitter, emit_shape_type_t type, const emit_shape_t shape);
+void emitter_set_emit_shape(emitter_t *emitter, const emit_shape_t shape);
 void emitter_set_world_space(emitter_t *emitter, bool is_world_space);
 void emitter_set_max_particles(emitter_t *emitter, int num_particles);
 void emitter_set_initial_burst(emitter_t *emitter, int num_particles);
@@ -118,7 +131,7 @@ void emitter_set_emit_rate(emitter_t *emitter, float particles_per_sec);
 
 void emitter_set_particle_sprite(emitter_t *emitter, sprite_t *sprite);
 void emitter_set_particle_life_time(emitter_t *emitter, float min, float max);
-void emitter_set_particle_velocity(emitter_t *emitter, vec3_t min, vec3_t max);
+void emitter_set_particle_speed(emitter_t *emitter, float min, float max);
 void emitter_set_particle_acceleration(emitter_t *emitter, vec3_t min, vec3_t max);
 void emitter_set_particle_start_colour(emitter_t *emitter, colour_t min, colour_t max);
 void emitter_set_particle_end_colour(emitter_t *emitter, colour_t min, colour_t max);
