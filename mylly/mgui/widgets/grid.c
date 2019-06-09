@@ -66,6 +66,16 @@ void grid_set_item_size(widget_t *grid, vec2i_t size)
 	grid->grid.reposition = true;
 }
 
+void grid_set_max_items_per_row(widget_t *grid, uint32_t num_items)
+{
+	if (grid == NULL || grid->type != WIDGET_TYPE_GRID) {
+		return;
+	}
+
+	grid->grid.max_items_per_row = num_items;
+	grid->grid.reposition = true;
+}
+
 static void grid_process(widget_t *grid)
 {
 	if (grid == NULL || grid->type != WIDGET_TYPE_GRID) {
@@ -83,21 +93,27 @@ static void grid_process(widget_t *grid)
 	vec2i_t position = margin;
 
 	widget_t *child;
+	uint32_t num_row_items = 0, max_items = grid->grid.max_items_per_row;
 
 	list_foreach(grid->children, child) {
 
 		// Place the child item here.
 		widget_set_position(child, position);
 		widget_set_size(child, size);
+		
+		num_row_items++;
 
 		// Move the position for the next item.
 		position.x += size.x + margin.x;
 
-		// If the item would exceed the boundaries of the grid, change row.
-		if (position.x + size.x + margin.x > grid->size.x) {
+		// If the item would exceed the boundaries of the grid, change row. Change row also if there
+		// is a maximum number of items per row.
+		if (position.x + size.x + margin.x > grid->size.x ||
+			(max_items != 0 && num_row_items >= max_items)) {
 
 			position.x = margin.x;
 			position.y += size.y + margin.y;
+			num_row_items = 0;
 		}
 	}
 

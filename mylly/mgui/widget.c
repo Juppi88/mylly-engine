@@ -6,6 +6,7 @@
 #include "resources/resources.h"
 #include "scene/sprite.h"
 #include "io/log.h"
+#include "collections/array.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -61,6 +62,8 @@ widget_t *widget_create(widget_t *parent)
 
 		// Attach the widget to its new parent.
 		list_push(parent->children, widget);
+		parent->num_children++;
+		
 		widget->parent = parent;
 
 		// Update the widget's position.
@@ -146,23 +149,6 @@ void widget_process(widget_t *widget)
 		}
 	}
 
-	// Actual rendering is done in the render system - just report that this mesh needs to be
-	// rendered during this frame.
-	if (widget->mesh != NULL &&
-		widget->sprite != NULL) {
-
-		rsys_render_mesh(widget->mesh, true);
-	}
-
-	// Render text object.
-	if (widget->text != NULL &&
-		widget->text->mesh != NULL &&
-		widget->text->mesh->num_indices != 0 &&
-		widget->text->buffer_length != 0) {
-
-		rsys_render_mesh(widget->text->mesh, true);
-	}
-
 	// Process children.
 	widget_t *child;
 
@@ -193,6 +179,53 @@ void widget_process(widget_t *widget)
 	widget->have_child_boundaries_changed = false;
 }
 
+void widget_render(widget_t *widget)
+{
+	if (widget == NULL || (widget->state & WIDGET_STATE_INVISIBLE)) {
+		return;
+	}
+
+	if (widget->mesh != NULL &&
+		widget->sprite != NULL) {
+
+		rsys_render_mesh(widget->mesh, true);
+	}
+
+	// Render text object as well.
+	if (widget->text != NULL &&
+		widget->text->mesh != NULL &&
+		widget->text->mesh->num_indices != 0 &&
+		widget->text->buffer_length != 0) {
+
+		rsys_render_mesh(widget->text->mesh, true);
+	}
+
+	// Render children.
+	widget_t *child;
+	arr_t(widget_t*) delayed_renders = arr_initializer;
+
+	list_foreach(widget->children, child) {
+
+		// Add widgers requiring delayed rendering to a temporary list.
+		if (child->state & WIDGET_STATE_DELAYED_RENDER) {
+			arr_push(delayed_renders, child);
+		}
+		else {
+			widget_render(child);
+		}
+	}
+
+	// Render child objects with delayed rendering.
+	if (delayed_renders.count != 0) {
+
+		arr_foreach(delayed_renders, child) {
+			widget_render(child);
+		}
+
+		arr_clear(delayed_renders);
+	}
+}
+
 void widget_add_child(widget_t *widget, widget_t *child)
 {
 	if (widget == NULL || child == NULL) {
@@ -209,6 +242,8 @@ void widget_add_child(widget_t *widget, widget_t *child)
 
 	// Attach the child to its new parent.
 	list_push(widget->children, child);
+	widget->num_children++;
+
 	child->parent = widget;
 
 	// Update widget position.
@@ -223,6 +258,7 @@ void widget_remove_from_parent(widget_t *widget)
 
 	// Remove the widget from the parent.
 	list_remove(widget->parent->children, widget);
+	widget->num_children--;
 
 	// Create a new layer for the widget.
 	widget->parent = NULL;

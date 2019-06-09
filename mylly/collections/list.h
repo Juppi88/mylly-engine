@@ -53,6 +53,21 @@
 	}\
 	(item)->__entry.list_reference = &(list);
 
+#define list_push_front(list, item)\
+	if ((list).first == NULL) {\
+		(list).first = (item);\
+		(list).last = (item);\
+		(item)->__entry.previous = NULL;\
+		(item)->__entry.next = NULL;\
+	}\
+	else {\
+		(list).first->__entry.previous = (item);\
+		(item)->__entry.next = (list).first;\
+		(item)->__entry.previous = NULL;\
+		(list).first = (item);\
+	}\
+	(item)->__entry.list_reference = &(list);
+
 #define list_remove(list, item)\
 	if (list_contains((list), (item))) {\
 		if ((item) == (list).first)\
@@ -90,5 +105,15 @@
 
 #define list_previous(item)\
 	(item)->__entry.previous
+
+#define list_move_front(list, item) {\
+	list_remove(list, item);\
+	list_push_front(list, item);\
+}
+
+#define list_move_back(list, item) {\
+	list_remove(list, item);\
+	list_push(list, item);\
+}
 
 #endif

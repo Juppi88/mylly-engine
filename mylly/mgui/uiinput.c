@@ -156,7 +156,6 @@ static void mgui_widget_keyboard_event(input_event_t type, uint32_t key)
 static void mgui_widget_mouse_event(input_event_t type, int16_t x, int16_t y,
                                     mouse_button_t button, mouse_wheel_t wheel)
 {
-
 	// Relay mouse event to the focused widget if it has a custom override event handler.
 	widget_t *widget = mgui_get_focused_widget();
 

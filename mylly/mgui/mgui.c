@@ -45,7 +45,9 @@ void mgui_process(void)
 	// Process widgets and report visible ones to the render system for rendering.
 	// This is a recursive call and will process all child widgets automatically.
 	list_foreach(widgets, widget) {
+
 		widget_process(widget);
+		widget_render(widget);
 	}
 }
 
@@ -66,8 +68,19 @@ void mgui_remove_widget_layer(widget_t *widget)
 
 widget_t *mgui_get_widget_at_position(vec2i_t point)
 {
-	widget_t *widget, *hit;
+	widget_t *widget = mgui_get_focused_widget(), *hit;
 
+	// Some widgets consume input events as if they were on top when they're focused.
+	if (widget != NULL && widget->state & WIDGET_STATE_FOCUS_AS_TOP) {
+
+		hit = widget_get_child_at_position(mgui_get_focused_widget(), point);
+
+		if (hit != NULL) {
+			return hit;
+		}
+	}
+
+	// Then test all layers in reversed add order.
 	list_foreach_reverse(widgets, widget) {
 
 		hit = widget_get_child_at_position(widget, point);

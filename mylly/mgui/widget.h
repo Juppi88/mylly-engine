@@ -6,6 +6,7 @@
 #include "mgui/widgets/button.h"
 #include "mgui/widgets/checkbox.h"
 #include "mgui/widgets/colourpicker.h"
+#include "mgui/widgets/dropdown.h"
 #include "mgui/widgets/grid.h"
 #include "mgui/widgets/inputbox.h"
 #include "mgui/widgets/label.h"
@@ -34,6 +35,7 @@ typedef enum widget_type_t {
 	WIDGET_TYPE_BUTTON,
 	WIDGET_TYPE_CHECKBOX,
 	WIDGET_TYPE_COLOURPICKER,
+	WIDGET_TYPE_DROPDOWN,
 	WIDGET_TYPE_GRID,
 	WIDGET_TYPE_INPUTBOX,
 	WIDGET_TYPE_LABEL,
@@ -59,6 +61,8 @@ typedef enum widget_state_t {
 	WIDGET_STATE_CONSUME_CHILD_PRESSES = 0x100, // Consume child clicks (i.e. label of a checkbox)
 	WIDGET_STATE_HAS_MESH = 0x200, // Widget has a mesh i.e. it is visible
 	WIDGET_STATE_EXT_MESH = 0x400, // Use an extended mesh with space for an additional sprite
+	WIDGET_STATE_DELAYED_RENDER = 0x800, // Render the widget after all of its siblings
+	WIDGET_STATE_FOCUS_AS_TOP = 0x1000, // The widget consumes input events as if it on top
 
 } widget_state_t;
 
@@ -148,8 +152,10 @@ typedef void (*widget_input_handler_t)(widget_event_t *event);
 typedef struct widget_t {
 
 	list_entry(widget_t);
+	
 	struct widget_t *parent;
 	list_t(widget_t) children;
+	uint32_t num_children;
 
 	vec2i_t position;
 	vec2i_t world_position;
@@ -197,6 +203,7 @@ typedef struct widget_t {
 		checkbox_t checkbox;
 		colourpicker_t colour_picker;
 		grid_t grid;
+		dropdown_t dropdown;
 		inputbox_t inputbox;
 		label_t label;
 		panel_t panel;
@@ -212,6 +219,7 @@ BEGIN_DECLARATIONS;
 widget_t *widget_create(widget_t *parent);
 void widget_destroy(widget_t *widget);
 void widget_process(widget_t *widget);
+void widget_render(widget_t *widget);
 
 void widget_add_child(widget_t *widget, widget_t *child);
 void widget_remove_from_parent(widget_t *widget);
