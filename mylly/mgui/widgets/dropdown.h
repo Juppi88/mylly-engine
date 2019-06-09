@@ -48,6 +48,8 @@ void dropdown_add_option(widget_t *dropdown, const char *option, void *data);
 
 void dropdown_set_selected_handler(widget_t *dropdown, on_dropdown_item_selected_t handler);
 void dropdown_get_selected_option(widget_t *dropdown, const char **option, void **data);
+void dropdown_select_option(widget_t *dropdown, const char *option);
+void dropdown_select_option_by_data(widget_t *dropdown, void *data);
 
 END_DECLARATIONS;
 

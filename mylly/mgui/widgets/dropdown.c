@@ -16,7 +16,7 @@ static void on_dropdown_pressed(widget_t *dropdown, bool pressed, int16_t x, int
 static void on_dropdown_input_event(widget_event_t *event);
 static void on_dropdown_option_input_event(widget_event_t *event);
 static void dropdown_toggle_list(widget_t *dropdown, bool display);
-static void dropdown_select_option(widget_t *dropdown, widget_t *option);
+static void dropdown_select_option_label(widget_t *dropdown, widget_t *option);
 static widget_t *dropdown_get_option_under_cursor(widget_t *dropdown, int16_t x, int16_t y);
 
 // -------------------------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ void dropdown_add_option(widget_t *dropdown, const char *option, void *data)
 
 	// Select the first option by default.
 	if (dropdown->dropdown.grid->num_children == 1) {
-		dropdown_select_option(dropdown, option_label);
+		dropdown_select_option_label(dropdown, option_label);
 	}
 }
 
@@ -198,6 +198,40 @@ void dropdown_get_selected_option(widget_t *dropdown, const char **option, void 
 		// No option selected, clear return variables.
 		*option = NULL;
 		*data = NULL;
+	}
+}
+
+void dropdown_select_option(widget_t *dropdown, const char *option)
+{
+	if (dropdown == NULL || dropdown->type != WIDGET_TYPE_DROPDOWN) {
+		return;
+	}
+
+	widget_t *option_label;
+	list_foreach(dropdown->dropdown.grid->children, option_label) {
+
+		if (string_equals(option, option_label->text->buffer)) {
+
+			dropdown_select_option_label(dropdown, option_label);
+			return;
+		}
+	}
+}
+
+void dropdown_select_option_by_data(widget_t *dropdown, void *data)
+{
+	if (dropdown == NULL || dropdown->type != WIDGET_TYPE_DROPDOWN) {
+		return;
+	}
+
+	widget_t *option_label;
+	list_foreach(dropdown->dropdown.grid->children, option_label) {
+
+		if (data == option_label->user_context) {
+
+			dropdown_select_option_label(dropdown, option_label);
+			return;
+		}
 	}
 }
 
@@ -329,7 +363,7 @@ static void on_dropdown_option_input_event(widget_event_t *event)
 	if (event->type == INPUT_MOUSE_BUTTON_DOWN) {
 
 		widget_t *dropdown = event->widget->parent->parent->parent; // This is a bit ugly
-		dropdown_select_option(dropdown, event->widget);
+		dropdown_select_option_label(dropdown, event->widget);
 	}
 }
 
@@ -354,7 +388,7 @@ static void dropdown_toggle_list(widget_t *dropdown, bool display)
 	dropdown->state |= WIDGET_STATE_DELAYED_RENDER;
 }
 
-static void dropdown_select_option(widget_t *dropdown, widget_t *option)
+static void dropdown_select_option_label(widget_t *dropdown, widget_t *option)
 {
 	if (dropdown == NULL || option == NULL) {
 		return;

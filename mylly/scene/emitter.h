@@ -5,6 +5,7 @@
 #include "core/defines.h"
 #include "renderer/vertex.h"
 #include "resources/resource.h"
+#include "math/math.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -48,23 +49,50 @@ typedef struct emit_shape_t {
 		struct { float radius; } circle;
 		struct { vec3_t extents; } box;
 		struct {
-			float angle; // Angle of the cone at the centre
 			float radius; // Maximum distance from the centre particles emit from
+			float angle; // Angle of the cone at the centre
 			float emit_volume; // Percentage of the volume emitting particles, 0 = edge, 1 = all
 		} cone;
 	};
 
 } emit_shape_t;
 
-// Macros to initialize the shape struct above
-#define shape_circle(pos, r) (emit_shape_t){\
-	.type = SHAPE_CIRCLE, .position = (pos), .circle = { .radius = (r) } }
+// -------------------------------------------------------------------------------------------------
 
-#define shape_box(pos, ext) (emit_shape_t){\
-	.type = SHAPE_BOX, .position = (pos), .box = { .extents = (ext) } }
+static inline emit_shape_t shape_circle(vec3_t pos, float radius)
+{
+	emit_shape_t shape;
 
-#define shape_cone(pos, angle, r, vol) (emit_shape_t){ .type = SHAPE_CONE, .position = (pos),\
-	.cone = { .angle = (angle), .radius = (r), .emit_volume = (vol) } }
+	shape.position = pos;
+	shape.type = SHAPE_CIRCLE;
+	shape.circle.radius = radius;
+
+	return shape;
+}
+
+static inline emit_shape_t shape_box(vec3_t pos, vec3_t extents)
+{
+	emit_shape_t shape;
+
+	shape.position = pos;
+	shape.type = SHAPE_BOX;
+	shape.box.extents = extents;
+
+	return shape;
+}
+
+static inline emit_shape_t shape_cone(vec3_t pos, float angle, float radius, float volume)
+{
+	emit_shape_t shape;
+
+	shape.position = pos;
+	shape.type = SHAPE_CONE;
+	shape.cone.angle = angle;
+	shape.cone.radius = radius;
+	shape.cone.emit_volume = CLAMP01(volume);
+
+	return shape;
+}
 
 // -------------------------------------------------------------------------------------------------
 
