@@ -372,6 +372,19 @@ sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
 	return sprite;
 }
 
+void res_foreach_emitter(void (*method)(emitter_t *))
+{
+	if (method == NULL) {
+		return;
+	}
+
+	emitter_t *emitter;
+
+	arr_foreach(emitters, emitter) {
+		method(emitter);
+	}
+}
+
 static void res_load_all_in_directory(const char *path, const char *extension, res_type_t type)
 {
 	switch (type) {

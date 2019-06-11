@@ -218,20 +218,20 @@ animator_t *obj_add_animator(object_t *obj)
 	return obj->animator;
 }
 
-emitter_t *obj_add_emitter(object_t *obj)
+emitter_t *obj_add_emitter(object_t *obj, const emitter_t *emitter_template)
 {
 	if (obj == NULL) {
 		return NULL;
 	}
 
-	// Allow only one particle emitter per object.
+	// Allow only one particle emitter per object for now.
 	if (obj->emitter != NULL) {
 
 		log_warning("Scene", "Object already has an emitter attached to it.");
 		return obj->emitter;
 	}
 
-	obj->emitter = emitter_create(obj);
+	obj->emitter = emitter_create(obj, emitter_template);
 	return obj->emitter;
 }
 

@@ -34,6 +34,7 @@ typedef struct particle_t {
 typedef enum {
 
 	SHAPE_CIRCLE,
+	SHAPE_SPHERE,
 	SHAPE_BOX,
 	SHAPE_CONE,
 
@@ -47,6 +48,7 @@ typedef struct emit_shape_t {
 
 	union {
 		struct { float radius; } circle;
+		struct { float radius; } sphere;
 		struct { vec3_t extents; } box;
 		struct {
 			float radius; // Maximum distance from the centre particles emit from
@@ -66,6 +68,17 @@ static inline emit_shape_t shape_circle(vec3_t pos, float radius)
 	shape.position = pos;
 	shape.type = SHAPE_CIRCLE;
 	shape.circle.radius = radius;
+
+	return shape;
+}
+
+static inline emit_shape_t shape_sphere(vec3_t pos, float radius)
+{
+	emit_shape_t shape;
+
+	shape.position = pos;
+	shape.type = SHAPE_SPHERE;
+	shape.sphere.radius = radius;
 
 	return shape;
 }
@@ -141,7 +154,7 @@ typedef struct emitter_t {
 
 BEGIN_DECLARATIONS;
 
-emitter_t *emitter_create(object_t *parent);
+emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template);
 emitter_t *emitter_create_from_resource(const char *name, const char *path); // For internal use
 
 void emitter_destroy(emitter_t *emitter);

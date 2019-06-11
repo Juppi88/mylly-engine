@@ -68,7 +68,7 @@ void obj_process(object_t *obj);
 camera_t *obj_add_camera(object_t *object);
 light_t *obj_add_light(object_t *object);
 animator_t *obj_add_animator(object_t *object);
-emitter_t *obj_add_emitter(object_t *object);
+emitter_t *obj_add_emitter(object_t *object, const emitter_t *emitter_template);
 ai_t *obj_add_ai(object_t *object);
 void obj_set_model(object_t *obj, model_t *model);
 void obj_set_sprite(object_t *obj, sprite_t *sprite);

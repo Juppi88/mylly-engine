@@ -28,6 +28,9 @@ emitter_t *res_get_emitter(const char *name);
 
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name);
 
+// Methods useful for i.e. collecting a list of available resources.
+void res_foreach_emitter(void (*method)(emitter_t *));
+
 END_DECLARATIONS;
 
 #endif

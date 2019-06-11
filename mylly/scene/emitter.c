@@ -24,31 +24,65 @@ static int emitter_sort_particles(const void *p1, const void *p2);
 
 // -------------------------------------------------------------------------------------------------
 
-emitter_t *emitter_create(object_t *parent)
+emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template)
 {
 	NEW(emitter_t, emitter);
 
 	emitter->parent = parent;
-	emitter->shape = shape_circle(vec3_zero(), 0);
-	emitter->life.min = 1;
-	emitter->life.max = 1;
-	emitter->speed.min = 1;
-	emitter->speed.max = 1;
-	emitter->start_colour.min = COL_WHITE;
-	emitter->start_colour.max = COL_WHITE;
-	emitter->end_colour.min = COL_WHITE;
-	emitter->end_colour.max = COL_WHITE;
-	emitter->start_size.min = 1;
-	emitter->start_size.max = 1;
-	emitter->end_size.min = 1;
-	emitter->end_size.max = 1;
+
+	if (emitter_template == NULL) {
+
+		// Empty emitter.
+		emitter->shape = shape_circle(vec3_zero(), 0);
+		emitter->life.min = 1;
+		emitter->life.max = 1;
+		emitter->speed.min = 1;
+		emitter->speed.max = 1;
+		emitter->start_colour.min = COL_WHITE;
+		emitter->start_colour.max = COL_WHITE;
+		emitter->end_colour.min = COL_WHITE;
+		emitter->end_colour.max = COL_WHITE;
+		emitter->start_size.min = 1;
+		emitter->start_size.max = 1;
+		emitter->end_size.min = 1;
+		emitter->end_size.max = 1;
+	}
+	else {
+
+		// Copy emitter values from a template.
+		emitter->is_world_space = emitter_template->is_world_space;
+		emitter->sprite = emitter_template->sprite;
+
+		emitter->max_particles = emitter_template->max_particles;
+		emitter->emit_duration = emitter_template->emit_duration;
+		emitter->emit_rate = emitter_template->emit_rate;
+		emitter->initial_burst = emitter_template->initial_burst;
+
+		emitter->shape = emitter_template->shape;
+
+		emitter->life = emitter_template->life;
+		emitter->speed = emitter_template->speed;
+		emitter->acceleration = emitter_template->acceleration;
+		emitter->start_colour = emitter_template->start_colour;
+		emitter->end_colour = emitter_template->end_colour;
+		emitter->start_size = emitter_template->start_size;
+		emitter->end_size = emitter_template->end_size;
+		emitter->rotation_speed = emitter_template->rotation_speed;
+
+		emitter->resource.res_name = string_duplicate(emitter_template->resource.name);
+		emitter->resource.name = emitter->resource.res_name;
+
+		if (emitter_template->resource.path != NULL) {
+			emitter->resource.path = string_duplicate(emitter_template->resource.path);
+		}
+	}
 
 	return emitter;
 }
 
 emitter_t *emitter_create_from_resource(const char *name, const char *path)
 {
-	emitter_t *emitter = emitter_create(NULL);
+	emitter_t *emitter = emitter_create(NULL, NULL);
 
 	if (emitter != NULL) {
 
@@ -549,8 +583,21 @@ static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos,
 	switch (emitter->shape.type) {
 
 		case SHAPE_CIRCLE:
-			position = random_point_on_shpere(); // Randomize a point on a unit sphere
+			position = random_point_on_circle(); // Randomize a point on a unit circle
 			radius = randomf(0, emitter->shape.circle.radius); // Randomize a radius
+
+			*pos = vector3(
+				emitter->shape.position.x + radius * position.x,
+				emitter->shape.position.y + radius * position.y,
+				emitter->shape.position.z
+			);
+
+			*vel = vec3_multiply(position, speed);
+			break;
+
+		case SHAPE_SPHERE:
+			position = random_point_on_shpere(); // Randomize a point on a unit sphere
+			radius = randomf(0, emitter->shape.sphere.radius); // Randomize a radius
 
 			*pos = vector3(
 				emitter->shape.position.x + radius * position.x,

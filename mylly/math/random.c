@@ -15,6 +15,17 @@ vec3_t random_point_on_shpere(void)
 	);
 }
 
+vec3_t random_point_on_circle(void)
+{
+	float theta = 2 * PI * randomf(0, 1);
+
+	return vec3(
+		cosf(theta),
+		sinf(theta),
+		0
+	);
+}
+
 vec3_t random_point_on_cone(float angle)
 {
 	float theta = 2 * PI * randomf(0, 1);

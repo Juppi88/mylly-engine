@@ -300,6 +300,12 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 			shape.circle.radius = res_parser_get_float(&parser->parser, ++token);
 		}
 
+		else if (res_parser_field_equals(&parser->parser, token, "emit_sphere_radius", JSMN_PRIMITIVE)) {
+
+			shape.type = SHAPE_SPHERE;
+			shape.sphere.radius = res_parser_get_float(&parser->parser, ++token);
+		}
+
 		else if (res_parser_field_equals(&parser->parser, token, "emit_box_extents", JSMN_ARRAY)) {
 
 			shape.type = SHAPE_BOX;
