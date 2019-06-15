@@ -172,6 +172,25 @@ void dropdown_add_option(widget_t *dropdown, const char *option, void *data)
 	}
 }
 
+void dropdown_clear_options(widget_t *dropdown)
+{
+	if (dropdown == NULL || dropdown->type != WIDGET_TYPE_DROPDOWN) {
+		return;
+	}
+
+	// Deselect the current option.
+	dropdown_select_option_label(dropdown, NULL);
+
+	// Destroy all the options in this dropdown.
+	widget_t *option, *tmp;
+
+	list_foreach_safe(dropdown->dropdown.grid->children, option, tmp) {
+		widget_destroy(option);
+	}
+
+	grid_reposition(dropdown->dropdown.grid);
+}
+
 void dropdown_set_selected_handler(widget_t *dropdown, on_dropdown_item_selected_t handler)
 {
 	if (dropdown == NULL || dropdown->type != WIDGET_TYPE_DROPDOWN) {
@@ -181,24 +200,24 @@ void dropdown_set_selected_handler(widget_t *dropdown, on_dropdown_item_selected
 	dropdown->dropdown.on_selected = handler;
 }
 
-void dropdown_get_selected_option(widget_t *dropdown, const char **option, void **data)
+const char *dropdown_get_selected_option(widget_t *dropdown)
 {
 	if (dropdown == NULL || dropdown->type != WIDGET_TYPE_DROPDOWN ||
-		option == NULL || data == NULL) {
-
-		return;
+		dropdown->dropdown.selected_option == NULL) {
+		return NULL;
 	}
 
-	if (dropdown->dropdown.selected_option != NULL) {
+	return dropdown->dropdown.selected_option->text->buffer;
+}
 
-		*option = dropdown->dropdown.selected_option->text->buffer;
-		*data = dropdown->dropdown.selected_option->user_context;
+void *dropdown_get_selected_option_data(widget_t *dropdown)
+{
+	if (dropdown == NULL || dropdown->type != WIDGET_TYPE_DROPDOWN ||
+		dropdown->dropdown.selected_option == NULL) {
+		return NULL;
 	}
-	else {
-		// No option selected, clear return variables.
-		*option = NULL;
-		*data = NULL;
-	}
+
+	return dropdown->dropdown.selected_option->user_context;
 }
 
 void dropdown_select_option(widget_t *dropdown, const char *option)
@@ -390,19 +409,26 @@ static void dropdown_toggle_list(widget_t *dropdown, bool display)
 
 static void dropdown_select_option_label(widget_t *dropdown, widget_t *option)
 {
-	if (dropdown == NULL || option == NULL) {
+	if (dropdown == NULL) {
 		return;
 	}
 
-	// Show the name of the selected option on the dropdown.
-	widget_set_text_s(dropdown, option->text->buffer);
+	if (option != NULL) {
 
-	// Store selected option widget for future access.
-	dropdown->dropdown.selected_option = option;
+		// Show the name of the selected option on the dropdown.
+		widget_set_text_s(dropdown, option->text->buffer);
 
-	// If the user has provided a callback method for selection, fire it.
-	if (dropdown->dropdown.on_selected != NULL) {
-		dropdown->dropdown.on_selected(dropdown, option->text->buffer, option->user_context);
+		// Store selected option widget for future access.
+		dropdown->dropdown.selected_option = option;
+
+		// If the user has provided a callback method for selection, fire it.
+		if (dropdown->dropdown.on_selected != NULL) {
+			dropdown->dropdown.on_selected(dropdown, option->text->buffer, option->user_context);
+		}
+	}
+	else {
+		widget_set_text_s(dropdown, "");
+		dropdown->dropdown.selected_option = NULL;
 	}
 }
 

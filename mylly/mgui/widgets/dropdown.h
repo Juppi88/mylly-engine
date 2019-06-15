@@ -45,9 +45,11 @@ void dropdown_set_selection(widget_t *dropdown, sprite_t *background);
 void dropdown_set_selection_colour(widget_t *dropdown, colour_t colour);
 
 void dropdown_add_option(widget_t *dropdown, const char *option, void *data);
+void dropdown_clear_options(widget_t *dropdown);
 
 void dropdown_set_selected_handler(widget_t *dropdown, on_dropdown_item_selected_t handler);
-void dropdown_get_selected_option(widget_t *dropdown, const char **option, void **data);
+const char *dropdown_get_selected_option(widget_t *dropdown);
+void *dropdown_get_selected_option_data(widget_t *dropdown);
 void dropdown_select_option(widget_t *dropdown, const char *option);
 void dropdown_select_option_by_data(widget_t *dropdown, void *data);
 
