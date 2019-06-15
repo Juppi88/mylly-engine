@@ -3,6 +3,7 @@
 #define __EMITTER_H
 
 #include "core/defines.h"
+#include "collections/array.h"
 #include "renderer/vertex.h"
 #include "resources/resource.h"
 #include "math/math.h"
@@ -109,6 +110,49 @@ static inline emit_shape_t shape_cone(vec3_t pos, float angle, float radius, flo
 
 // -------------------------------------------------------------------------------------------------
 
+typedef enum subemitter_type_t {
+
+	SUBEMITTER_CREATE,
+	SUBEMITTER_PARTICLE_SPAWN,
+	SUBEMITTER_PARTICLE_DEATH,
+
+} subemitter_type_t;
+
+typedef struct subemitter_t {
+
+	subemitter_type_t type;
+
+	union {
+		const char *emitter_name;
+		emitter_t *emitter;
+	};
+
+} subemitter_t;
+
+// -------------------------------------------------------------------------------------------------
+
+static inline subemitter_t create_subemitter(subemitter_type_t type, emitter_t *effect)
+{
+	subemitter_t subemitter;
+
+	subemitter.type = type;
+	subemitter.emitter = effect;
+
+	return subemitter;
+}
+
+static inline subemitter_t create_subemitter_name(subemitter_type_t type, const char *effect_name)
+{
+	subemitter_t subemitter;
+
+	subemitter.type = type;
+	subemitter.emitter_name = effect_name;
+
+	return subemitter;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct emitter_t {
 
 	resource_t resource; // Resource info
@@ -117,6 +161,8 @@ typedef struct emitter_t {
 
 	bool is_active; // Set to true when the emitter has particles that are still alive
 	bool is_emitting; // Set to true when the emitter is emitting particles
+	bool emit_on_request; // This is a subemitter which only emits particles on request
+
 	bool is_world_space; // Set to true when particles are emitted in world space (as opposed to local)
 
 	sprite_t *sprite; // The particle sprite
@@ -131,6 +177,9 @@ typedef struct emitter_t {
 	float time_emitting; // Number of seconds the emitter has been emitting particles
 	float time_since_emit; // Time elapsed since a particle was emitted the last time
 	uint16_t initial_burst; // The initial burst of particles
+
+	// A list of subemitters
+	arr_t(subemitter_t) subemitters;
 
 	vec3_t world_position; // Cached world position of the emitter object
 	vec3_t camera_position; // Cached position of the camera rendering the particles
@@ -154,7 +203,7 @@ typedef struct emitter_t {
 
 BEGIN_DECLARATIONS;
 
-emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template);
+emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template, bool is_subemitter);
 emitter_t *emitter_create_from_resource(const char *name, const char *path); // For internal use
 
 void emitter_destroy(emitter_t *emitter);

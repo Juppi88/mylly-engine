@@ -77,6 +77,7 @@ static void res_load_material(const char *file_name);
 static void res_parse_material_line(char *line, size_t length, void *context);
 
 static void res_load_emitter(const char *file_name);
+static void res_load_emitter_references(emitter_t *emitter);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -200,6 +201,9 @@ void res_shutdown(void)
 	arr_foreach(emitters, emitter) {
 
 		if (emitter != NULL) {
+
+			// Clear subemitter arrays as they're references to the emitters being destroyed.
+			arr_clear(emitter->subemitters);
 
 			// TODO: Add reference counting to resources.
 			emitter_destroy(emitter);
@@ -415,6 +419,9 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 
 		case RES_EMITTER:
 			file_for_each_in_directory(path, extension, res_load_emitter);
+
+			// Load emitter references (i.e. subemitters).
+			res_foreach_emitter(res_load_emitter_references);
 			break;
 
 		default:
@@ -1335,4 +1342,28 @@ static void res_load_emitter(const char *file_name)
 	// Release the temporary parser data.
 	emitter_parser_destroy(&parser);
 	mem_free(text);
+}
+
+static void res_load_emitter_references(emitter_t *emitter)
+{
+	emitter_t *effect;
+	const char *effect_name;
+
+	for (int i = emitter->subemitters.count; i > 0; --i) {
+
+		effect_name = emitter->subemitters.items[i - 1].emitter_name;
+		effect = res_get_emitter(effect_name);
+
+		// Remove temporary effect name and replace it with an actual emitter reference.
+		DESTROY(effect_name);
+
+		if (effect != NULL) {
+			emitter->subemitters.items[i - 1].emitter = effect;
+		}
+		else {
+
+			// Remove subemitters without an actual effect.
+			arr_remove_at(emitter->subemitters, (uint32_t)i - 1);
+		}
+	}
 }

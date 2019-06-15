@@ -70,6 +70,13 @@
 	}\
 }
 
+#define arr_remove_at(arr, idx) {\
+	if ((idx) < (arr).count) {\
+		arr_splice((char **)&(arr).items, &(arr).count, &(arr).capacity,\
+			sizeof((arr).items[0]), (idx), 1);\
+	}\
+}
+
 #define arr_find_empty(arr, var) {\
 	(var) = INVALID_INDEX;\
 	for (size_t __i = 0; __i < (arr).count; ++__i) {\

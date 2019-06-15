@@ -9,6 +9,9 @@
 
 // -------------------------------------------------------------------------------------------------
 
+static bool emitter_parser_load_data(emitter_parser_t *parser, int *next_token,
+                                     emitter_t *emitter);
+
 static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_token,
                                            emitter_t *emitter);
 
@@ -45,40 +48,25 @@ bool emitter_parser_init(emitter_parser_t *parser, const char *path,
 			// Ignore version checks for now (they're for future proofing).
 			++token;
 		}
-		else if (res_parser_field_equals(&parser->parser, token, "emitters", JSMN_ARRAY)) {
+		else if (res_parser_field_equals(&parser->parser, token, "emitter", JSMN_OBJECT)) {
 
-			// TODO: Add support for subemitters!
-			if (!arr_is_empty(parser->emitters)) {
-
-				log_warning("Resources", "Multiple emitters is currently not supported "
-					" (resource file %s).", path);
-
-				return true;
-			}
-
-			// Skip the start of the array and move right on to the first subemitter.
+			// Skip the starting tokens of the object.
 			token += 2;
 
-			// Loop for as long as there are (emitter) objects in the array.
-			while (res_parser_is_object(&parser->parser, token)) {
+			// Create an empty emitter into which to load the parsed data.
+			char name[260];
+			string_get_file_name_without_extension(path, name, sizeof(name));
 
-				++token;
+			emitter_t *emitter = emitter_create_from_resource(name, path);
 
-				// Create an empty emitter into which to load the parsed data.
-				char name[260];
-				string_get_file_name_without_extension(path, name, sizeof(name));
+			if (!emitter_parser_load_data(parser, &token, emitter)) {
 
-				emitter_t *emitter = emitter_create_from_resource(name, path);
-
-				if (!emitter_parser_load_subemitter(parser, &token, emitter)) {
-
-					// If parsing the emitter obquitject failed, destroy it.
-					emitter_destroy(emitter);
-				}
-				else {
-					// Add the emitter to the parsed list.
-					arr_push(parser->emitters, emitter);
-				}
+				// If parsing the emitter obquitject failed, destroy it.
+				emitter_destroy(emitter);
+			}
+			else {
+				// Add the emitter to the parsed list.
+				arr_push(parser->emitters, emitter);
 			}
 		}
 		else {
@@ -109,7 +97,7 @@ void emitter_parser_end_file(emitter_parser_t *parser)
 	UNUSED(parser);
 }
 
-static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_token,
+static bool emitter_parser_load_data(emitter_parser_t *parser, int *next_token,
                                            emitter_t *emitter)
 {
 	char sprite_name[100] = { 0 };
@@ -330,6 +318,19 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 			shape.cone.emit_volume = res_parser_get_float(&parser->parser, ++token);
 		}
 
+		else if (res_parser_field_equals(&parser->parser, token, "subemitters", JSMN_ARRAY)) {
+
+			// Skip the starting tokens of the object.
+			token += 2;
+
+			// Loop for as long as there are (emitter) objects in the array.
+			while (res_parser_is_object(&parser->parser, token)) {
+
+				++token;
+				emitter_parser_load_subemitter(parser, &token, emitter);
+			}
+		}
+
 		else {
 			// Unknown field, return to main parser.
 			char key[100];
@@ -347,4 +348,58 @@ static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_t
 
 	*next_token = token;
 	return true;
+}
+
+static bool emitter_parser_load_subemitter(emitter_parser_t *parser, int *next_token,
+                                           emitter_t *emitter)
+{
+	char effect_name[100] = { 0 };
+	subemitter_type_t type = SUBEMITTER_CREATE;
+
+	int token = *next_token;
+
+	for (; token < parser->parser.num_tokens; ++token) {
+
+		// Key should always be a string or a primitive! If this is something else,
+		// then likely we've passed the parsed object and should return to the main parser.
+		if (!res_parser_is_valid_key_type(&parser->parser, token)) {
+			break;
+		}
+
+		// Read the value based on the name and type of the field.
+		if (res_parser_field_equals(&parser->parser, token, "effect", JSMN_STRING)) {
+
+			res_parser_get_text(&parser->parser, ++token, effect_name, sizeof(effect_name));
+		}
+
+		else if (res_parser_field_equals(&parser->parser, token, "type", JSMN_PRIMITIVE)) {
+
+			type = (subemitter_type_t)res_parser_get_int(&parser->parser, ++token);
+		}
+
+		else {
+			// Unknown field, return to main parser.
+			char key[100];
+			res_parser_get_text(&parser->parser, token, key, sizeof(key));
+
+			log_warning("Resources", "Unknown subemitter field '%s' in resource file %s.",
+                        key, parsed_file_name);
+
+			break;
+		}
+	}
+
+	*next_token = token;
+
+	// If the file defined an effect for the subemitter, add it to the main emitter. The actual
+	// emitter resource is loaded later when all effects have been parsed.
+	if (!string_is_null_or_empty(effect_name)) {
+
+		arr_push(emitter->subemitters,
+		         create_subemitter_name(type, string_duplicate(effect_name)));
+		
+		return true;
+	}
+
+	return false;
 }

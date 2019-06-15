@@ -231,7 +231,7 @@ emitter_t *obj_add_emitter(object_t *obj, const emitter_t *emitter_template)
 		return obj->emitter;
 	}
 
-	obj->emitter = emitter_create(obj, emitter_template);
+	obj->emitter = emitter_create(obj, emitter_template, false);
 	return obj->emitter;
 }
 

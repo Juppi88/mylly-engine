@@ -330,9 +330,29 @@ static void rsys_cull_object_meshes(object_t *object, robject_t *parent, rview_t
 		rsys_add_mesh_to_view(object->sprite->mesh, object, parent, view);
 	}
 
-	// Particle emitter mesh
-	if (object->emitter != NULL && object->emitter->mesh != NULL) {
-		rsys_add_mesh_to_view(object->emitter->mesh, object, parent, view);
+	// Particle emitter mesh(es)
+	if (object->emitter != NULL) {
+
+		// That includes subemitters.
+		for (uint32_t i = object->emitter->subemitters.count; i > 0; i--) {
+
+			emitter_t *subemitter = object->emitter->subemitters.items[i - 1].emitter;
+
+			if (subemitter != NULL &&
+				subemitter->is_active &&
+				subemitter->mesh != NULL &&
+				subemitter->mesh->num_indices_to_render != 0) {
+
+				rsys_add_mesh_to_view(subemitter->mesh, object, parent, view);
+			}
+		}
+
+		// Main mesh.
+		if (object->emitter->mesh != NULL &&
+			object->emitter->is_active) {
+
+			rsys_add_mesh_to_view(object->emitter->mesh, object, parent, view);
+		}
 	}
 }
 

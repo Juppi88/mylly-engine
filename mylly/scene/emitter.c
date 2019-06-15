@@ -24,11 +24,13 @@ static int emitter_sort_particles(const void *p1, const void *p2);
 
 // -------------------------------------------------------------------------------------------------
 
-emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template)
+emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template, bool is_subemitter)
 {
 	NEW(emitter_t, emitter);
 
 	emitter->parent = parent;
+
+	arr_init(emitter->subemitters);
 
 	if (emitter_template == NULL) {
 
@@ -75,6 +77,22 @@ emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template)
 		if (emitter_template->resource.path != NULL) {
 			emitter->resource.path = string_duplicate(emitter_template->resource.path);
 		}
+
+		// Copy subemitters.
+		if (!is_subemitter) {
+
+			subemitter_t subemitter;
+
+			arr_foreach(emitter_template->subemitters, subemitter) {
+
+				emitter_t *subemitter_effect = emitter_create(parent, subemitter.emitter, true);
+				subemitter_effect->emit_on_request = (subemitter.type != SUBEMITTER_CREATE);
+
+				arr_push(
+					emitter->subemitters, create_subemitter(subemitter.type, subemitter_effect);
+				);
+			}
+		}
 	}
 
 	return emitter;
@@ -82,7 +100,7 @@ emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template)
 
 emitter_t *emitter_create_from_resource(const char *name, const char *path)
 {
-	emitter_t *emitter = emitter_create(NULL, NULL);
+	emitter_t *emitter = emitter_create(NULL, NULL, false);
 
 	if (emitter != NULL) {
 
@@ -103,10 +121,21 @@ void emitter_destroy(emitter_t *emitter)
 		return;
 	}
 
+	// Destroy subemitters.
+	subemitter_t subemitter;
+
+	arr_foreach_reverse(emitter->subemitters, subemitter) {
+		emitter_destroy(subemitter.emitter);
+	}
+
+	arr_clear(emitter->subemitters);
+
+	// Destroy particle mesh.
 	if (emitter->mesh != NULL) {
 		mesh_destroy(emitter->mesh);
 	}
 
+	// Destroy everything else.
 	DESTROY(emitter->resource.res_name);
 	DESTROY(emitter->resource.path);
 	DESTROY(emitter->particles);
@@ -115,7 +144,21 @@ void emitter_destroy(emitter_t *emitter)
 
 void emitter_process(emitter_t *emitter)
 {
-	if (emitter == NULL || !emitter->is_active) {
+	if (emitter == NULL) {
+		return;
+	}
+
+	// Process subemitters which are active.
+	for (uint32_t i = 0; i < emitter->subemitters.count; i++) {
+
+		emitter_t *subemitter = emitter->subemitters.items[i].emitter;
+
+		if (subemitter->is_active) {
+			emitter_process(subemitter);
+		}
+	}
+
+	if (!emitter->is_active) {
 		return;
 	}
 
@@ -247,7 +290,7 @@ void emitter_start(emitter_t *emitter)
 	}
 
 	emitter->is_active = true;
-	emitter->is_emitting = (emitter->emit_rate > 0);
+	emitter->is_emitting = (emitter->emit_rate > 0 && !emitter->emit_on_request);
 	emitter->time_emitting = 0;
 	emitter->time_since_emit = 0;
 	emitter->world_position = obj_get_position(emitter->parent);
@@ -259,7 +302,14 @@ void emitter_start(emitter_t *emitter)
 	emitter_create_mesh(emitter);
 
 	// Emit the initial burst of particles.
-	emitter_emit(emitter, emitter->initial_burst);
+	if (!emitter->emit_on_request) {
+		emitter_emit(emitter, emitter->initial_burst);
+	}
+
+	// Start subemitters.
+	for (uint32_t i = 0; i < emitter->subemitters.count; i++) {
+		emitter_start(emitter->subemitters.items[i].emitter);
+	}
 }
 
 void emitter_stop(emitter_t *emitter)
@@ -654,6 +704,8 @@ static inline void emitter_update_particle(emitter_t *emitter, particle_t *parti
 		for (int i = 0; i < 4; i++) {
 			particle->vertices[i]->colour = COL_TRANSPARENT;
 		}
+
+		// TODO: Spawn the initial burst particles of 'death' subemitters
 		
 		return;
 	}
