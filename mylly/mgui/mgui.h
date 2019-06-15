@@ -38,6 +38,7 @@ void mgui_remove_widget_layer(widget_t *widget);
 widget_t *mgui_get_widget_at_position(vec2i_t point);
 
 void mgui_remove_references_to_object(widget_t *widget);
+void mgui_add_widget_delayed_render(widget_t *widget);
 
 widget_t *mgui_get_focused_widget(void);
 widget_t *mgui_get_dragged_widget(void);

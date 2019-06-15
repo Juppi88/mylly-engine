@@ -87,6 +87,13 @@ void widget_destroy(widget_t *widget)
 
 	// Remove references to widget.
 	mgui_remove_references_to_object(widget);
+	
+	// Remove parent reference.
+	if (widget->parent != NULL) {
+		
+		list_remove(widget->parent->children, widget);
+		widget->parent->num_children--;
+	}
 
 	// Destroy child widgets.
 	widget_t *child, *tmp;
@@ -202,27 +209,16 @@ void widget_render(widget_t *widget)
 
 	// Render children.
 	widget_t *child;
-	arr_t(widget_t*) delayed_renders = arr_initializer;
 
 	list_foreach(widget->children, child) {
 
 		// Add widgers requiring delayed rendering to a temporary list.
 		if (child->state & WIDGET_STATE_DELAYED_RENDER) {
-			arr_push(delayed_renders, child);
+			mgui_add_widget_delayed_render(child);
 		}
 		else {
 			widget_render(child);
 		}
-	}
-
-	// Render child objects with delayed rendering.
-	if (delayed_renders.count != 0) {
-
-		arr_foreach(delayed_renders, child) {
-			widget_render(child);
-		}
-
-		arr_clear(delayed_renders);
 	}
 }
 
@@ -258,7 +254,7 @@ void widget_remove_from_parent(widget_t *widget)
 
 	// Remove the widget from the parent.
 	list_remove(widget->parent->children, widget);
-	widget->num_children--;
+	widget->parent->num_children--;
 
 	// Create a new layer for the widget.
 	widget->parent = NULL;

@@ -1,6 +1,7 @@
 #include "mgui.h"
 #include "widget.h"
 #include "collections/list.h"
+#include "collections/array.h"
 #include "renderer/buffercache.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -12,6 +13,8 @@ static widget_t *focused_widget;
 static widget_t *dragged_widget;
 static widget_t *hovered_widget;
 static widget_t *pressed_widget;
+
+static arr_t(widget_t *) delayed_render_widgets = arr_initializer;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -49,6 +52,17 @@ void mgui_process(void)
 		widget_process(widget);
 		widget_render(widget);
 	}
+
+	// Some widgets may want a delayed render, and they'll indicate their wish each frame.
+	// Draw delayed widgets.
+	if (delayed_render_widgets.count != 0) {
+
+		arr_foreach(delayed_render_widgets, widget) {
+			widget_render(widget);	
+		}
+
+		arr_clear(delayed_render_widgets);
+	}
 }
 
 void mgui_add_widget_layer(widget_t *widget)
@@ -85,6 +99,7 @@ widget_t *mgui_get_widget_at_position(vec2i_t point)
 
 		hit = widget_get_child_at_position(widget, point);
 		if (hit != NULL) {
+
 			return hit;
 		}
 	}
@@ -108,6 +123,11 @@ void mgui_remove_references_to_object(widget_t *widget)
 	}
 
 	list_remove(widgets, widget);
+}
+
+void mgui_add_widget_delayed_render(widget_t *widget)
+{
+	arr_push(delayed_render_widgets, widget);
 }
 
 widget_t *mgui_get_focused_widget(void)
