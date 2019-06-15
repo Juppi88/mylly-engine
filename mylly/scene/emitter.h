@@ -18,10 +18,12 @@ typedef struct particle_t {
 	bool is_active;
 	vec3_t emit_position;
 	vec3_t position;
+	vec3_t direction;
 	vec3_t velocity;
 	vec3_t acceleration;
 	colour_t start_colour, end_colour;
 	float start_size, end_size;
+	float start_speed, end_speed;
 	float rotation;
 	float rotation_speed;
 	vertex_particle_t *vertices[4];
@@ -162,6 +164,7 @@ typedef struct emitter_t {
 	bool is_active; // Set to true when the emitter has particles that are still alive
 	bool is_emitting; // Set to true when the emitter is emitting particles
 	bool emit_on_request; // This is a subemitter which only emits particles on request
+	bool apply_acceleration; // Apply acceleration on particle velocity instead of using end speed
 
 	bool is_world_space; // Set to true when particles are emitted in world space (as opposed to local)
 
@@ -189,7 +192,8 @@ typedef struct emitter_t {
 
 	// Particle system data
 	struct { float min, max; } life; // Particle life time in seconds
-	struct { float min, max; } speed; // Particle start speed in units per second
+	struct { float min, max; } start_speed; // Particle start speed in units per second
+	struct { float min, max; } end_speed; // Particle end speed in units per second
 	struct { vec3_t min, max; } acceleration; // Limits for particle acceleration
 	struct { colour_t min, max; } start_colour; // Particle start colour
 	struct { colour_t min, max; } end_colour; // Particle end colour
@@ -221,7 +225,8 @@ void emitter_set_emit_rate(emitter_t *emitter, float particles_per_sec);
 
 void emitter_set_particle_sprite(emitter_t *emitter, sprite_t *sprite);
 void emitter_set_particle_life_time(emitter_t *emitter, float min, float max);
-void emitter_set_particle_speed(emitter_t *emitter, float min, float max);
+void emitter_set_particle_start_speed(emitter_t *emitter, float min, float max);
+void emitter_set_particle_end_speed(emitter_t *emitter, float min, float max);
 void emitter_set_particle_acceleration(emitter_t *emitter, vec3_t min, vec3_t max);
 void emitter_set_particle_start_colour(emitter_t *emitter, colour_t min, colour_t max);
 void emitter_set_particle_end_colour(emitter_t *emitter, colour_t min, colour_t max);

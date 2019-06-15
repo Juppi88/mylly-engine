@@ -213,18 +213,34 @@ static bool emitter_parser_load_data(emitter_parser_t *parser, int *next_token,
 			);
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "speed_min", JSMN_PRIMITIVE)) {
+		else if (res_parser_field_equals(&parser->parser, token, "start_speed_min", JSMN_PRIMITIVE)) {
 
-			emitter_set_particle_speed(emitter,
+			emitter_set_particle_start_speed(emitter,
 				res_parser_get_float(&parser->parser, ++token),
-				emitter->speed.max
+				emitter->start_speed.max
 			);
 		}
 
-		else if (res_parser_field_equals(&parser->parser, token, "speed_max", JSMN_PRIMITIVE)) {
+		else if (res_parser_field_equals(&parser->parser, token, "start_speed_max", JSMN_PRIMITIVE)) {
 
-			emitter_set_particle_speed(emitter,
-				emitter->speed.min,
+			emitter_set_particle_start_speed(emitter,
+				emitter->start_speed.min,
+				res_parser_get_float(&parser->parser, ++token)
+			);
+		}
+
+		else if (res_parser_field_equals(&parser->parser, token, "end_speed_min", JSMN_PRIMITIVE)) {
+
+			emitter_set_particle_end_speed(emitter,
+				res_parser_get_float(&parser->parser, ++token),
+				emitter->end_speed.max
+			);
+		}
+
+		else if (res_parser_field_equals(&parser->parser, token, "end_speed_max", JSMN_PRIMITIVE)) {
+
+			emitter_set_particle_end_speed(emitter,
+				emitter->end_speed.min,
 				res_parser_get_float(&parser->parser, ++token)
 			);
 		}

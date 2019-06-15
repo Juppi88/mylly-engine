@@ -18,7 +18,7 @@
 static void emitter_initialize_particles(emitter_t *emitter);
 static void emitter_create_mesh(emitter_t *emitter);
 static void emitter_emit(emitter_t *emitter, uint16_t count);
-static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos, vec3_t *vel);
+static void emitter_randomize_position_direction(emitter_t *emitter, vec3_t *pos, vec3_t *vel);
 static inline void emitter_update_particle(emitter_t *emitter, particle_t *particle);
 static int emitter_sort_particles(const void *p1, const void *p2);
 
@@ -38,8 +38,10 @@ emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template, b
 		emitter->shape = shape_circle(vec3_zero(), 0);
 		emitter->life.min = 1;
 		emitter->life.max = 1;
-		emitter->speed.min = 1;
-		emitter->speed.max = 1;
+		emitter->start_speed.min = 0;
+		emitter->start_speed.max = 0;
+		emitter->end_speed.min = 0;
+		emitter->end_speed.max = 0;
 		emitter->start_colour.min = COL_WHITE;
 		emitter->start_colour.max = COL_WHITE;
 		emitter->end_colour.min = COL_WHITE;
@@ -63,7 +65,8 @@ emitter_t *emitter_create(object_t *parent, const emitter_t *emitter_template, b
 		emitter->shape = emitter_template->shape;
 
 		emitter->life = emitter_template->life;
-		emitter->speed = emitter_template->speed;
+		emitter->start_speed = emitter_template->start_speed;
+		emitter->end_speed = emitter_template->end_speed;
 		emitter->acceleration = emitter_template->acceleration;
 		emitter->start_colour = emitter_template->start_colour;
 		emitter->end_colour = emitter_template->end_colour;
@@ -295,6 +298,9 @@ void emitter_start(emitter_t *emitter)
 	emitter->time_since_emit = 0;
 	emitter->world_position = obj_get_position(emitter->parent);
 
+	emitter->apply_acceleration =
+		(!vec3_is_zero(emitter->acceleration.min) && !vec3_is_zero(emitter->acceleration.max));
+
 	// Initialize particle data.
 	emitter_initialize_particles(emitter);
 
@@ -388,11 +394,19 @@ void emitter_set_particle_life_time(emitter_t *emitter, float min, float max)
 	}
 }
 
-void emitter_set_particle_speed(emitter_t *emitter, float min, float max)
+void emitter_set_particle_start_speed(emitter_t *emitter, float min, float max)
 {
 	if (emitter != NULL) {
-		emitter->speed.min = min;
-		emitter->speed.max = max;
+		emitter->start_speed.min = min;
+		emitter->start_speed.max = max;
+	}
+}
+
+void emitter_set_particle_end_speed(emitter_t *emitter, float min, float max)
+{
+	if (emitter != NULL) {
+		emitter->end_speed.min = min;
+		emitter->end_speed.max = max;
 	}
 }
 
@@ -588,10 +602,10 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			emitter->particles[i].emit_position = emitter->world_position;
 
 			// Randomize particle details.
-			emitter_randomize_position_velocity(
+			emitter_randomize_position_direction(
 				emitter,
 				&emitter->particles[i].position,
-				&emitter->particles[i].velocity
+				&emitter->particles[i].direction
 			);
 
 			emitter->particles[i].life =
@@ -612,6 +626,15 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 			emitter->particles[i].end_size =
 				randomf(emitter->end_size.min, emitter->end_size.max);
 
+			emitter->particles[i].start_speed =
+				randomf(emitter->start_speed.min, emitter->start_speed.max);
+
+			emitter->particles[i].end_speed =
+				randomf(emitter->end_speed.min, emitter->end_speed.max);
+
+			emitter->particles[i].velocity =
+				vec3_multiply(emitter->particles[i].direction, emitter->particles[i].start_speed);
+
 			emitter->particles[i].rotation =
 				randomf(0, 2 * PI);
 
@@ -623,12 +646,10 @@ static void emitter_emit(emitter_t *emitter, uint16_t count)
 	}
 }
 
-static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos, vec3_t *vel)
+static void emitter_randomize_position_direction(emitter_t *emitter, vec3_t *pos, vec3_t *dir)
 {
 	vec3_t position;
-	vec3_t direction;
 	float radius;
-	float speed = randomf(emitter->speed.min, emitter->speed.max); // Randomize speed
 
 	switch (emitter->shape.type) {
 
@@ -642,7 +663,7 @@ static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos,
 				emitter->shape.position.z
 			);
 
-			*vel = vec3_multiply(position, speed);
+			*dir = position;
 			break;
 
 		case SHAPE_SPHERE:
@@ -655,7 +676,7 @@ static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos,
 				emitter->shape.position.z + radius * position.z
 			);
 
-			*vel = vec3_multiply(position, speed);
+			*dir = position;
 			break;
 
 		case SHAPE_BOX:
@@ -666,8 +687,7 @@ static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos,
 			);
 
 			// Box shaped emitter always emits forward.
-			direction = obj_get_forward_vector(emitter->parent);
-			*vel = vec3_multiply(direction, speed);
+			*dir = obj_get_forward_vector(emitter->parent);
 			break;
 
 		case SHAPE_CONE:
@@ -681,8 +701,7 @@ static void emitter_randomize_position_velocity(emitter_t *emitter, vec3_t *pos,
 				emitter->shape.position.z + radius * position.z
 			);
 
-			direction = vec3_normalized(position);
-			*vel = vec3_multiply(direction, speed);
+			*dir = vec3_normalized(position);
 			break;
 	}
 }
@@ -710,17 +729,27 @@ static inline void emitter_update_particle(emitter_t *emitter, particle_t *parti
 		return;
 	}
 
+	float t = (particle->time_alive / particle->life);
+
 	// Update particle velocity and position.
-	particle->velocity.x += delta * particle->acceleration.x;
-	particle->velocity.y += delta * particle->acceleration.y;
-	particle->velocity.z += delta * particle->acceleration.z;
+	if (emitter->apply_acceleration) {
+
+		particle->velocity.x += delta * particle->acceleration.x;
+		particle->velocity.y += delta * particle->acceleration.y;
+		particle->velocity.z += delta * particle->acceleration.z;
+	}
+	else {
+
+		float speed = lerpf(particle->start_speed, particle->end_speed, t);
+		particle->velocity = vec3_multiply(particle->direction, speed);
+	}
+	
 	particle->position.x += delta * particle->velocity.x;
 	particle->position.y += delta * particle->velocity.y;
 	particle->position.z += delta * particle->velocity.z;
 	particle->rotation += delta * DEG_TO_RAD(particle->rotation_speed);
 
 	// Update size and colour.
-	float t = (particle->time_alive / particle->life);
 	float size = lerpf(particle->start_size, particle->end_size, t);
 	colour_t colour = lerpc(particle->start_colour, particle->end_colour, t);
 
