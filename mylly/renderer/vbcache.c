@@ -36,7 +36,7 @@ void vbcache_alloc_buffer(void *data, size_t num_elements, size_t elem_size,
 	vertexbuffer_t *buffer = vbcache_find_free_buffer();
 
 	buffer->count = num_elements;
-	//buffer->reference = storage;
+	buffer->reference = storage;
 	*storage = buffer;
 
 	// Upload the vertex/index data to the GPU.
@@ -88,9 +88,9 @@ void vbcache_free_inactive_buffers(void)
 			}
 
 			// Clear references to this buffer.
-			//if (buffer->reference != NULL) {
-			//	*buffer->reference = NULL;
-			//}
+			if (buffer->reference != NULL) {
+				*buffer->reference = NULL;
+			}
 
 			// Add this buffer to the free buffer list.
 			stack_push(free_buffers, buffer);
