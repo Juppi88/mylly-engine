@@ -39,6 +39,10 @@ void scene_destroy(scene_t *scene)
 		}
 	}
 
+	arr_clear(scene->objects);
+	arr_clear(scene->cameras);
+	arr_clear(scene->lights);
+
 	// Destroy the scene.
 	DESTROY(scene);
 }

@@ -47,7 +47,7 @@ void sprite_destroy(sprite_t *sprite)
 	mesh_destroy(sprite->mesh);
 
 	DESTROY(sprite->resource.res_name);
-	DESTROY(sprite->resource.path);
+	DESTROY(sprite->resource.name);
 
 	DESTROY(sprite);
 }

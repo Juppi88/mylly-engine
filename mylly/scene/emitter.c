@@ -12,6 +12,7 @@
 #include "math/random.h"
 #include "io/log.h"
 #include <stdlib.h>
+#include <float.h>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -142,6 +143,7 @@ void emitter_destroy(emitter_t *emitter)
 	DESTROY(emitter->resource.res_name);
 	DESTROY(emitter->resource.path);
 	DESTROY(emitter->particles);
+	DESTROY(emitter->particle_references);
 	DESTROY(emitter);
 }
 
@@ -172,9 +174,9 @@ void emitter_process(emitter_t *emitter)
 		if (!has_active_subemitters &&
 			emitter->destroy_when_inactive) {
 
-			obj_destroy(emitter->parent);
+			emitter->parent->destroy_immediately = true;
 		}
-		
+
 		return;
 	}
 
@@ -500,6 +502,7 @@ static void emitter_initialize_particles(emitter_t *emitter)
 		emitter->particles[i].position = vec3_zero();
 		emitter->particles[i].start_colour = COL_TRANSPARENT;
 		emitter->particles[i].end_colour = COL_TRANSPARENT;
+		emitter->particles[i].camera_distance = FLT_MAX;
 
 		emitter->particle_references[i] = &emitter->particles[i];
 	}

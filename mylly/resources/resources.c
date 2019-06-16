@@ -470,6 +470,9 @@ static void res_load_texture(const char *file_name)
 		log_warning("Resources", "Could not load texture %s.", file_name);
 	}
 
+	// Release the temporary buffer.
+	mem_free(buffer);
+
 	// Add the texture to resource list.
 	arr_push(textures, texture);
 	texture->resource.index = arr_last_index(textures);
@@ -780,6 +783,7 @@ static void res_parse_shader_line(char *line, size_t length, void *context)
 
 			// Push the contents of the include file to the line list.
 			arr_push(contents->lines, string_duplicate(include_buffer));
+			mem_free(include_buffer);
 
 			// Add a line directive to keep error line numbers matching the shader source file.
 			char line_directive[32];
@@ -1117,8 +1121,12 @@ static void res_load_font_list(FT_Library freetype)
 	if (!create_font_bitmap(glyphs, num_glyphs, bitmap, TEX_WIDTH, TEX_HEIGHT)) {
 
 		log_warning("Resources", "Failed to create font texture.");
+
+		DESTROY(glyphs);
 		return;
 	}
+
+	DESTROY(glyphs);
 
 	// Create a special renderer texture from the glyph bitmap.
 	texture_t *texture = texture_create(FONT_TEXTURE_NAME, NULL);

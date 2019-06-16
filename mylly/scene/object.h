@@ -19,6 +19,7 @@ typedef struct object_t {
 	uint32_t scene_index; // Index in the scene
 
 	bool is_active; // Set to true when the object is processed and rendered normally
+	bool destroy_immediately; // When set to true, the object is destroyed at the end of the frame
 
 	arr_t(struct object_t*) children; // A list of children attached to this object
 

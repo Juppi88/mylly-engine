@@ -89,6 +89,9 @@ void file_for_each_in_directory(const char *directory,
 			method(path);
 		}
 	}
+
+	closedir(dir);
+
 #endif
 }
 

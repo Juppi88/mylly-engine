@@ -88,6 +88,7 @@ void model_destroy(model_t *model)
 	model_remove_meshes(model);
 
 	DESTROY(model->resource.res_name);
+	DESTROY(model->resource.name);
 	DESTROY(model->resource.path);
 
 	DESTROY(model);

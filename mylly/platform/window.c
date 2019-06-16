@@ -294,6 +294,8 @@ bool window_get_monitor_info(int monitor, monitor_info_t *info_dest)
 
 	// Ensure the screen exists.
 	if (monitor < 0 || monitor >= screen_info->noutput) {
+
+		XRRFreeScreenResources(screen_info);
 		return false;
 	}
 
@@ -301,11 +303,15 @@ bool window_get_monitor_info(int monitor, monitor_info_t *info_dest)
 	XRRCrtcInfo *monitor_info = XRRGetCrtcInfo(display, screen_info, screen_info->crtcs[monitor]);
 
 	if (info_dest != NULL) {
+		
 		info_dest->x = monitor_info->x;
 		info_dest->y = monitor_info->y;
 		info_dest->width = monitor_info->width;
 		info_dest->height = monitor_info->height;
 	}
+
+	XRRFreeScreenResources(screen_info);
+	XRRFreeCrtcInfo(monitor_info);
 
 	return true;
 }

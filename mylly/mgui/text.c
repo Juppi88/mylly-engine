@@ -51,6 +51,10 @@ void text_destroy(text_t *text)
 		return;
 	}
 
+	if (text->mesh != NULL) {
+		mesh_destroy(text->mesh);
+	}
+
 	DESTROY(text->buffer);
 	DESTROY(text);
 }

@@ -86,6 +86,8 @@ void obj_destroy(object_t *obj)
 		ai_destroy(obj->ai);
 	}
 
+	arr_clear(obj->children);
+
 	DESTROY(obj);
 }
 
@@ -148,6 +150,11 @@ void obj_process(object_t *obj)
 	// Process AI and behaviour tree.
 	if (obj->ai != NULL) {
 		ai_process(obj->ai);
+	}
+
+	// The object should be destroyed as soon as possible.
+	if (obj->destroy_immediately) {
+		obj_destroy(obj);
 	}
 }
 
