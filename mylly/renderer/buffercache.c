@@ -1,4 +1,6 @@
 #include "buffercache.h"
+#include "renderer.h"
+#include "core/memory.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -103,4 +105,50 @@ void bufcache_clear_all_indices(buffer_index_t index)
 	if (index < NUM_BUF_INDICES) {
 		buffer_clear(&buffers[index].index_buffer);
 	}
+}
+
+vertexbuffer_t *bufcache_legacy_alloc_buffer(void *data, size_t num_elements, size_t elem_size,
+                                             bool is_index_data, bool is_static_data)
+{
+	// Create a GPU buffer object.
+	vbindex_t vbo = rend_generate_buffer();
+
+	// Create a vertexbuffer object to store buffer data into.
+	NEW(vertexbuffer_t, buffer);
+	buffer->vbo = vbo;
+	buffer->count = num_elements;
+
+	// Upload the vertex/index data to the GPU.
+	rend_upload_buffer_data(buffer->vbo, data, num_elements * elem_size,
+                            is_index_data, is_static_data);
+
+	return buffer;
+}
+
+void bufcache_legacy_upload_buffer(vertexbuffer_t *buffer, void *data, size_t num_elements,
+                                   size_t elem_size, bool is_index_data, bool is_static_data)
+{
+	if (buffer == NULL) {
+		return;
+	}
+	
+	buffer->count = num_elements;
+
+	// Upload the vertex/index data to the GPU.
+	rend_upload_buffer_data(buffer->vbo, data, num_elements * elem_size,
+                            is_index_data, is_static_data);
+
+}
+
+void bufcache_legacy_destroy_buffer(vertexbuffer_t *buffer)
+{
+	if (buffer == NULL) {
+		return;
+	}
+
+	if (buffer->vbo != 0) {
+		rend_destroy_buffer(buffer->vbo);
+	}
+
+	DESTROY(buffer);
 }

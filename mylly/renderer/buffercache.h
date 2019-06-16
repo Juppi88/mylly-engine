@@ -47,6 +47,16 @@ typedef struct bufcache_t {
 
 // -------------------------------------------------------------------------------------------------
 
+// TODO: This is used for legacy methods, get rid of it.
+typedef struct vertexbuffer_t {
+
+	vbindex_t vbo; // Address/index of the generated GPU object
+	size_t count; // Number of elements uploaded to the GPU
+
+} vertexbuffer_t;
+
+// -------------------------------------------------------------------------------------------------
+
 void bufcache_initialize(void);
 void bufcache_shutdown(void);
 
@@ -66,6 +76,16 @@ void bufcache_update(buffer_handle_t handle, const void *data);
 // Clear all dynamically built vertices or indices for rebuilding.
 void bufcache_clear_all_vertices(buffer_index_t index);
 void bufcache_clear_all_indices(buffer_index_t index);
+
+// TODO: These are remnants of the old vbcache system. In time the target is to get rid of these,
+// but they're here for backwards compatibility with the old mesh system.
+vertexbuffer_t *bufcache_legacy_alloc_buffer(void *data, size_t num_elements, size_t elem_size,
+                                             bool is_index_data, bool is_static_data);
+
+void bufcache_legacy_upload_buffer(vertexbuffer_t *buffer, void *data, size_t num_elements,
+                                   size_t elem_size, bool is_index_data, bool is_static_data);
+
+void bufcache_legacy_destroy_buffer(vertexbuffer_t *buffer);
 
 END_DECLARATIONS;
 

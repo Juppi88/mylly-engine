@@ -4,7 +4,6 @@
 
 #include "core/defines.h"
 #include "renderer/vertex.h"
-#include "renderer/vertexbuffer.h"
 #include "renderer/buffercache.h"
 
 BEGIN_DECLARATIONS;

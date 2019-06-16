@@ -1,10 +1,8 @@
 #include "rendersystem.h"
 #include "renderer.h"
-#include "vbcache.h"
 #include "renderview.h"
 #include "shader.h"
 #include "texture.h"
-#include "vertexbuffer.h"
 #include "buffercache.h"
 #include "material.h"
 #include "debug.h"
@@ -48,7 +46,6 @@ void rsys_initialize(void)
 {
 	// Initialize renderer backend.
 	rend_initialize();
-	vbcache_initialize();
 	bufcache_initialize();
 
 	// Initialize UI parent objects.
@@ -72,7 +69,6 @@ void rsys_initialize(void)
 void rsys_shutdown(void)
 {
 	bufcache_shutdown();
-	vbcache_shutdown();
 	rend_shutdown();
 }
 
@@ -82,8 +78,6 @@ void rsys_begin_frame(void)
 	if (default_shader == NULL) {
 		default_shader = res_get_shader("default");
 	}
-
-	vbcache_set_current_frame(frames_rendered);
 
 	arr_init(lights);
 
@@ -120,9 +114,6 @@ void rsys_end_frame(scene_t *scene)
 
 	// Release all temporary data.
 	rsys_free_frame_data();
-
-	// Free all inactive vertex buffer objects for the next frame.
-	vbcache_free_inactive_buffers();
 
 	++frames_rendered;
 }
@@ -364,8 +355,8 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
 	// Vertex data
 	if (mesh->vertex_buffer == NULL) {
 
-		vbcache_alloc_buffer(mesh->vertices, mesh->num_vertices, mesh->vertex_size,
-                             &mesh->vertex_buffer, false, true);
+		mesh->vertex_buffer = bufcache_legacy_alloc_buffer(
+			mesh->vertices, mesh->num_vertices, mesh->vertex_size, false, true);
 
 		mesh->is_vertex_data_dirty = false;
 	}
@@ -373,20 +364,18 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
 		if (mesh->is_vertex_data_dirty) {
 
 			// Reupload vertex data to the GPU.
-			vbcache_upload_buffer(mesh->vertex_buffer, mesh->vertices, mesh->num_vertices,
-                                  mesh->vertex_size, false, false);
+			bufcache_legacy_upload_buffer(mesh->vertex_buffer, mesh->vertices, mesh->num_vertices,
+                                          mesh->vertex_size, false, false);
 
 			mesh->is_vertex_data_dirty = false;
 		}
-
-		vbcache_refresh_buffer(mesh->vertex_buffer);
 	}
 
 	// Index data.
 	if (mesh->index_buffer == NULL) { 
 
-		vbcache_alloc_buffer(mesh->indices, mesh->num_indices,
-                             sizeof(vindex_t), &mesh->index_buffer, true, true);
+		mesh->index_buffer = bufcache_legacy_alloc_buffer(
+			mesh->indices, mesh->num_indices, sizeof(vindex_t), true, true);
 	}
 	else {
 		if (mesh->is_index_data_dirty) {
@@ -397,13 +386,11 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
 				num_indices = mesh->num_indices_to_render;
 			}
 
-			vbcache_upload_buffer(mesh->index_buffer, mesh->indices, num_indices,
-                                  sizeof(vindex_t), true, false);
+			bufcache_legacy_upload_buffer(mesh->index_buffer, mesh->indices, num_indices,
+                                          sizeof(vindex_t), true, false);
 
 			mesh->is_index_data_dirty = false;
 		}
-
-		vbcache_refresh_buffer(mesh->index_buffer);
 	}
 
 	// Create a new render mesh as a copy for the renderer.

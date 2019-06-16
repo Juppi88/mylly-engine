@@ -6,7 +6,6 @@
 #include "renderer/renderview.h"
 #include "renderer/shader.h"
 #include "renderer/texture.h"
-#include "renderer/vertexbuffer.h"
 
 BEGIN_DECLARATIONS;
 

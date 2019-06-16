@@ -2,7 +2,6 @@
 #ifndef __BUFFER_H
 #define __BUFFER_H
 
-#include "renderer/vertexbuffer.h"
 #include "renderer/vertex.h"
 
 BEGIN_DECLARATIONS;
@@ -39,6 +38,10 @@ typedef uint64_t buffer_handle_t;
 #define BUFFER_SET_SIZE(h, size)\
 	(h) &= ~((uint64_t)BUFFER_SIZE_MASK << BUFFER_SIZE_SHIFT);\
 	(h) |= (((uint64_t)(size) & BUFFER_SIZE_MASK) << BUFFER_SIZE_SHIFT)
+
+// -------------------------------------------------------------------------------------------------
+
+typedef uint32_t vbindex_t;
 
 // -------------------------------------------------------------------------------------------------
 

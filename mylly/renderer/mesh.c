@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "buffercache.h"
 #include "core/memory.h"
 #include "collections/array.h"
 #include <assert.h>
@@ -19,6 +20,13 @@ void mesh_destroy(mesh_t *mesh)
 {
 	if (mesh == NULL) {
 		return;
+	}
+
+	if (mesh->vertex_buffer != NULL) {
+		bufcache_legacy_destroy_buffer(mesh->vertex_buffer);
+	}
+	if (mesh->index_buffer != NULL) {
+		bufcache_legacy_destroy_buffer(mesh->index_buffer);
 	}
 
 	DESTROY(mesh->vertices);
