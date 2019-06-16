@@ -33,7 +33,7 @@ vec3_t random_point_on_cone(float angle)
 
 	return vec3(
 		sinf(phi) * cosf(theta),
-		sinf(phi) * sinf(theta),
-		cosf(phi)
+		cosf(phi),
+		sinf(phi) * sinf(theta)
 	);
 }
