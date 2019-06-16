@@ -152,16 +152,29 @@ void emitter_process(emitter_t *emitter)
 	}
 
 	// Process subemitters which are active.
+	bool has_active_subemitters = false;
+
 	for (uint32_t i = 0; i < emitter->subemitters.count; i++) {
 
 		emitter_t *subemitter = emitter->subemitters.items[i].emitter;
 
 		if (subemitter->is_active) {
+
 			emitter_process(subemitter);
+			has_active_subemitters = true;
 		}
 	}
 
 	if (!emitter->is_active) {
+
+		// If the emitter and its subemitters are inactive, and the emitter is set to be destroyed
+		// after finishing, destroy the parent object.
+		if (!has_active_subemitters &&
+			emitter->destroy_when_inactive) {
+
+			obj_destroy(emitter->parent);
+		}
+		
 		return;
 	}
 
@@ -325,6 +338,15 @@ void emitter_stop(emitter_t *emitter)
 	}
 
 	emitter->is_emitting = false;
+}
+
+void emitter_destroy_when_inactive(emitter_t *emitter)
+{
+	if (emitter == NULL) {
+		return;
+	}
+
+	emitter->destroy_when_inactive = true;
 }
 
 void emitter_set_emit_shape(emitter_t *emitter, const emit_shape_t shape)

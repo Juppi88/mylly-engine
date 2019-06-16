@@ -165,6 +165,7 @@ typedef struct emitter_t {
 	bool is_emitting; // Set to true when the emitter is emitting particles
 	bool emit_on_request; // This is a subemitter which only emits particles on request
 	bool apply_acceleration; // Apply acceleration on particle velocity instead of using end speed
+	bool destroy_when_inactive; // Destroy the effect as soon as it becomes inactive
 
 	bool is_world_space; // Set to true when particles are emitted in world space (as opposed to local)
 
@@ -215,6 +216,7 @@ void emitter_process(emitter_t *emitter);
 
 void emitter_start(emitter_t *emitter);
 void emitter_stop(emitter_t *emitter);
+void emitter_destroy_when_inactive(emitter_t *emitter);
 
 void emitter_set_emit_shape(emitter_t *emitter, const emit_shape_t shape);
 void emitter_set_world_space(emitter_t *emitter, bool is_world_space);
