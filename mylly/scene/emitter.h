@@ -216,7 +216,7 @@ void emitter_process(emitter_t *emitter);
 
 void emitter_start(emitter_t *emitter);
 void emitter_stop(emitter_t *emitter);
-void emitter_destroy_when_inactive(emitter_t *emitter);
+void emitter_set_destroy_when_inactive(emitter_t *emitter, bool destroy);
 
 void emitter_set_emit_shape(emitter_t *emitter, const emit_shape_t shape);
 void emitter_set_world_space(emitter_t *emitter, bool is_world_space);

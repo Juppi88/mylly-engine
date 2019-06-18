@@ -81,6 +81,7 @@ void camera_update_view_projection_matrix_inverse(camera_t *camera);
 
 // Apply post-processing shaders to the camera's view.
 void camera_add_post_processing_effect(camera_t *camera, shader_t *shader);
+void camera_remove_post_processing_effect(camera_t *camera, shader_t *shader);
 
 // -------------------------------------------------------------------------------------------------
 

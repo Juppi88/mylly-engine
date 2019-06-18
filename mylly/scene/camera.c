@@ -286,3 +286,12 @@ void camera_add_post_processing_effect(camera_t *camera, shader_t *shader)
 	// TODO: Determine whether the shader is suitable for post-processing effects.
 	arr_push(camera->post_processing_effects, shader);
 }
+
+void camera_remove_post_processing_effect(camera_t *camera, shader_t *shader)
+{
+	if (camera == NULL || shader == NULL) {
+		return;
+	}
+
+	arr_remove(camera->post_processing_effects, shader);
+}

@@ -342,13 +342,13 @@ void emitter_stop(emitter_t *emitter)
 	emitter->is_emitting = false;
 }
 
-void emitter_destroy_when_inactive(emitter_t *emitter)
+void emitter_set_destroy_when_inactive(emitter_t *emitter, bool destroy)
 {
 	if (emitter == NULL) {
 		return;
 	}
 
-	emitter->destroy_when_inactive = true;
+	emitter->destroy_when_inactive = destroy;
 }
 
 void emitter_set_emit_shape(emitter_t *emitter, const emit_shape_t shape)
