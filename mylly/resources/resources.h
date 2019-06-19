@@ -25,6 +25,7 @@ font_t *res_get_font(const char *name, uint32_t size);
 model_t *res_get_model(const char *name);
 material_t *res_get_material(const char *name);
 emitter_t *res_get_emitter(const char *name);
+sound_t *res_get_sound(const char *name);
 
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name);
 

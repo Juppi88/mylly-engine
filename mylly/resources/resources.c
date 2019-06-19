@@ -18,6 +18,7 @@
 #include "scene/spriteanimation.h"
 #include "scene/emitter.h"
 #include "math/math.h"
+#include "audio/sound.h"
 #include <ft2build.h>
 #include <stdlib.h>
 #include FT_FREETYPE_H
@@ -43,6 +44,7 @@ static arr_t(font_t*) fonts;
 static arr_t(model_t*) models;
 static arr_t(material_t*) materials;
 static arr_t(emitter_t*) emitters;
+static arr_t(sound_t*) sounds;
 
 static const char *parsed_file_name;
 
@@ -79,6 +81,8 @@ static void res_parse_material_line(char *line, size_t length, void *context);
 static void res_load_emitter(const char *file_name);
 static void res_load_emitter_references(emitter_t *emitter);
 
+static void res_load_sound(const char *file_name);
+
 // -------------------------------------------------------------------------------------------------
 
 void res_initialize(void)
@@ -108,6 +112,7 @@ void res_initialize(void)
 	res_load_all_in_directory("./animations", ".anim", RES_ANIMATION);
 	res_load_all_in_directory("./models", ".obj", RES_MODEL);
 	res_load_all_in_directory("./effects", ".fx", RES_EMITTER);
+	res_load_all_in_directory("./sounds", ".wav", RES_SOUND);
 	
 	// Initialize FreeType.
 	FT_Library freetype;
@@ -210,6 +215,16 @@ void res_shutdown(void)
 		}
 	}
 
+	sound_t *sound;
+	arr_foreach(sounds, sound) {
+
+		if (sound != NULL) {
+
+			// TODO: Add reference counting to resources.
+			sound_destroy(sound);
+		}
+	}
+
 	arr_clear(shaders);
 	arr_clear(sprites);
 	arr_clear(textures);
@@ -218,6 +233,7 @@ void res_shutdown(void)
 	arr_clear(models);
 	arr_clear(materials);
 	arr_clear(emitters);
+	arr_clear(sounds);
 }
 
 // TODO: Load unloaded resources when requested.
@@ -359,6 +375,23 @@ emitter_t *res_get_emitter(const char *name)
 	return NULL;
 }
 
+sound_t *res_get_sound(const char *name)
+{
+	sound_t *sound;
+	arr_foreach(sounds, sound) {
+
+		if (string_equals(sound->resource.res_name, name)) {
+
+			// TODO: Add reference counting to resources.
+			return sound;
+		}
+	}
+
+	log_warning("Resources", "Could not find a sound named '%s'.", name);
+
+	return NULL;
+}
+
 sprite_t *res_add_empty_sprite(texture_t *texture, const char *name)
 {
 	// Create the empty sprite container.
@@ -422,6 +455,10 @@ static void res_load_all_in_directory(const char *path, const char *extension, r
 
 			// Load emitter references (i.e. subemitters).
 			res_foreach_emitter(res_load_emitter_references);
+			break;
+
+		case RES_SOUND:
+			file_for_each_in_directory(path, extension, res_load_sound);
 			break;
 
 		default:
@@ -1374,4 +1411,39 @@ static void res_load_emitter_references(emitter_t *emitter)
 			arr_remove_at(emitter->subemitters, (uint32_t)i - 1);
 		}
 	}
+}
+
+static void res_load_sound(const char *file_name)
+{
+	void *buffer;
+	size_t length;
+
+	if (!file_read_all_data(file_name, &buffer, &length)) {
+		return;
+	}
+
+	// Create the sound object and load the audio data.
+	char name[260];
+	string_get_file_name_without_extension(file_name, name, sizeof(name));
+
+	sound_t *sound = sound_create(name, file_name);
+
+	if (sound_load_wav(sound, buffer, length)) {
+		sound->resource.is_loaded = true;
+	}
+	else {
+		log_warning("Resources", "Could not load sound file %s.", file_name);
+
+		mem_free(buffer);
+		sound_destroy(sound);
+
+		return;
+	}
+
+	// Release the temporary buffer.
+	mem_free(buffer);
+
+	// Add the sound to resource list.
+	arr_push(sounds, sound);
+	sound->resource.index = arr_last_index(sounds);
 }

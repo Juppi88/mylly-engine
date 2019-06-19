@@ -63,6 +63,7 @@ The engine uses OpenGL for rendering by default, so OpenGL development libraries
 * [cglm](https://github.com/recp/cglm.git) is a C99 compatible 3D graphics math library
 * [JSMN](https://github.com/zserge/jsmn.git) is a minimalistic JSON parser
 * [MinUnit](https://github.com/siu/minunit.git) is a minimal unit testing framework
+* [dr_libs](https://github.com/mackron/dr_libs) is a collection of single-file libraries for audio file decoding
 
 Dependencies installed separately:
 
@@ -70,3 +71,4 @@ Dependencies installed separately:
 * [libpng](http://www.libpng.org/pub/png/libpng.html) for loading PNG encoded textures
 * [libjpeg](http://ijg.org/) for loading JPEG compressed textures
 * [FreeType](https://www.freetype.org/) for rendering fonts
+* [OpenAL Soft](https://kcat.strangesoft.net/openal.html) for audio rendering

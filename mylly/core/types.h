@@ -35,6 +35,9 @@ typedef struct ai_t ai_t;
 typedef struct ai_behaviour_t ai_behaviour_t;
 typedef struct ai_node_t ai_node_t;
 
+// Audio
+typedef struct sound_t sound_t;
+
 // UI types
 #include "mgui/mguitypes.h"
 

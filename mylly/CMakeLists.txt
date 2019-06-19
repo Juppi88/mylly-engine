@@ -60,6 +60,7 @@ find_package(OpenGL REQUIRED)
 find_package(PNG REQUIRED) # libpng will automatically include zlib
 find_package(JPEG REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(OpenAL REQUIRED)
 
 # 3rd party libraries which don't use CMake.
 # TODO: Fix this for Windows!
@@ -80,6 +81,7 @@ target_include_directories(mylly PRIVATE
 	${PNG_INCLUDE_DIRS}
 	${JPEG_INCLUDE_DIR}
 	${FREETYPE_INCLUDE_DIRS}
+	${OPENAL_INCLUDE_DIRS}
 )
 
 # Link libraries for dependencies.
@@ -88,6 +90,7 @@ target_link_libraries(mylly LINK_INTERFACE_LIBRARIES
 	${PNG_LIBRARIES}
 	${JPEG_LIBRARIES}
 	${FREETYPE_LIBRARIES}
+	${OPENAL_LIBRARY}
 )
 
 ####################################################################################################

@@ -9,6 +9,7 @@ The engine code base is divided into several subdirectories, which each contain 
 ```
 engine
 ├── ai
+├── audio
 ├── collections
 ├── core
 ├── io
@@ -26,6 +27,10 @@ engine
 ### ai
 
 Contains functionality to create [behaviour tree](https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)) based AIs and attach them to scene objects.
+
+### audio
+
+Contains the audio system and audio file handling.
 
 ### collections
 

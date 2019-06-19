@@ -16,6 +16,7 @@ typedef enum {
 	RES_MODEL,
 	RES_MATERIAL,
 	RES_EMITTER,
+	RES_SOUND,
 
 } res_type_t;
 

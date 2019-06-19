@@ -10,6 +10,7 @@
 #include "resources/resources.h"
 #include "scene/scene.h"
 #include "mgui/mgui.h"
+#include "audio/audiosystem.h"
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -54,6 +55,7 @@ bool mylly_initialize(int argc, char **argv)
 	// Initialize subsystems.
 	rsys_initialize();
 	input_initialize();
+	audio_initialize();
 
 	// Load resources from files.
 	res_initialize();
@@ -83,6 +85,7 @@ static void mylly_shutdown(void)
 	// Unload all loaded resources.
 	res_shutdown();
 	
+	audio_shutdown();
 	input_shutdown();
 	rsys_shutdown();
 }

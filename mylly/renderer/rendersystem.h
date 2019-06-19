@@ -4,11 +4,9 @@
 
 #include "core/defines.h"
 
+// -------------------------------------------------------------------------------------------------
+
 BEGIN_DECLARATIONS;
-
-typedef struct scene_t scene_t;
-
-// --------------------------------------------------------------------------------
 
 void rsys_initialize(void);
 void rsys_shutdown(void);
