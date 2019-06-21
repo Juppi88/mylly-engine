@@ -29,9 +29,12 @@ void arr_resize(char **arr, size_t *count, size_t *capacity, size_t data_size)
 void arr_splice(char **arr, size_t *count, size_t *capacity, size_t data_size, int start, int items)
 {
 	UNUSED(capacity);
-	
-	memmove(*arr + start * data_size, *arr + (start + items) * data_size,
-			(*count - start - items) * data_size);
+
+	memmove(
+		*arr + start * data_size,
+		*arr + (start + items) * data_size,
+		(*count - start - items) * data_size
+	);
 
 	*count = *count - items;
 }
