@@ -117,6 +117,9 @@ void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 		// Update and render the UI.
 		mgui_process();
 
+		// Process audio listener.
+		audio_update();
+
 		// Ending the frame will issue the actual draw calls.
 		rsys_end_frame(current_scene);
 

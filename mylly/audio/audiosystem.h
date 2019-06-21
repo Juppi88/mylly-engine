@@ -11,8 +11,12 @@ BEGIN_DECLARATIONS;
 
 void audio_initialize(void);
 void audio_shutdown(void);
+void audio_update(void);
 
 void audio_play_sound(sound_t *sound);
+
+object_t *audio_get_listener(void);
+void audio_set_listener(object_t *object);
 
 // For internal use.
 audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,

@@ -7,6 +7,7 @@
 #include "ai/ai.h"
 #include "io/log.h"
 #include "math/math.h"
+#include "audio/audiosystem.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -87,6 +88,11 @@ void obj_destroy(object_t *obj)
 	}
 
 	arr_clear(obj->children);
+
+	// If the object is the current audio listener, set listener to nothing.
+	if (audio_get_listener() == obj) {
+		audio_set_listener(NULL);
+	}
 
 	DESTROY(obj);
 }

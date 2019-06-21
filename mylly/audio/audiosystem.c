@@ -1,5 +1,6 @@
 #include "audiosystem.h"
 #include "io/log.h"
+#include "scene/object.h"
 #include <AL/al.h>
 #include <AL/alc.h>
 
@@ -7,6 +8,7 @@
 
 static ALCdevice *device; // Audio device
 static ALCcontext *context; // Audio context
+static object_t *listener_object; // The object which is the OpenAL listener
 
 // -------------------------------------------------------------------------------------------------
 
@@ -17,7 +19,7 @@ void audio_initialize(void)
 
 	// Try to open the default audio device.
 	if (device == NULL) {
-		device = alcOpenDevice(NULL);	
+		device = alcOpenDevice(NULL);
 	}
 	
 	if (device == NULL) {
@@ -56,6 +58,25 @@ void audio_shutdown(void)
 	}
 }
 
+void audio_update(void)
+{
+	if (context == NULL ||
+		listener_object == NULL) {
+		return;
+	}
+
+	// Update the listener's position and orientation.
+	vec3_t position = obj_get_position(listener_object);
+	vec3_t up = obj_get_up_vector(listener_object);
+	vec3_t forward = obj_get_forward_vector(listener_object);
+
+	ALfloat orientation[] = { forward.x, forward.y, forward.z, up.x, up.y, up.z };
+
+	alListenerfv(AL_POSITION, position.vec);
+	alListener3f(AL_VELOCITY, 0, 0, 0);
+	alListenerfv(AL_ORIENTATION, orientation);
+}
+
 void audio_play_sound(sound_t *sound)
 {
 	if (context == NULL ||
@@ -82,8 +103,23 @@ void audio_play_sound(sound_t *sound)
 		return;
 	}
 
-	// Play the sound.
+	vec3_t position = obj_get_position(listener_object);
+
+	alSourcefv(source, AL_POSITION, position.vec);
+	alSource3f(source, AL_VELOCITY, 0, 0, 0);
+	alSource3f(source, AL_DIRECTION, 0, 0, 0);
+
 	alSourcePlay(source);
+}
+
+object_t *audio_get_listener(void)
+{
+	return listener_object;
+}
+
+void audio_set_listener(object_t *object)
+{
+	listener_object = object;
 }
 
 audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,
@@ -100,8 +136,7 @@ audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,
 	ALenum error = alGetError();
 
 	// Check that the buffer was generated successfully.
-	if (error == AL_INVALID_VALUE ||
-		error == AL_OUT_OF_MEMORY) {
+	if (error != AL_NO_ERROR) {
 		return 0;
 	}
 
