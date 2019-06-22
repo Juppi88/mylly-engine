@@ -3,7 +3,11 @@
 #define __AUDIOSYSTEM_H
 
 #include "core/defines.h"
-#include "audio/sound.h"
+
+// -------------------------------------------------------------------------------------------------
+
+typedef uint32_t audio_buffer_t; // Audio buffer index used by OpenAL
+typedef uint32_t audio_source_t; // Ditto for audio sources
 
 // -------------------------------------------------------------------------------------------------
 

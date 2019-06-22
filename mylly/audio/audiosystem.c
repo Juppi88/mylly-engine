@@ -1,4 +1,6 @@
 #include "audiosystem.h"
+#include "audiosource.h"
+#include "sound.h"
 #include "io/log.h"
 #include "scene/object.h"
 #include "collections/array.h"
@@ -13,8 +15,8 @@ static ALCdevice *device; // Audio device
 static ALCcontext *context; // Audio context
 static object_t *listener_object; // The object which is the OpenAL listener
 
-static arr_t(ALuint) inactive_sources = arr_initializer; // Inactive nonpositional audio sources
-static arr_t(ALuint) active_sources = arr_initializer; // Active nonpositional audio sources
+static arr_t(audiosrc_t*) inactive_sources = arr_initializer; // Inactive nonpositional audio sources
+static arr_t(audiosrc_t*) active_sources = arr_initializer; // Active nonpositional audio sources
 
 // -------------------------------------------------------------------------------------------------
 
@@ -46,18 +48,9 @@ void audio_initialize(void)
 	}
 
 	// Pre-create nonpositional audio sources.
-	ALuint sources[MAX_NONPOSITIONAL_SOUNDS];
-	alGenSources(MAX_NONPOSITIONAL_SOUNDS, sources);
-
 	for (int i = 0; i < MAX_NONPOSITIONAL_SOUNDS; i++) {
 
-		ALuint source = sources[i];
-
-		alSourcei(source, AL_SOURCE_RELATIVE, true);
-		alSource3f(source, AL_POSITION, 0, 0, 0);
-		alSource3f(source, AL_VELOCITY, 0, 0, 0);
-		alSource3f(source, AL_DIRECTION, 0, 0, 0);
-
+		audiosrc_t *source = audiosrc_create(NULL);
 		arr_push(inactive_sources, source);
 	}
 
@@ -67,14 +60,14 @@ void audio_initialize(void)
 void audio_shutdown(void)
 {
 	// Destroy audio sources.
-	ALuint source;
+	audiosrc_t *source;
 
 	arr_foreach(active_sources, source) {
-		alDeleteSources(1, &source);
+		audiosrc_destroy(source);
 	}
 
 	arr_foreach(inactive_sources, source) {
-		alDeleteSources(1, &source);
+		audiosrc_destroy(source);
 	}
 
 	if (context != NULL) {
@@ -110,20 +103,16 @@ void audio_update(void)
 	alListenerfv(AL_ORIENTATION, orientation);
 
 	// Process all active sources.
-	ALuint source;
-	ALint state;
+	audiosrc_t *source;
 
-	for (uint32_t i = active_sources.count; i > 0; i--) {
+	arr_foreach_reverse(active_sources, source) {
 
-		uint32_t source_index = i - 1;
-		source = active_sources.items[source_index];
+		audiosrc_process(source);
 
 		// If the source is no longer playing, move it to the inactive list.
-		alGetSourcei(source, AL_SOURCE_STATE, &state);
+		if (!audiosrc_has_sounds_playing(source)) {
 
-		if (state != AL_PLAYING) {
-
-			arr_remove_at(active_sources, source_index);
+			arr_remove(active_sources, source);
 			arr_push(inactive_sources, source);
 		}
 	}
@@ -143,19 +132,10 @@ void audio_play_sound(sound_t *sound)
 		return;
 	}
 
-	ALuint source = inactive_sources.items[0];
+	// Play the sound on the first available audio source.
+	audiosrc_t *source = inactive_sources.items[0];
 
-	// Bind audio buffer to the source.
-	alSourcei(source, AL_BUFFER, sound->buffer);
-
-	if (alGetError() != 0) {
-
-		log_warning("AudioSystem", "Could not bind audio buffer to a source.");
-		return;
-	}
-
-	// Play the sound.
-	alSourcePlay(source);
+	audiosrc_play(source, sound);
 
 	// Move the audio source from the inactive list to the active list.
 	arr_remove_at(inactive_sources, 0);
