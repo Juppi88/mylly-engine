@@ -17,6 +17,7 @@ typedef struct source_t {
 	audiosrc_t *source;
 	audio_source_t source_object;
 	sound_t *sound;
+	sound_instance_t instance;
 
 } source_t;
 
@@ -31,6 +32,8 @@ static arr_t(source_t) active_sources = arr_initializer; // Active audio sources
 
 static audiosrc_t *nonpositional_sources[MAX_AUDIO_GROUPS]; // One nonpositional source per group
 static float group_gains[MAX_AUDIO_GROUPS] = { 1, 1, 1, 1 }; // Per group gains
+
+static sound_instance_t next_sound_instance = 1; // A running counter for played sounds
 
 // -------------------------------------------------------------------------------------------------
 
@@ -177,18 +180,18 @@ void audio_update(void)
 	}
 }
 
-void audio_play_sound(sound_t *sound, uint8_t group)
+sound_instance_t audio_play_sound(sound_t *sound, uint8_t group)
 {
 	if (context == NULL ||
 		sound == NULL ||
 		group >= MAX_AUDIO_GROUPS) {
-		return;
+		return 0;
 	}
 
-	audio_play_sound_from_source(sound, nonpositional_sources[group]);
+	return audio_play_sound_from_source(sound, nonpositional_sources[group]);
 }
 
-void audio_play_sound_from_source(sound_t *sound, audiosrc_t *source)
+sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source)
 {
 	audio_source_t source_object = 0;
 
@@ -234,8 +237,10 @@ void audio_play_sound_from_source(sound_t *sound, audiosrc_t *source)
 	alSourcePlay(source_object);
 
 	// Remember that this audio source object is now playing and requires processing.
-	source_t active = (source_t){ source, source_object, sound };
+	source_t active = (source_t){ source, source_object, sound, next_sound_instance++ };
 	arr_push(active_sources, active);
+
+	return active.instance;
 }
 
 void audio_stop_source(audiosrc_t *source)
@@ -259,6 +264,27 @@ void audio_stop_source(audiosrc_t *source)
 		arr_push(free_source_objects, source_object);
 
 		arr_remove_at(active_sources, i);
+	}
+}
+
+void audio_stop_sound(sound_instance_t sound)
+{
+	uint32_t i;
+	arr_foreach_iter(active_sources, i) {
+
+		// If the sound instance can be found in the active sources list, stop that particular
+		// source and move it to free audio sources list.
+		if (active_sources.items[i].instance == sound) {
+
+			audio_source_t source_object = active_sources.items[i].source_object;
+
+			alSourceStop(source_object);
+			arr_push(free_source_objects, source_object);
+
+			arr_remove_at(active_sources, i);
+
+			return;
+		}
 	}
 }
 

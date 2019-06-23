@@ -8,6 +8,7 @@
 
 typedef uint32_t audio_buffer_t; // Audio buffer index used by OpenAL
 typedef uint32_t audio_source_t; // Ditto for audio sources
+typedef uint32_t sound_instance_t; // A handle to playing sound instance
 
 // -------------------------------------------------------------------------------------------------
 
@@ -21,8 +22,9 @@ void audio_initialize(void);
 void audio_shutdown(void);
 void audio_update(void);
 
-void audio_play_sound(sound_t *sound, uint8_t group);
-void audio_play_sound_from_source(sound_t *sound, audiosrc_t *source);
+sound_instance_t audio_play_sound(sound_t *sound, uint8_t group);
+sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source);
+void audio_stop_sound(sound_instance_t sound);
 void audio_stop_source(audiosrc_t *source);
 
 void audio_set_master_gain(float gain);
