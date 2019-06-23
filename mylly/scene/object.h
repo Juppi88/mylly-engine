@@ -49,6 +49,7 @@ typedef struct object_t {
 	camera_t *camera; // Camera attached to the object
 	light_t *light; // Light attached to the object
 	ai_t *ai; // An AI attached to this object, executing a behaviour tree
+	audiosrc_t *audio_source; // Audio source. Required for positional sound effects
 	
 } object_t;
 
@@ -71,6 +72,7 @@ light_t *obj_add_light(object_t *object);
 animator_t *obj_add_animator(object_t *object);
 emitter_t *obj_add_emitter(object_t *object, const emitter_t *emitter_template);
 ai_t *obj_add_ai(object_t *object);
+audiosrc_t *obj_add_audio_source(object_t *object);
 void obj_set_model(object_t *obj, model_t *model);
 void obj_set_sprite(object_t *obj, sprite_t *sprite);
 

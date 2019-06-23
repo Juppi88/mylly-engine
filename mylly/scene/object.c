@@ -8,6 +8,7 @@
 #include "io/log.h"
 #include "math/math.h"
 #include "audio/audiosystem.h"
+#include "audio/audiosource.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -85,6 +86,9 @@ void obj_destroy(object_t *obj)
 	}
 	if (obj->ai != NULL) {
 		ai_destroy(obj->ai);
+	}
+	if (obj->audio_source != NULL) {
+		audiosrc_destroy(obj->audio_source);
 	}
 
 	arr_clear(obj->children);
@@ -263,6 +267,23 @@ ai_t *obj_add_ai(object_t *obj)
 
 	obj->ai = ai_create(obj);
 	return obj->ai;
+}
+
+audiosrc_t *obj_add_audio_source(object_t *obj)
+{
+	if (obj == NULL) {
+		return NULL;
+	}
+
+	// Allow only one audio source per object.
+	if (obj->audio_source != NULL) {
+
+		log_warning("Scene", "Object already has an audio source attached to it.");
+		return obj->audio_source;
+	}
+
+	obj->audio_source = audiosrc_create(obj);
+	return obj->audio_source;
 }
 
 void obj_set_model(object_t *obj, model_t *model)

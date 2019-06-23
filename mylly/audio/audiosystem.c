@@ -156,13 +156,23 @@ void audio_update(void)
 
 			arr_remove_at(active_sources, i);
 		}
-		else if (source->is_source_dirty) {
+		else {
 
-			// Update audio source properties.
-			alSourcef(source_object, AL_GAIN, source->gain * group_gains[source->group_index]);
-			alSourcef(source_object, AL_PITCH, source->pitch);
+			if (source->parent != NULL) {
 
-			source->is_source_dirty = false;
+				// Update audio source position.
+				vec3_t position = obj_get_position(source->parent);
+				alSourcefv(source_object, AL_POSITION, position.vec);
+			}
+
+			if (source->is_source_dirty) {
+
+				// Update audio source properties.
+				alSourcef(source_object, AL_GAIN, source->gain * group_gains[source->group_index]);
+				alSourcef(source_object, AL_PITCH, source->pitch);
+
+				source->is_source_dirty = false;
+			}
 		}
 	}
 }
@@ -209,7 +219,13 @@ void audio_play_sound_from_source(sound_t *sound, audiosrc_t *source)
 		alSource3f(source_object, AL_DIRECTION, 0, 0, 0);
 	}
 	else {
-		// TODO: Attach to scene object!
+
+		alSourcei(source_object, AL_SOURCE_RELATIVE, false);
+		alSource3f(source_object, AL_VELOCITY, 0, 0, 0);
+		alSource3f(source_object, AL_DIRECTION, 0, 0, 0);
+
+		vec3_t position = obj_get_position(source->parent);
+		alSourcefv(source_object, AL_POSITION, position.vec);
 	}
 
 	// Bind audio buffer to the source and play the sound.
@@ -262,9 +278,19 @@ void audio_set_group_gain(uint8_t group_index, float gain)
 		return;
 	}
 
-	group_gains[group_index] = CLAMP01(gain);
+	gain = CLAMP01(gain);
+	group_gains[group_index] = gain;
 	
-	// TODO: Set gain of each individual active source in the group.
+	// Update each active audio source belonging to this group.
+	uint32_t i;
+	arr_foreach_iter(active_sources, i) {
+
+		audiosrc_t *source = active_sources.items[i].source;
+
+		if (source->group_index == group_index) {
+			alSourcef(active_sources.items[i].source_object, AL_GAIN, source->gain * gain);
+		}
+	}
 }
 
 object_t *audio_get_listener(void)
