@@ -18,6 +18,8 @@ typedef struct source_t {
 	audio_source_t source_object;
 	sound_t *sound;
 	sound_instance_t instance;
+	float gain;
+	float pitch;
 
 } source_t;
 
@@ -34,6 +36,10 @@ static audiosrc_t *nonpositional_sources[MAX_AUDIO_GROUPS]; // One nonpositional
 static float group_gains[MAX_AUDIO_GROUPS] = { 1, 1, 1, 1 }; // Per group gains
 
 static sound_instance_t next_sound_instance = 1; // A running counter for played sounds
+
+// -------------------------------------------------------------------------------------------------
+
+static uint32_t audio_get_active_source_index(sound_instance_t sound);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -237,7 +243,7 @@ sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source
 	alSourcePlay(source_object);
 
 	// Remember that this audio source object is now playing and requires processing.
-	source_t active = (source_t){ source, source_object, sound, next_sound_instance++ };
+	source_t active = (source_t){ source, source_object, sound, next_sound_instance++, 1, 1 };
 	arr_push(active_sources, active);
 
 	return active.instance;
@@ -269,22 +275,18 @@ void audio_stop_source(audiosrc_t *source)
 
 void audio_stop_sound(sound_instance_t sound)
 {
-	uint32_t i;
-	arr_foreach_iter(active_sources, i) {
+	uint32_t index = audio_get_active_source_index(sound);
 
-		// If the sound instance can be found in the active sources list, stop that particular
-		// source and move it to free audio sources list.
-		if (active_sources.items[i].instance == sound) {
+	// If the sound instance can be found in the active sources list, stop that particular
+	// source and move it to free audio sources list.
+	if (index != INVALID_INDEX) {
 
-			audio_source_t source_object = active_sources.items[i].source_object;
+		audio_source_t source_object = active_sources.items[index].source_object;
 
-			alSourceStop(source_object);
-			arr_push(free_source_objects, source_object);
+		alSourceStop(source_object);
+		arr_push(free_source_objects, source_object);
 
-			arr_remove_at(active_sources, i);
-
-			return;
-		}
+		arr_remove_at(active_sources, index);
 	}
 }
 
@@ -314,8 +316,45 @@ void audio_set_group_gain(uint8_t group_index, float gain)
 		audiosrc_t *source = active_sources.items[i].source;
 
 		if (source->group_index == group_index) {
-			alSourcef(active_sources.items[i].source_object, AL_GAIN, source->gain * gain);
+
+			float source_gain = active_sources.items[i].gain * source->gain * gain;
+
+			alSourcef(active_sources.items[i].source_object, AL_GAIN, source_gain);
 		}
+	}
+}
+
+void audio_set_sound_gain(sound_instance_t sound, float gain)
+{
+	uint32_t index = audio_get_active_source_index(sound);
+
+	// If the sound instance can be found in the active sources list, update the total gain of that
+	// particular source.
+	if (index != INVALID_INDEX) {
+
+		audiosrc_t *source = active_sources.items[index].source;
+		audio_source_t source_object = active_sources.items[index].source_object;
+
+		active_sources.items[index].gain = gain;
+
+		alSourcef(source_object, AL_GAIN, gain * source->gain * group_gains[source->group_index]);
+	}
+}
+
+void audio_set_sound_pitch(sound_instance_t sound, float pitch)
+{
+	uint32_t index = audio_get_active_source_index(sound);
+
+	// If the sound instance can be found in the active sources list, update the total pitch of that
+	// particular source.
+	if (index != INVALID_INDEX) {
+
+		audiosrc_t *source = active_sources.items[index].source;
+		audio_source_t source_object = active_sources.items[index].source_object;
+
+		active_sources.items[index].pitch = pitch;
+
+		alSourcef(source_object, AL_PITCH, pitch * source->pitch);
 	}
 }
 
@@ -377,4 +416,18 @@ void audio_destroy_buffer(audio_buffer_t buffer)
 	}
 
 	alDeleteBuffers(1, &buffer);
+}
+
+static uint32_t audio_get_active_source_index(sound_instance_t sound)
+{
+	uint32_t i;
+
+	arr_foreach_iter(active_sources, i) {
+
+		if (active_sources.items[i].instance == sound) {
+			return i;
+		}
+	}
+
+	return INVALID_INDEX;
 }

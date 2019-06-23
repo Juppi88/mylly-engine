@@ -30,6 +30,9 @@ void audio_stop_source(audiosrc_t *source);
 void audio_set_master_gain(float gain);
 void audio_set_group_gain(uint8_t group_index, float gain);
 
+void audio_set_sound_gain(sound_instance_t sound, float gain);
+void audio_set_sound_pitch(sound_instance_t sound, float pitch);
+
 object_t *audio_get_listener(void);
 void audio_set_listener(object_t *object);
 
