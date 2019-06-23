@@ -113,6 +113,7 @@ void res_initialize(void)
 	res_load_all_in_directory("./models", ".obj", RES_MODEL);
 	res_load_all_in_directory("./effects", ".fx", RES_EMITTER);
 	res_load_all_in_directory("./sounds", ".wav", RES_SOUND);
+	res_load_all_in_directory("./sounds", ".mp3", RES_SOUND);
 	
 	// Initialize FreeType.
 	FT_Library freetype;
@@ -492,7 +493,7 @@ static void res_load_texture(const char *file_name)
 	bool is_sprite_sheet = file_exists(sprite_sheet_file);
 	TEX_FILTER filter = (is_sprite_sheet ? TEX_FILTER_POINT : TEX_FILTER_BILINEAR);
 
-	// Load the texture from the file data, assiming the file format is supported.
+	// Load the texture from the file data, assuming the file format is supported.
 	if (string_equals(extension, "png") &&
 		texture_load_png(texture, buffer, length, filter)) {
 
@@ -1424,11 +1425,21 @@ static void res_load_sound(const char *file_name)
 
 	// Create the sound object and load the audio data.
 	char name[260];
+	char extension[32];
+
 	string_get_file_name_without_extension(file_name, name, sizeof(name));
+	string_get_file_extension(file_name, extension, sizeof(extension));
 
 	sound_t *sound = sound_create(name, file_name);
 
-	if (sound_load_wav(sound, buffer, length)) {
+	if (string_equals(extension, "wav") &&
+		sound_load_wav(sound, buffer, length)) {
+
+		sound->resource.is_loaded = true;
+	}
+	else if (string_equals(extension, "mp3") &&
+	         sound_load_mp3(sound, buffer, length)) {
+
 		sound->resource.is_loaded = true;
 	}
 	else {

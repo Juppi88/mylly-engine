@@ -52,6 +52,12 @@
 #define arr_foreach_reverse(arr, var)\
 	for (int __i = (arr).count; __i > 0 && ((var) = (arr).items[__i - 1], 1); --__i)
 
+#define arr_foreach_iter(arr, iter)\
+	for (size_t __i = 0; __i < (arr).count && ((iter) = __i, 1); ++__i)
+
+#define arr_foreach_reverse_iter(arr, iter)\
+	for (int __i = (arr).count; __i > 0 && ((iter) = __i - 1, 1); --__i)
+
 #define arr_foreach_index() (__i)
 
 #define arr_find(arr, val, idx) {\

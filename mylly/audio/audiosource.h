@@ -7,19 +7,15 @@
 
 // -------------------------------------------------------------------------------------------------
 
-typedef struct active_source_t {
-
-	sound_t *sound; // Sound that is being played
-	uint32_t source; // Backend source handle
-
-} active_source_t;
-
-// -------------------------------------------------------------------------------------------------
-
 typedef struct audiosrc_t {
 
 	object_t *parent; // The scene object this audio source is attached to, or NULL if at listener
-	arr_t(active_source_t) sources; // A list of sources which are currently active
+
+	uint8_t group_index; // Audio group index
+	float gain; // Current gain for this audio source
+	float pitch; // Current pitch for this audio source
+
+	bool is_source_dirty; // Set to true when the source object requires an update
 
 } audiosrc_t;
 
@@ -31,12 +27,9 @@ BEGIN_DECLARATIONS;
 audiosrc_t *audiosrc_create(object_t *parent);
 void audiosrc_destroy(audiosrc_t *source);
 
-void audiosrc_process(audiosrc_t *source);
-
-void audiosrc_play(audiosrc_t *source, sound_t *sound);
-void audiosrc_stop(audiosrc_t *source);
-
-bool audiosrc_has_sounds_playing(audiosrc_t *source);
+void audiosrc_set_group(audiosrc_t *source, uint8_t group_index);
+void audiosrc_set_gain(audiosrc_t *source, float gain);
+void audiosrc_set_pitch(audiosrc_t *source, float pitch);
 
 END_DECLARATIONS;
 

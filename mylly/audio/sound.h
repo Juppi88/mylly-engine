@@ -4,10 +4,7 @@
 
 #include "core/defines.h"
 #include "resources/resource.h"
-
-// -------------------------------------------------------------------------------------------------
-
-typedef uint32_t audio_buffer_t; // Audio buffer index used by OpenAL
+#include "audio/audiosystem.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -27,6 +24,7 @@ sound_t *sound_create(const char *name, const char *path);
 void sound_destroy(sound_t *sound);
 
 bool sound_load_wav(sound_t *sound, void *data, size_t data_length);
+bool sound_load_mp3(sound_t *sound, void *data, size_t data_length);
 
 END_DECLARATIONS;
 

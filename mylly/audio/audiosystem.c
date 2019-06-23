@@ -4,19 +4,33 @@
 #include "io/log.h"
 #include "scene/object.h"
 #include "collections/array.h"
+#include "math/math.h"
 #include <AL/al.h>
 #include <AL/alc.h>
 
 // -------------------------------------------------------------------------------------------------
 
-#define MAX_NONPOSITIONAL_SOUNDS 32
+// Temporary data storage grouping an OpenAL audio source to Mylly audiosrc_t component.
+// Used for listing active audio sources.
+typedef struct source_t {
+
+	audiosrc_t *source;
+	audio_source_t source_object;
+	sound_t *sound;
+
+} source_t;
+
+// -------------------------------------------------------------------------------------------------
 
 static ALCdevice *device; // Audio device
 static ALCcontext *context; // Audio context
 static object_t *listener_object; // The object which is the OpenAL listener
 
-static arr_t(audiosrc_t*) inactive_sources = arr_initializer; // Inactive nonpositional audio sources
-static arr_t(audiosrc_t*) active_sources = arr_initializer; // Active nonpositional audio sources
+static arr_t(audio_source_t) free_source_objects = arr_initializer; // Unused audio source objects
+static arr_t(source_t) active_sources = arr_initializer; // Active audio sources
+
+static audiosrc_t *nonpositional_sources[MAX_AUDIO_GROUPS]; // One nonpositional source per group
+static float group_gains[MAX_AUDIO_GROUPS] = { 1, 1, 1, 1 }; // Per group gains
 
 // -------------------------------------------------------------------------------------------------
 
@@ -48,10 +62,12 @@ void audio_initialize(void)
 	}
 
 	// Pre-create nonpositional audio sources.
-	for (int i = 0; i < MAX_NONPOSITIONAL_SOUNDS; i++) {
+	for (uint8_t i = 0; i < MAX_AUDIO_GROUPS; i++) {
 
 		audiosrc_t *source = audiosrc_create(NULL);
-		arr_push(inactive_sources, source);
+
+		audiosrc_set_group(source, i);
+		nonpositional_sources[i] = source;
 	}
 
 	log_message("AudioSystem", "Audio system initialized.");
@@ -59,17 +75,36 @@ void audio_initialize(void)
 
 void audio_shutdown(void)
 {
-	// Destroy audio sources.
-	audiosrc_t *source;
+	// Destroy nonpositional audio sources.
+	for (uint8_t i = 0; i < MAX_AUDIO_GROUPS; i++) {
 
-	arr_foreach(active_sources, source) {
-		audiosrc_destroy(source);
+		audiosrc_destroy(nonpositional_sources[i]);
+		nonpositional_sources[i] = NULL;
 	}
 
-	arr_foreach(inactive_sources, source) {
-		audiosrc_destroy(source);
+	// Dereference audio source containers. If the system is used correctly, there should be
+	// no sources in the list. If there are, though, print a warning.
+	if (active_sources.count != 0) {
+
+		log_warning("AudioSystem", "Destroying %u active audio sources.", active_sources.count);
+
+		for (uint32_t i = 0; i < active_sources.count; i++) {
+			arr_push(free_source_objects, active_sources.items[i].source_object);
+		}
 	}
 
+	arr_clear(active_sources);
+
+	// Destroy OpenAL audio source objects.
+	audio_source_t source_object;
+
+	arr_foreach(free_source_objects, source_object) {
+		alDeleteSources(1, &source_object);
+	}
+
+	arr_clear(free_source_objects);
+
+	// Destroy OpenAL context and close the audio device.
 	if (context != NULL) {
 
 		alcMakeContextCurrent(NULL);
@@ -103,43 +138,133 @@ void audio_update(void)
 	alListenerfv(AL_ORIENTATION, orientation);
 
 	// Process all active sources.
-	audiosrc_t *source;
+	uint32_t i;
+	arr_foreach_reverse_iter(active_sources, i) {
 
-	arr_foreach_reverse(active_sources, source) {
+		// Get the state of the audio source object.
+		audio_source_t source_object = active_sources.items[i].source_object;
+		audiosrc_t *source = active_sources.items[i].source;
 
-		audiosrc_process(source);
+		ALint state;
+		alGetSourcei(source_object, AL_SOURCE_STATE, &state);
 
-		// If the source is no longer playing, move it to the inactive list.
-		if (!audiosrc_has_sounds_playing(source)) {
+		// If the source is no longer playing anything, move it to free source objects list.
+		if (state != AL_PLAYING) {
+			
+			alSourceStop(source_object);
+			arr_push(free_source_objects, source_object);
 
-			arr_remove(active_sources, source);
-			arr_push(inactive_sources, source);
+			arr_remove_at(active_sources, i);
+		}
+		else if (source->is_source_dirty) {
+
+			// Update audio source properties.
+			alSourcef(source_object, AL_GAIN, source->gain * group_gains[source->group_index]);
+			alSourcef(source_object, AL_PITCH, source->pitch);
+
+			source->is_source_dirty = false;
 		}
 	}
 }
 
-void audio_play_sound(sound_t *sound)
+void audio_play_sound(sound_t *sound, uint8_t group)
 {
 	if (context == NULL ||
-		sound == NULL) {
+		sound == NULL ||
+		group >= MAX_AUDIO_GROUPS) {
 		return;
 	}
 
-	// Find a free audio source from which to play the sound.
-	if (inactive_sources.count == 0) {
+	audio_play_sound_from_source(sound, nonpositional_sources[group]);
+}
 
-		log_warning("AudioSystem", "No free audio sources.");
+void audio_play_sound_from_source(sound_t *sound, audiosrc_t *source)
+{
+	audio_source_t source_object = 0;
+
+	// Find a free audio source object from which to play the sound.
+	if (free_source_objects.count != 0) {
+
+		source_object = arr_first(free_source_objects);
+		arr_remove_at(free_source_objects, 0);
+	}
+	else {
+
+		// Generate a new source if no existing ones are available.
+		alGenSources(1, &source_object);
+	}
+
+	// Set audio source properties.
+	alSourcef(source_object, AL_GAIN, source->gain * group_gains[source->group_index]);
+	alSourcef(source_object, AL_PITCH, source->pitch);
+
+	source->is_source_dirty = false;
+
+	if (source->parent == NULL) {
+
+		// Audio source has no parent scene object (i.e. it is attached to the listener).
+		alSourcei(source_object, AL_SOURCE_RELATIVE, true);
+		alSource3f(source_object, AL_POSITION, 0, 0, 0);
+		alSource3f(source_object, AL_VELOCITY, 0, 0, 0);
+		alSource3f(source_object, AL_DIRECTION, 0, 0, 0);
+	}
+	else {
+		// TODO: Attach to scene object!
+	}
+
+	// Bind audio buffer to the source and play the sound.
+	// TODO: Check whether the sound should be streamed!
+	alSourcei(source_object, AL_BUFFER, sound->buffer);
+	alSourcePlay(source_object);
+
+	// Remember that this audio source object is now playing and requires processing.
+	source_t active = (source_t){ source, source_object, sound };
+	arr_push(active_sources, active);
+}
+
+void audio_stop_source(audiosrc_t *source)
+{
+	if (context == NULL ||
+		source == NULL) {
 		return;
 	}
 
-	// Play the sound on the first available audio source.
-	audiosrc_t *source = inactive_sources.items[0];
+	uint32_t i;
+	arr_foreach_reverse_iter(active_sources, i) {
 
-	audiosrc_play(source, sound);
+		if (active_sources.items[i].source != source) {
+			continue;
+		}
 
-	// Move the audio source from the inactive list to the active list.
-	arr_remove_at(inactive_sources, 0);
-	arr_push(active_sources, source);
+		// Move the audio source object to free sources list and remove this entry.
+		audio_source_t source_object = active_sources.items[i].source_object;
+
+		alSourceStop(source_object);
+		arr_push(free_source_objects, source_object);
+
+		arr_remove_at(active_sources, i);
+	}
+}
+
+void audio_set_master_gain(float gain)
+{
+	if (context == NULL) {
+		return;
+	}
+
+	gain = CLAMP01(gain);
+	alListenerf(AL_GAIN, gain);
+}
+
+void audio_set_group_gain(uint8_t group_index, float gain)
+{
+	if (context == NULL || group_index >= MAX_AUDIO_GROUPS) {
+		return;
+	}
+
+	group_gains[group_index] = CLAMP01(gain);
+	
+	// TODO: Set gain of each individual active source in the group.
 }
 
 object_t *audio_get_listener(void)
