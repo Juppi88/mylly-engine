@@ -37,10 +37,11 @@ object_t *audio_get_listener(void);
 void audio_set_listener(object_t *object);
 
 // For internal use.
-audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,
-                                   const void *data, size_t data_size, size_t frequency);
-
+audio_buffer_t audio_create_buffer(void);
 void audio_destroy_buffer(audio_buffer_t buffer);
+
+void audio_load_buffer(audio_buffer_t buffer, uint32_t channels, uint32_t bits_per_sample,
+                       const void *data, size_t data_size, size_t frequency);
 
 END_DECLARATIONS;
 

@@ -508,7 +508,7 @@ static void res_load_texture(const char *file_name)
 		log_warning("Resources", "Could not load texture %s.", file_name);
 	}
 
-	// Release the temporary buffer.
+	// Note that the control of the temporary buffer is given to the sound loader.
 	mem_free(buffer);
 
 	// Add the texture to resource list.
@@ -1432,6 +1432,8 @@ static void res_load_sound(const char *file_name)
 
 	sound_t *sound = sound_create(name, file_name);
 
+	// Load audio in a file format specific way. Note that the control of the temporary buffer
+	// is given to the sound loader if the load succeeds.
 	if (string_equals(extension, "wav") &&
 		sound_load_wav(sound, buffer, length)) {
 
@@ -1450,9 +1452,6 @@ static void res_load_sound(const char *file_name)
 
 		return;
 	}
-
-	// Release the temporary buffer.
-	mem_free(buffer);
 
 	// Add the sound to resource list.
 	arr_push(sounds, sound);

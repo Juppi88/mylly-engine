@@ -14,12 +14,14 @@
 // Used for listing active audio sources.
 typedef struct source_t {
 
-	audiosrc_t *source;
-	audio_source_t source_object;
-	sound_t *sound;
-	sound_instance_t instance;
-	float gain;
-	float pitch;
+	audiosrc_t *source; // Mylly audio source component
+	audio_source_t source_object; // OpenAL audio source object
+	sound_t *sound; // Mylly sound resource
+	sound_instance_t instance; // A handle to a specific sound instance being played on a source
+	audio_buffer_t buffers[2]; // Rotating audio buffers for streaming sounds
+	size_t current_sample; // Index of the sample up to which the sound has been streamed
+	float gain; // Per sound instance gain
+	float pitch; // Per sound instance pitch
 
 } source_t;
 
@@ -29,7 +31,6 @@ static ALCdevice *device; // Audio device
 static ALCcontext *context; // Audio context
 static object_t *listener_object; // The object which is the OpenAL listener
 
-static arr_t(audio_source_t) free_source_objects = arr_initializer; // Unused audio source objects
 static arr_t(source_t) active_sources = arr_initializer; // Active audio sources
 
 static audiosrc_t *nonpositional_sources[MAX_AUDIO_GROUPS]; // One nonpositional source per group
@@ -40,6 +41,7 @@ static sound_instance_t next_sound_instance = 1; // A running counter for played
 // -------------------------------------------------------------------------------------------------
 
 static uint32_t audio_get_active_source_index(sound_instance_t sound);
+static void audio_stop_instance_at(uint32_t index);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -98,20 +100,11 @@ void audio_shutdown(void)
 		log_warning("AudioSystem", "Destroying %u active audio sources.", active_sources.count);
 
 		for (uint32_t i = 0; i < active_sources.count; i++) {
-			arr_push(free_source_objects, active_sources.items[i].source_object);
+			audio_stop_sound(active_sources.items[i].source_object);
 		}
 	}
 
 	arr_clear(active_sources);
-
-	// Destroy OpenAL audio source objects.
-	audio_source_t source_object;
-
-	arr_foreach(free_source_objects, source_object) {
-		alDeleteSources(1, &source_object);
-	}
-
-	arr_clear(free_source_objects);
 
 	// Destroy OpenAL context and close the audio device.
 	if (context != NULL) {
@@ -153,17 +146,13 @@ void audio_update(void)
 		// Get the state of the audio source object.
 		audio_source_t source_object = active_sources.items[i].source_object;
 		audiosrc_t *source = active_sources.items[i].source;
-
+		
 		ALint state;
 		alGetSourcei(source_object, AL_SOURCE_STATE, &state);
 
 		// If the source is no longer playing anything, move it to free source objects list.
-		if (state != AL_PLAYING) {
-			
-			alSourceStop(source_object);
-			arr_push(free_source_objects, source_object);
-
-			arr_remove_at(active_sources, i);
+		if (state != AL_PLAYING && active_sources.items[i].current_sample == 0) {
+			audio_stop_instance_at(i);
 		}
 		else {
 
@@ -181,6 +170,45 @@ void audio_update(void)
 				alSourcef(source_object, AL_PITCH, source->pitch);
 
 				source->is_source_dirty = false;
+			}
+
+			sound_t *sound = active_sources.items[i].sound;
+
+			// Process audio streaming.
+			if (sound->is_streaming) {
+
+				// Get number of audio buffers that have been processed and are ready to be removed
+				// from the queue and refilled.
+				ALint num_processed_buffers = 0;
+				alGetSourcei(source_object, AL_BUFFERS_PROCESSED, &num_processed_buffers);
+
+				if (num_processed_buffers != 0) {
+
+					// Unqueue one processed buffer.
+					ALuint unqueued = 0;
+					alSourceUnqueueBuffers(source_object, 1, &unqueued);
+
+					ALint err = alGetError();
+
+					if (err != AL_NO_ERROR) {
+						continue;
+					}
+
+					// There is more of the sound to play. Load new audio segments into the unqueued
+					// buffer and queue it back to the audio source.
+					if (unqueued != 0 &&
+						active_sources.items[i].current_sample != 0) {
+
+						sound_stream(sound, unqueued, &active_sources.items[i].current_sample);
+						alSourceQueueBuffers(source_object, 1, &unqueued);
+					}
+				}
+
+				// Restart stream in case it ended prematurely. This is in case the buffers aren't
+				// filled as fast as they're played.
+				if (state == AL_STOPPED) {
+					alSourcePlay(source_object);
+				}
 			}
 		}
 	}
@@ -201,17 +229,8 @@ sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source
 {
 	audio_source_t source_object = 0;
 
-	// Find a free audio source object from which to play the sound.
-	if (free_source_objects.count != 0) {
-
-		source_object = arr_first(free_source_objects);
-		arr_remove_at(free_source_objects, 0);
-	}
-	else {
-
-		// Generate a new source if no existing ones are available.
-		alGenSources(1, &source_object);
-	}
+	// Generate a new audio source object.
+	alGenSources(1, &source_object);
 
 	// Set audio source properties.
 	alSourcef(source_object, AL_GAIN, source->gain * group_gains[source->group_index]);
@@ -237,14 +256,43 @@ sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source
 		alSourcefv(source_object, AL_POSITION, position.vec);
 	}
 
-	// Bind audio buffer to the source and play the sound.
-	// TODO: Check whether the sound should be streamed!
-	alSourcei(source_object, AL_BUFFER, sound->buffer);
-	alSourcePlay(source_object);
-
 	// Remember that this audio source object is now playing and requires processing.
-	source_t active = (source_t){ source, source_object, sound, next_sound_instance++, 1, 1 };
+	source_t active = (source_t){
+		source,
+		source_object,
+		sound,
+		next_sound_instance++,
+		{ 0, 0 },
+		0,
+		1,
+		1
+	};
+
+	// Bind audio buffer to the source.
+	if (!sound->is_streaming) {
+
+		// If the sound doesn't require streaming, load its entire buffer at once.
+		alSourcei(source_object, AL_BUFFER, sound->buffer);
+	}
+	else {
+
+		// Create two buffers into which to stream parts of the sound. These buffers are queued
+		// to the source and rotated whenever they become ready.
+		active.buffers[0] = audio_create_buffer();
+		active.buffers[1] = audio_create_buffer();
+
+		// Stream audio into the buffer objects.
+		sound_stream(sound, active.buffers[0], &active.current_sample);
+		sound_stream(sound, active.buffers[1], &active.current_sample);
+
+		// Queue the audio buffers to the audio source.
+		alSourceQueueBuffers(source_object, 2, active.buffers);
+	}
+
 	arr_push(active_sources, active);
+
+	// Play the sound.
+	alSourcePlay(source_object);
 
 	return active.instance;
 }
@@ -259,17 +307,9 @@ void audio_stop_source(audiosrc_t *source)
 	uint32_t i;
 	arr_foreach_reverse_iter(active_sources, i) {
 
-		if (active_sources.items[i].source != source) {
-			continue;
+		if (active_sources.items[i].source == source) {
+			audio_stop_instance_at(i);
 		}
-
-		// Move the audio source object to free sources list and remove this entry.
-		audio_source_t source_object = active_sources.items[i].source_object;
-
-		alSourceStop(source_object);
-		arr_push(free_source_objects, source_object);
-
-		arr_remove_at(active_sources, i);
 	}
 }
 
@@ -280,13 +320,7 @@ void audio_stop_sound(sound_instance_t sound)
 	// If the sound instance can be found in the active sources list, stop that particular
 	// source and move it to free audio sources list.
 	if (index != INVALID_INDEX) {
-
-		audio_source_t source_object = active_sources.items[index].source_object;
-
-		alSourceStop(source_object);
-		arr_push(free_source_objects, source_object);
-
-		arr_remove_at(active_sources, index);
+		audio_stop_instance_at(index);
 	}
 }
 
@@ -368,8 +402,7 @@ void audio_set_listener(object_t *object)
 	listener_object = object;
 }
 
-audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,
-                                   const void *data, size_t data_size, size_t frequency)
+audio_buffer_t audio_create_buffer(void)
 {
 	if (context == NULL) {
 		return 0;
@@ -386,6 +419,16 @@ audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,
 		return 0;
 	}
 
+	return buffer;
+}
+
+void audio_load_buffer(audio_buffer_t buffer, uint32_t channels, uint32_t bits_per_sample,
+                       const void *data, size_t data_size, size_t frequency)
+{
+	if (context == NULL || buffer == 0) {
+		return;
+	}
+
 	bool stereo = (channels > 1);
 	ALenum format;
 
@@ -400,18 +443,17 @@ audio_buffer_t audio_create_buffer(uint32_t channels, uint32_t bits_per_sample,
 			break;
 
 		default:
-			return 0;
+			log_warning("AudioSystem", "Unsupported bits per sample (%u)", bits_per_sample);
+			return;
 	}
 
 	// Upload sound data to buffer.
 	alBufferData(buffer, format, data, data_size, frequency);
-
-	return buffer;
 }
 
 void audio_destroy_buffer(audio_buffer_t buffer)
 {
-	if (context == NULL) {
+	if (context == NULL || buffer == 0) {
 		return;
 	}
 
@@ -430,4 +472,22 @@ static uint32_t audio_get_active_source_index(sound_instance_t sound)
 	}
 
 	return INVALID_INDEX;
+}
+
+static void audio_stop_instance_at(uint32_t index)
+{
+	audio_source_t source_object = active_sources.items[index].source_object;
+
+	// Stop the sound and detach its buffer(s).
+	alSourceStop(source_object);
+	alSourcei(source_object, AL_BUFFER, AL_NONE);
+
+	// Release temporary buffers.
+	audio_destroy_buffer(active_sources.items[index].buffers[0]);
+	audio_destroy_buffer(active_sources.items[index].buffers[1]);
+
+	// Release audio source.
+	alDeleteSources(1, &source_object);
+
+	arr_remove_at(active_sources, index);
 }
