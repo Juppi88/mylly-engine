@@ -42,9 +42,8 @@ void sound_destroy(sound_t *sound)
 	}
 
 	// Release the audio buffer object.
-	if (sound->buffer != 0) {
-
-		audio_destroy_buffer(sound->buffer);
+	if (sound->buffer != NULL) {
+		ref_dec(sound->buffer);
 	}
 
 	DESTROY(sound->resource.res_name);
@@ -108,9 +107,9 @@ bool sound_load_wav(sound_t *sound, void *data, size_t data_length)
     }
 
     // Generate an audio buffer object and upload the data to it.
-    sound->buffer = audio_create_buffer();
+    sound->buffer = audiobuffer_create();
 
-    audio_load_buffer(sound->buffer, channels, wav->bitsPerSample,
+    audio_load_buffer(sound->buffer->buffer, channels, wav->bitsPerSample,
                       samples, samples_size, wav->sampleRate);
 
     sound->is_streaming = false;
@@ -149,7 +148,7 @@ bool sound_load_mp3(sound_t *sound, void *data, size_t data_length)
     return (sound->num_samples != 0);
 }
 
-bool sound_stream(sound_t *sound, audio_buffer_t buffer, size_t *start_sample)
+bool sound_stream(sound_t *sound, audiobuffer_id_t buffer, size_t *start_sample)
 {
 	if (sound == NULL || start_sample == NULL) {
 		return false;
