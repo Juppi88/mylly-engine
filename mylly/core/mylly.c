@@ -1,5 +1,6 @@
 #include "mylly.h"
-#include "core/time.h"
+#include "time.h"
+#include "parallel.h"
 #include "io/log.h"
 #include "io/input.h"
 #include "platform/thread.h"
@@ -53,6 +54,7 @@ bool mylly_initialize(int argc, char **argv)
 	}
 
 	// Initialize subsystems.
+	parallel_initialize();
 	rsys_initialize();
 	input_initialize();
 	audio_initialize();
@@ -88,6 +90,7 @@ static void mylly_shutdown(void)
 	audio_shutdown();
 	input_shutdown();
 	rsys_shutdown();
+	parallel_shutdown();
 }
 
 void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
@@ -119,6 +122,9 @@ void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 
 		// Process audio listener.
 		audio_update();
+
+		// Process parallel jobs.
+		parallel_process();
 
 		// Ending the frame will issue the actual draw calls.
 		rsys_end_frame(current_scene);
