@@ -102,6 +102,9 @@ void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 		window_pump_events();
 		window_process_events(input_sys_process_messages);
 
+		// Process parallel jobs.
+		parallel_process();
+
 		// Render the current scene.
 		rsys_begin_frame();
 
@@ -122,9 +125,6 @@ void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 
 		// Process audio listener.
 		audio_update();
-
-		// Process parallel jobs.
-		parallel_process();
 
 		// Ending the frame will issue the actual draw calls.
 		rsys_end_frame(current_scene);

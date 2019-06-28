@@ -141,7 +141,7 @@ static void audio_load_buffer_in_parallel(void *context)
 	buffer_load_job_t *job = (buffer_load_job_t *)context;
 
 	// This is the heavy task being done in a separate worker thread.
-	sound_stream(job->sound, job->buffer->buffer, &job->start_sample);
+	sound_stream(job->sound, job->buffer->buffer, job->start_sample);
 }
 
 static void audio_parallel_load_completed(void *context)
@@ -154,13 +154,25 @@ static void audio_parallel_load_completed(void *context)
 	// If the active audio source could not be found for some reason, it may have been removed
 	// due to eg. scene object removal. If not, queue the loaded buffer to the source.
 	if (index != INVALID_INDEX) {
-
 		alSourceQueueBuffers(active_sounds.items[index].source_object, 1, &job->buffer->buffer);
-		active_sounds.items[index].current_sample = job->start_sample;
 	}
 
 	// Dereference the buffer so it can be destroyed.
 	ref_dec(job->buffer);
+
+	ALint state, num_queued_buffers;
+	alGetSourcei(active_sounds.items[index].source_object, AL_SOURCE_STATE, &state);
+	alGetSourcei(active_sounds.items[index].source_object, AL_BUFFERS_QUEUED, &num_queued_buffers);
+
+	// Restart the sound in case it has ended prematurely (i.e. not buffering fast enough).
+	// However, restart only when both buffers have been re-queued and when the end of the sound
+	// has not been reached.
+	if (state == AL_STOPPED &&
+		num_queued_buffers > 1 &&
+		active_sounds.items[index].current_sample != 0) {
+
+		alSourcePlay(active_sounds.items[index].source_object);
+	}
 
 	// Remember to remove the temporary data of the job.
 	mem_free(job);
@@ -233,7 +245,7 @@ void audio_update(void)
 
 				// Ensure the source has at least one buffer in the queue so we don't end up in a
 				// situation where the source stops while both of the buffers are being filled.
-				if (num_processed_buffers != 0 &&
+				if (num_processed_buffers != 0 &&//) {// &&
 					num_queued_buffers != 0) {
 
 					// Unqueue one processed buffer.
@@ -247,15 +259,15 @@ void audio_update(void)
 					}
 
 					// There is more of the sound to play. Load new audio segments into the unqueued
-					// buffer in a separte worker thread and queue it back to the audio source after
+					// buffer in a separate worker thread and queue it back to the audio source after
 					// the loading is completed.
 					if (unqueued != 0 &&
 						active->current_sample != 0) {
 
 						audiobuffer_t *buf = (
-							active_sounds.items[i].buffers[0]->buffer == unqueued ?
-							active_sounds.items[i].buffers[0] :
-							active_sounds.items[i].buffers[1]
+							active->buffers[0]->buffer == unqueued ?
+							active->buffers[0] :
+							active->buffers[1]
 						);
 
 						buffer_load_job_t *parallel_ctx = mem_alloc_fast(sizeof(*parallel_ctx));
@@ -270,13 +282,12 @@ void audio_update(void)
 							audio_parallel_load_completed,
 							parallel_ctx
 						);
-					}
-				}
 
-				// Restart stream in case it ended prematurely. This is in case the buffers aren't
-				// filled as fast as they're played.
-				if (state == AL_STOPPED) {
-					alSourcePlay(source_object);
+						// Move stream position forward for the next stream block. If the stream
+						// end is reached, the method will return 0.
+						active->current_sample =
+							sound_get_next_stream_pos(sound, active->current_sample);
+					}
 				}
 			}
 		}
@@ -351,8 +362,11 @@ sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source
 		active.buffers[1] = audiobuffer_create();
 
 		// Stream audio into the buffer objects.
-		sound_stream(sound, active.buffers[0]->buffer, &active.current_sample);
-		sound_stream(sound, active.buffers[1]->buffer, &active.current_sample);
+		sound_stream(sound, active.buffers[0]->buffer, active.current_sample);
+		active.current_sample = sound_get_next_stream_pos(sound, active.current_sample);
+
+		sound_stream(sound, active.buffers[1]->buffer, active.current_sample);
+		active.current_sample = sound_get_next_stream_pos(sound, active.current_sample);
 
 		// Queue the audio buffers to the audio source.
 		alSourceQueueBuffers(source_object, 1, &active.buffers[0]->buffer);
@@ -555,7 +569,6 @@ static void audio_stop_instance_at(uint32_t index)
 	alSourceStop(source->source_object);
 	alSourcei(source->source_object, AL_BUFFER, AL_NONE);
 
-	// Release temporary buffers.
 	ref_dec_safe(source->buffers[0]);
 	ref_dec_safe(source->buffers[1]);
 

@@ -141,7 +141,7 @@ THREAD(parallel_worker_thread)
 
 		} while (job != NULL);
 
-		thread_sleep(10);
+		thread_sleep(1);
 	}
 
 	return 0;

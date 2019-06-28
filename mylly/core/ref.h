@@ -23,5 +23,6 @@ struct ref_t {
 #define ref_inc(obj) ((obj)->__ref.count++, (obj))
 #define ref_dec(obj) if ((--(obj)->__ref.count) == 0) { (obj)->__ref.destructor(obj); }
 #define ref_dec_safe(obj) if ((obj) && (--(obj)->__ref.count) == 0) { (obj)->__ref.destructor(obj); }
+#define ref_count(obj) ((obj)->__ref.count)
 
 #endif
