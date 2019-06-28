@@ -36,7 +36,8 @@ void sound_destroy(sound_t *sound);
 bool sound_load_wav(sound_t *sound, void *data, size_t data_length);
 bool sound_load_mp3(sound_t *sound, void *data, size_t data_length);
 
-bool sound_stream(sound_t *sound, audiobuffer_id_t buffer, size_t *start_sample);
+bool sound_stream(sound_t *sound, audiobuffer_id_t buffer, size_t start_sample);
+size_t sound_get_next_stream_pos(sound_t *sound, size_t start_sample);
 
 END_DECLARATIONS;
 

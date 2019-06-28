@@ -148,9 +148,9 @@ bool sound_load_mp3(sound_t *sound, void *data, size_t data_length)
     return (sound->num_samples != 0);
 }
 
-bool sound_stream(sound_t *sound, audiobuffer_id_t buffer, size_t *start_sample)
+bool sound_stream(sound_t *sound, audiobuffer_id_t buffer, size_t start_sample)
 {
-	if (sound == NULL || start_sample == NULL) {
+	if (sound == NULL) {
 		return false;
 	}
 
@@ -162,36 +162,51 @@ bool sound_stream(sound_t *sound, audiobuffer_id_t buffer, size_t *start_sample)
 
 	drmp3 *mp3 = (drmp3 *)sound->decoder;
 
-	size_t start = *start_sample;
 	size_t num_samples = SOUND_STREAM_BLOCK_SIZE;
 
 	// Ensure we don't exceed the end of the stream.
-	if (start + num_samples > sound->num_samples) {
-		num_samples = sound->num_samples - start;
+	if (start_sample + num_samples > sound->num_samples) {
+		num_samples = sound->num_samples - start_sample;
 	}
 
 	// Number of PCM samples to be read into the block.
 	size_t num_block_samples = mp3->channels * num_samples;
 
 	// Static stream block storage for stereo audio.
-	// TODO: Figure out why the double size, and consider using allocated static buffer
+	// TODO: Figure out why the double size is required, and consider using allocated static buffer
 	static int16_t block[2 * 2 * SOUND_STREAM_BLOCK_SIZE];
 
 	// Seek to the requested position and read samples into the array.
-	drmp3_seek_to_pcm_frame(mp3, start);
-	drmp3_read_pcm_frames_s16(mp3, num_block_samples, block);
-
-	// Upload samples to an audio buffer.
-	audio_load_buffer(buffer, mp3->channels, 16, block, sizeof(int16_t) * num_block_samples, mp3->sampleRate);
-
-	// Advance read position for next stream read. If the file end has been reached, move back to
-	// the beginning.
-	if (start + num_samples == sound->num_samples) {
-		*start_sample = 0;
+	// NOTE: dr_mp3's seek method appears to be horribly unoptimized (reads to the seek position),
+	// so instead of using the method we're setting the current frame directly. Don't know if this
+	// could cause problems in the future, but for now this seems to work (and it's fast).
+	// The seek method is only used when rewinding the track back to the start.
+	if (start_sample == 0) {
+		drmp3_seek_to_pcm_frame(mp3, start_sample);
 	}
 	else {
-		*start_sample = start + num_samples;
+		mp3->currentPCMFrame = start_sample;
 	}
 
+	drmp3_read_pcm_frames_s16(mp3, num_samples, block);
+
+	// Upload samples to an audio buffer.
+	audio_load_buffer(buffer, mp3->channels, 16, block,
+	                  sizeof(int16_t) * num_block_samples, mp3->sampleRate);
+
 	return true;
+}
+
+size_t sound_get_next_stream_pos(sound_t *sound, size_t start_sample)
+{
+	if (sound == NULL) {
+		return 0;
+	}
+
+	// Ensure we don't exceed the end of the stream.
+	if (start_sample + SOUND_STREAM_BLOCK_SIZE > sound->num_samples) {
+		return 0;
+	}
+
+	return start_sample + SOUND_STREAM_BLOCK_SIZE;
 }
