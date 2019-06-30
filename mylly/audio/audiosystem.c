@@ -25,6 +25,7 @@ typedef struct active_sound_t {
 	size_t current_sample; // Index of the sample up to which the sound has been streamed
 	float gain; // Per sound instance gain
 	float pitch; // Per sound instance pitch
+	bool is_looping; // Set to true when the sound instance loops
 
 } active_sound_t;
 
@@ -169,7 +170,7 @@ static void audio_parallel_load_completed(void *context)
 	// has not been reached.
 	if (state == AL_STOPPED &&
 		num_queued_buffers > 1 &&
-		active_sounds.items[index].current_sample != 0) {
+		(active_sounds.items[index].current_sample != 0 || active_sounds.items[index].is_looping)) {
 
 		alSourcePlay(active_sounds.items[index].source_object);
 	}
@@ -208,8 +209,11 @@ void audio_update(void)
 		ALint state;
 		alGetSourcei(source_object, AL_SOURCE_STATE, &state);
 
-		// If the source is no longer playing anything, move it to free source objects list.
-		if (state != AL_PLAYING && active->current_sample == 0) {
+		// If the source is no longer playing anything, remove it from the active sound list.
+		if (state != AL_PLAYING &&
+			active->current_sample == 0 &&
+			!active->is_looping) {
+
 			audio_stop_instance_at(i);
 		}
 		else {
@@ -245,7 +249,7 @@ void audio_update(void)
 
 				// Ensure the source has at least one buffer in the queue so we don't end up in a
 				// situation where the source stops while both of the buffers are being filled.
-				if (num_processed_buffers != 0 &&//) {// &&
+				if (num_processed_buffers != 0 &&
 					num_queued_buffers != 0) {
 
 					// Unqueue one processed buffer.
@@ -262,7 +266,7 @@ void audio_update(void)
 					// buffer in a separate worker thread and queue it back to the audio source after
 					// the loading is completed.
 					if (unqueued != 0 &&
-						active->current_sample != 0) {
+						(active->is_looping || active->current_sample != 0)) {
 
 						audiobuffer_t *buf = (
 							active->buffers[0]->buffer == unqueued ?
@@ -288,6 +292,14 @@ void audio_update(void)
 						active->current_sample =
 							sound_get_next_stream_pos(sound, active->current_sample);
 					}
+				}
+
+				// Restart looping streamed sounds.
+				if (state != AL_PLAYING &&
+					active->is_looping &&
+					active->current_sample == 0) {
+
+					alSourcePlay(source_object);
 				}
 			}
 		}
@@ -345,7 +357,8 @@ sound_instance_t audio_play_sound_from_source(sound_t *sound, audiosrc_t *source
 		{ NULL, NULL },
 		0,
 		1,
-		1
+		1,
+		false
 	};
 
 	// Bind audio buffer to the source.
@@ -476,6 +489,24 @@ void audio_set_sound_pitch(sound_instance_t sound, float pitch)
 		active_sound->pitch = pitch;
 
 		alSourcef(source_object, AL_PITCH, pitch * source->pitch);
+	}
+}
+
+void audio_set_sound_looping(sound_instance_t sound, bool loop)
+{
+	uint32_t index = audio_get_active_source_index(sound);
+
+	if (index != INVALID_INDEX) {
+
+		active_sound_t *active_sound = &active_sounds.items[index];
+
+		active_sound->is_looping = loop;
+
+		// Unless the sound is streamed, use OpenAL's AL_LOOPING property to loop the sound.
+		// Otherwise looping is handled by the sound streaming system.
+		if (!active_sound->sound->is_streaming) {
+			alSourcei(active_sound->source_object, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
+		}
 	}
 }
 

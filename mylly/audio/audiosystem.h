@@ -32,6 +32,7 @@ void audio_set_group_gain(uint8_t group_index, float gain);
 
 void audio_set_sound_gain(sound_instance_t sound, float gain);
 void audio_set_sound_pitch(sound_instance_t sound, float pitch);
+void audio_set_sound_looping(sound_instance_t sound, bool loop);
 
 object_t *audio_get_listener(void);
 void audio_set_listener(object_t *object);
