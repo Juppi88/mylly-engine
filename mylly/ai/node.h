@@ -64,8 +64,6 @@ typedef struct {
 
 } ai_task_node_t;
 
-#define ai_task(data, process) (ai_task_node_t){ (void *)data, process }
-
 // -------------------------------------------------------------------------------------------------
 
 typedef struct {
@@ -74,8 +72,6 @@ typedef struct {
 	ai_state_t (*decorate)(void *userdata, ai_state_t result); // Decorator method
 
 } ai_decorator_node_t;
-
-#define ai_decorator(data, decorate) (ai_decorator_node_t){ (void *)data, decorate }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -95,6 +91,18 @@ typedef struct ai_node_t {
 	};
 
 } ai_node_t;
+
+// -------------------------------------------------------------------------------------------------
+
+// Constructor macros for AI nodes defined above.
+
+#if !defined(__cplusplus) || !defined(_MSC_VER)
+	#define ai_task(data, process) (ai_task_node_t){ (void *)data, process }
+	#define ai_decorator(data, decorate) (ai_decorator_node_t){ (void *)data, decorate }
+#else
+	#define ai_task(data, process) { (void *)data, process }
+	#define ai_decorator(data, decorate) { (void *)data, decorate }
+#endif
 
 // -------------------------------------------------------------------------------------------------
 

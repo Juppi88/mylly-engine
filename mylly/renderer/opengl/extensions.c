@@ -60,6 +60,8 @@ PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
 
+PFNGLACTIVETEXTUREPROC glActiveTexture;
+
 // --------------------------------------------------------------------------------
 
 static bool glext_is_supported(const char *extension);
@@ -137,6 +139,8 @@ bool glext_initialize(void)
 	glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)glext_get_method("glBlendFuncSeparate");
 
 	glDrawRangeElementsARB = (PFNGLDRAWRANGEELEMENTSPROC)glext_get_method("glDrawRangeElements");
+
+	glActiveTexture = (PFNGLACTIVETEXTUREPROC)glext_get_method("glActiveTexture");
 
 	return true;
 }

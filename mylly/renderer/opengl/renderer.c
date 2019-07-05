@@ -34,6 +34,7 @@ static mat_t light_array[MAX_LIGHTS_PER_MESH];
 
 // Framebuffers for post processing.
 static GLuint framebuffer_vertices;
+static GLuint framebuffer_indices;
 static GLuint framebuffers[2];
 static GLuint framebuffer_textures[2];
 static GLuint depth_buffers[2];
@@ -908,10 +909,13 @@ static bool rend_create_framebuffers(void)
 		vertex_ui(vec2(1, 1),   vec2(1, 1), COL_WHITE)
 	};
 
-	glGenBuffersARB(1, &framebuffer_vertices);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, framebuffer_vertices);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	framebuffer_vertices = rend_generate_buffer();
+	rend_upload_buffer_data(framebuffer_vertices, vertices, sizeof(vertices), false, true);
+
+	vindex_t indices[] = { 0, 1, 2, 3 };
+
+	framebuffer_indices = rend_generate_buffer();
+	rend_upload_buffer_data(framebuffer_indices, indices, sizeof(indices), true, true);
 
 	return true;
 }
@@ -984,6 +988,10 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 		glDisableVertexAttribArray(i);
 	}
 
+	// Bind vertex buffers.
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, framebuffer_vertices);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, framebuffer_indices);
+	
 	// Bind vertex attributes. Post-processing shaders use the UI vertex format.
 	rend_bind_shader_attribute(shader, ATTR_VERTEX, 2, GL_FLOAT, GL_FALSE,
 	                           sizeof(vertex_ui_t), (void *)offsetof(vertex_ui_t, pos));
@@ -1001,10 +1009,9 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 	if (shader->sampler_array >= 0) {
 		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
 	}
-	
+
 	// Draw the framebuffer's contents into a screen sized quad.
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, framebuffer_vertices);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
 }
 
 static void rend_set_blend_mode(int queue, bool post_processing)

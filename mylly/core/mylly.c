@@ -35,6 +35,11 @@ bool mylly_initialize(int argc, char **argv)
 {
 	UNUSED(argc);
 	UNUSED(argv);
+
+#ifdef DEBUG
+	// Ensure our debug messages are printed immediately so they don't get lost on segfault.
+	setbuf(stdout, NULL);
+#endif
 	
 	// Set working directory to the path of the executable.
 	mylly_set_working_directory();
@@ -83,10 +88,10 @@ static void mylly_shutdown(void)
 	mgui_shutdown();
 
 	debug_shutdown();
-	
+
 	// Unload all loaded resources.
 	res_shutdown();
-	
+
 	audio_shutdown();
 	input_shutdown();
 	rsys_shutdown();

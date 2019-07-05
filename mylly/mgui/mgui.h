@@ -7,10 +7,6 @@
 
 // -------------------------------------------------------------------------------------------------
 
-typedef struct widget_t widget_t;
-
-// -------------------------------------------------------------------------------------------------
-
 typedef struct mgui_parameters_t {
 
 	uint16_t width, height;
@@ -18,11 +14,6 @@ typedef struct mgui_parameters_t {
 } mgui_parameters_t;
 
 // -------------------------------------------------------------------------------------------------
-
-extern mgui_parameters_t mgui_parameters;
-
-// -------------------------------------------------------------------------------------------------
-
 
 BEGIN_DECLARATIONS;
 
@@ -49,6 +40,13 @@ void mgui_set_focused_widget(widget_t *widget);
 void mgui_set_dragged_widget(widget_t *widget);
 void mgui_set_hovered_widget(widget_t *widget);
 void mgui_set_pressed_widget(widget_t *widget, int16_t x, int16_t y);
+
+// -------------------------------------------------------------------------------------------------
+
+// Current set of parameters MGUI has been initialized with.
+extern mgui_parameters_t mgui_parameters;
+
+// -------------------------------------------------------------------------------------------------
 
 END_DECLARATIONS;
 

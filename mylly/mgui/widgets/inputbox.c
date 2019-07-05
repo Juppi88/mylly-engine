@@ -9,6 +9,10 @@
 
 // -------------------------------------------------------------------------------------------------
 
+#define MAX_INPUT_LENGTH 1024
+
+// -------------------------------------------------------------------------------------------------
+
 static void inputbox_move_cursor(widget_t *inputbox, bool left);
 static void inputbox_remove_character(widget_t *inputbox, uint32_t position);
 static void inputbox_switch_focus(widget_t *inputbox, bool forward);
@@ -152,7 +156,7 @@ static void inputbox_remove_character(widget_t *inputbox, uint32_t position)
 		cursor_end = inputbox->inputbox.cursor_start;
 	}
 
-	char tmp[inputbox->text->buffer_length];
+	char tmp[MAX_INPUT_LENGTH + 1];
 	char *s = inputbox->text->buffer;
 	char *d = tmp;
 	size_t i = 0;
@@ -160,7 +164,7 @@ static void inputbox_remove_character(widget_t *inputbox, uint32_t position)
 	if (inputbox_has_selected_text(inputbox)) {
 
 		// Remove current selection and nothing else.
-		while (*s) {
+		while (*s && i < MAX_INPUT_LENGTH) {
 
 			if (i++ == cursor_start) {
 
@@ -183,7 +187,7 @@ static void inputbox_remove_character(widget_t *inputbox, uint32_t position)
 
 		// Copy all the characters from the existing text buffer to the temporary buffer - except
 		// for the one to be removed.
-		while (*s) {
+		while (*s && i < MAX_INPUT_LENGTH) {
 
 			if (i++ == position - 1) {
 
@@ -514,12 +518,16 @@ static bool on_inputbox_character_injected(widget_t *inputbox, uint32_t c)
 		return true;
 	}
 
+	if (inputbox->text->buffer_length >= MAX_INPUT_LENGTH) {
+		return true;
+	}
+
 	// Inject visible characters into the text buffer.
 	if (c < 32 || c > 255) {
 		return true;
 	}
 
-	char tmp[1024];
+	char tmp[MAX_INPUT_LENGTH + 1];
 	size_t i = 0;
 
 	uint32_t cursor_start;
@@ -545,7 +553,7 @@ static bool on_inputbox_character_injected(widget_t *inputbox, uint32_t c)
 		while (*s) {
 
 			// Safety check so we don't write past the boundaries of the temporary buffer.
-			if (i >= sizeof(tmp) - 1) {
+			if (i >= MAX_INPUT_LENGTH) {
 				break;
 			}
 

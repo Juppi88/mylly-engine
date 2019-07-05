@@ -1,6 +1,7 @@
 #include "objparser.h"
 #include "io/log.h"
 #include "core/string.h"
+#include "core/memory.h"
 #include "renderer/mesh.h"
 #include "scene/model.h"
 #include "resources/resources.h"
@@ -225,14 +226,23 @@ model_t *obj_parser_create_model(obj_parser_t *parser, const char *name, const c
 		}
 
 		// Create a mesh from the vertex data.
-		vertex_t vertices[group->vertices.count];
+		// TODO: Use a temporary allocator for parser data!
+		vertex_t *vertices = mem_alloc_fast(group->vertices.count * sizeof(vertex_t));
 		obj_parser_collect_vertex_data(parser, group, vertices);
 
-		vindex_t indices[group->vertices.count];
+		vindex_t *indices = mem_alloc_fast(group->vertices.count * sizeof(vindex_t));
 		obj_parser_collect_index_data(parser, group, indices);
 
 		// Add the new submesh to the model.
-		mesh_t *mesh = model_add_mesh(model, vertices, group->vertices.count, indices, group->vertices.count);
+		mesh_t *mesh = model_add_mesh(
+			model,
+			vertices, group->vertices.count,
+			indices, group->vertices.count
+		);
+
+		// Temporary parser data is no longer required.
+		mem_free(vertices);
+		mem_free(indices);
 
 		// Add material data from the .mtl file to the mesh.
 		if (!string_is_null_or_empty(parser->material_library) &&
@@ -255,7 +265,9 @@ model_t *obj_parser_create_model(obj_parser_t *parser, const char *name, const c
 
 static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 {
-	if (num_vertices == 0) {
+	if (num_vertices == 0 ||
+		num_vertices >= 10) { // Sanity check for the face's vertex count
+
 		return;
 	}
 
@@ -263,7 +275,7 @@ static void obj_parser_process_face(obj_parser_t *parser, size_t num_vertices)
 	obj_group_t *group = &arr_last(parser->groups);
 
 	// Split the vertex definitions first.
-	char vertex[num_vertices][64];
+	char vertex[10][64];
 	size_t i = 0;
 
 	while (string_tokenize(NULL, ' ', vertex[i], sizeof(vertex[i]))) { i++; }

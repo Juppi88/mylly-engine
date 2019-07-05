@@ -77,6 +77,8 @@ extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
 extern PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
 
+extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+
 // --------------------------------------------------------------------------------
 
 bool glext_initialize(void);

@@ -27,9 +27,9 @@ typedef struct {
 
 // -------------------------------------------------------------------------------------------------
 
-static const int MAX_PRIMITIVES = 1000; // Number of maximum visible primitives per layer
-static const int MAX_LINES = 10000; // Number of maximum lines visible at once, per layer
-static const int NUM_CIRCLE_SEGMENTS = 32; // A circle consists of 32 line segments
+#define MAX_PRIMITIVES 1000 // Number of maximum visible primitives per layer
+#define MAX_LINES 10000 // Number of maximum lines visible at once, per layer
+#define NUM_CIRCLE_SEGMENTS 32 // A circle consists of 32 line segments
 
 // Number of primitives added to each layer during the current frame
 static int num_primitives_scene = 0;
