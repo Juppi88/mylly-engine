@@ -60,7 +60,9 @@ PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
 
-PFNGLACTIVETEXTUREPROC glActiveTexture;
+#ifdef _WIN32
+PFNGLACTIVETEXTUREARBPROC glActiveTexture;
+#endif
 
 // --------------------------------------------------------------------------------
 
@@ -140,7 +142,9 @@ bool glext_initialize(void)
 
 	glDrawRangeElementsARB = (PFNGLDRAWRANGEELEMENTSPROC)glext_get_method("glDrawRangeElements");
 
+#ifdef _WIN32
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC)glext_get_method("glActiveTexture");
+#endif
 
 	return true;
 }

@@ -77,7 +77,9 @@ extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
 extern PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElementsARB;
 
+#ifdef _WIN32
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+#endif
 
 // --------------------------------------------------------------------------------
 
