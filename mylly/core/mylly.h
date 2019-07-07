@@ -6,15 +6,32 @@
 
 // -------------------------------------------------------------------------------------------------
 
-typedef void (*on_loop_t)(void);
-typedef void (*on_exit_t)(void);
+// Engine initialization parameters
+
+typedef struct mylly_params_t {
+
+	struct {
+
+		void (*on_loop)(void); // Method which is called every frame
+		void (*on_exit)(void); // Called when the game is about to exit
+
+	} callbacks;
+
+	struct {
+
+		char logo_path[260]; // Path to splash screen logo .png file
+		uint8_t r, g, b; // Splash screen background colour
+
+	} splash;
+
+} mylly_params_t;
 
 // -------------------------------------------------------------------------------------------------
 
 BEGIN_DECLARATIONS;
 
-bool mylly_initialize(int argc, char **argv);
-void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback);
+bool mylly_initialize(int argc, char **argv, const mylly_params_t *params);
+void mylly_main_loop(void);
 
 void mylly_set_scene(scene_t *scene);
 

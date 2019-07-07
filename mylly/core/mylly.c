@@ -9,21 +9,24 @@
 #include "platform/platform.h"
 #include "renderer/rendersystem.h"
 #include "renderer/debug.h"
+#include "renderer/splashscreen.h"
 #include "resources/resources.h"
 #include "scene/scene.h"
 #include "mgui/mgui.h"
 #include "audio/audiosystem.h"
 #include <stdio.h>
+#include <string.h>
 
 // -------------------------------------------------------------------------------------------------
 
+static mylly_params_t parameters; // Engine initialization parameters
 static scene_t *current_scene;
 static bool is_running = true;
 static monitor_info_t monitor; // Info about the monitor the engine is running on
 
 // -------------------------------------------------------------------------------------------------
 
-bool mylly_initialize(int argc, char **argv)
+bool mylly_initialize(int argc, char **argv, const mylly_params_t *params)
 {
 	UNUSED(argc);
 	UNUSED(argv);
@@ -32,44 +35,56 @@ bool mylly_initialize(int argc, char **argv)
 	// Ensure our debug messages are printed immediately so they don't get lost on segfault.
 	setbuf(stdout, NULL);
 #endif
+
+	// Copy initialization parameters.
+	if (params != NULL) {
+		memcpy(&parameters, params, sizeof(parameters));
+	}
 	
 	// Set working directory to the path of the executable.
 	platform_set_working_directory();
 
 	// Create the main window.
-	// TODO: Figure out the coordinates and the resolution.
+	// TODO: Figure out the coordinates.
 	window_get_monitor_info(0, &monitor);
 
-	/*monitor.width = 800;
-	monitor.height = 600;
-
-	if (!window_create(false, 0, 800, 450, 800, 600)) {*/
 	if (!window_create(true, 0, 0, 0, monitor.width, monitor.height)) {
 
 		log_error("Mylly", "Unable to create main window.");
 		return false;
 	}
 
-	// Initialize subsystems.
-	parallel_initialize();
+	// Initialize the renderer.
 	rsys_initialize();
+
+	// Display the spash screen while other subsystems and recources are being loaded.
+	splash_display(
+		parameters.splash.logo_path,
+		col(parameters.splash.r, parameters.splash.g, parameters.splash.b)
+	);
+
+	// Initialize other subsystems.
+	parallel_initialize();
 	input_initialize();
 	audio_initialize();
 
 	// Load resources from files.
 	res_initialize();
 
+	debug_initialize();
+
 	// Initialize MGUI.
-	mgui_parameters_t params = {
+	mgui_parameters_t mgui_params = {
 		monitor.width,
 		monitor.height,
 	};
 
-	debug_initialize();
-
-	mgui_initialize(params);
+	mgui_initialize(mgui_params);
 
 	time_initialize();
+
+	// Fade out the splash screen logo.
+	splash_fade_out();
 
 	return true;
 }
@@ -90,7 +105,7 @@ static void mylly_shutdown(void)
 	parallel_shutdown();
 }
 
-void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
+void mylly_main_loop(void)
 {
 	// Enter the main loop.
 	while (is_running) {
@@ -106,8 +121,8 @@ void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 		rsys_begin_frame();
 
 		// Call the main loop callback.
-		if (loop_callback != NULL) {
-			loop_callback();
+		if (parameters.callbacks.on_loop != NULL) {
+			parameters.callbacks.on_loop();
 		}
 
 		if (current_scene != NULL) {
@@ -132,8 +147,8 @@ void mylly_main_loop(on_loop_t loop_callback, on_exit_t exit_callback)
 	}
 
 	// Clean up game specific code.
-	if (exit_callback != NULL) {
-		exit_callback();
+	if (parameters.callbacks.on_exit != NULL) {
+		parameters.callbacks.on_exit();
 	}
 
 	// Do cleanup when exiting the main loop.

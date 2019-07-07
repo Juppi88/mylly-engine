@@ -62,6 +62,7 @@ int rend_get_program_program_attribute_location(shader_program_t program, const 
 
 // Returns the source code for a default shader which renders everything in purple.
 const char *rend_get_default_shader_source(void);
+const char *rend_get_splash_shader_source(void);
 
 //
 // Textures
@@ -73,6 +74,9 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height,
 
 // Destroy a texture on the GPU.
 void rend_delete_texture(texture_name_t texture);
+
+// Draw the splash screen while the engine is loading.
+void rend_draw_splash_screen(texture_t *texture, shader_t *shader, colour_t background);
 
 END_DECLARATIONS;
 

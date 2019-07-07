@@ -3,6 +3,7 @@
 #include "renderer/vertex.h"
 #include "renderer/texture.h"
 #include "renderer/buffercache.h"
+#include "renderer/mesh.h"
 #include "io/log.h"
 #include "platform/window.h"
 #include "core/time.h"
@@ -39,6 +40,9 @@ static GLuint framebuffers[2];
 static GLuint framebuffer_textures[2];
 static GLuint depth_buffers[2];
 
+static GLuint splash_screen_vertices;
+static GLuint splash_screen_indices;
+
 // -------------------------------------------------------------------------------------------------
 
 // The source code for a default GLSL shader which renders everything in purple.
@@ -61,6 +65,41 @@ static const char *default_shader_source =
 "void main()\n"
 "{\n"
 "	gl_FragColor = vec4(1, 0, 1, 1);\n"
+"}\n"
+"\n"
+"#endif\n";
+
+// -------------------------------------------------------------------------------------------------
+
+// The source code for a minimal GLSL shader rendering a textured quad with alpha blend to fixed
+// background colour. Used for drawing the splash screen.
+static const char *splash_shader_source =
+
+"uniform sampler2D Texture;\n"
+"uniform vec4 Colour;\n"
+"varying vec2 texCoord;\n"
+"\n"
+"#if defined(VERTEX_SHADER)\n"
+"\n"
+"attribute vec2 Vertex;\n"
+"attribute vec2 TexCoord;\n"
+"\n"
+"void main()\n"
+"{\n"
+"	gl_Position = vec4(Vertex, 0.0, 1.0);\n"
+"	texCoord = TexCoord;\n"
+"}\n"
+"\n"
+"#elif defined(FRAGMENT_SHADER)\n"
+"\n"
+"void main()\n"
+"{\n"
+"	vec4 colour = texture2D(Texture, texCoord);\n"
+"\n"
+"	if (colour.a < 0.01) { discard; }\n"
+"\n"
+"	vec3 outColour = (1.0 - Colour.a) * Colour.rgb + Colour.a * colour.rgb;\n"
+"	gl_FragColor = vec4(outColour, 1);\n"
 "}\n"
 "\n"
 "#endif\n";
@@ -158,12 +197,16 @@ bool rend_initialize(void)
 		return false;
 	}
 
+	// Generate buffer objects for the splash screen.
+	glGenBuffersARB(1, &splash_screen_vertices);
+	glGenBuffersARB(1, &splash_screen_indices);
+
 	log_message("Renderer", "Renderer initialization complete.");
 	log_message("Renderer", "GPU: %s", glGetString(GL_RENDERER));
 	log_message("Renderer", "OpenGL version: %s", glGetString(GL_VERSION));
 	log_message("Renderer", "GLSL version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 
 	return true;
 }
@@ -172,6 +215,9 @@ void rend_shutdown(void)
 {
 	// Destroy framebuffers.
 	rend_destroy_framebuffers();
+
+	glDeleteBuffersARB(1, &splash_screen_vertices);
+	glDeleteBuffersARB(1, &splash_screen_indices);
 	
 	// Destroy the rendering context.
 #ifdef _WIN32
@@ -718,6 +764,11 @@ const char *rend_get_default_shader_source(void)
 	return default_shader_source;
 }
 
+const char *rend_get_splash_shader_source(void)
+{
+	return splash_shader_source;
+}
+
 texture_name_t rend_generate_texture(void *image, size_t width, size_t height,
                                      TEX_FORMAT fmt, TEX_FILTER filter)
 {
@@ -771,6 +822,94 @@ texture_name_t rend_generate_texture(void *image, size_t width, size_t height,
 void rend_delete_texture(texture_name_t texture)
 {
 	glDeleteTextures(1, &texture);
+}
+
+void rend_draw_splash_screen(texture_t *texture, shader_t *shader, colour_t background)
+{
+	vec4_t colour = col_to_vec4(background);
+
+	// Clear the entire screen to the background colour.
+	glClearColor(colour.x, colour.y, colour.z, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	if (texture != NULL && shader != NULL) {
+
+		// Setup splash screen logo vertices.
+		struct splash_vertex_t {
+			vec2_t vertex;
+			vec2_t uv;
+		};
+
+		// The layout is based on a virtual 1080p screen.
+		uint16_t scr_w, scr_h;
+		mylly_get_resolution(&scr_w, &scr_h);
+
+		float aspect = 1.0f * scr_w / scr_h;
+
+		float w = 0.5f * texture->width / (aspect * 1080);
+		float h = 0.5f * texture->height / 1080;
+
+		struct splash_vertex_t vertices[4] = {
+			{ vec2(-1 * w, -1 * h), vec2(0, 0) },
+			{ vec2(1 * w, -1 * h),  vec2(1, 0) },
+			{ vec2(-1 * w, 1 * h),  vec2(0, 1) },
+			{ vec2(1 * w, 1 * h),   vec2(1, 1) }
+		};
+
+		vindex_t indices[] = { 0, 1, 2, 3 };
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+
+		// Upload logo vertex data to the GPU.
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, splash_screen_vertices);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(vertices), vertices, GL_STATIC_DRAW_ARB);
+
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, splash_screen_indices);
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, sizeof(indices), indices, GL_STATIC_DRAW_ARB);
+
+		// Use logo shader program and texture.
+		glUseProgram(shader != NULL ? shader->program : 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture != NULL ? texture->gpu_texture : 0);
+
+		GLuint attr_vertex = 0, attr_texcoord = 0;
+
+		if (shader != NULL) {
+
+			// Setup shader program uniforms and vertex attributes.
+			glUniform1i(glGetUniformLocation(shader->program, "Texture"), 0);
+			glUniform4fv(glGetUniformLocation(shader->program, "Colour"), 1, &colour.x);
+
+			attr_vertex   = shader_get_attribute(shader, ATTR_VERTEX);
+			attr_texcoord = shader_get_attribute(shader, ATTR_TEXCOORD);
+
+			glEnableVertexAttribArray(attr_vertex);
+			glEnableVertexAttribArray(attr_texcoord);
+
+			glVertexAttribPointer(
+				attr_vertex, 2, GL_FLOAT, GL_FALSE, sizeof(vertices[0]),
+				(void *)offsetof(struct splash_vertex_t, vertex));
+
+			glVertexAttribPointer(
+				attr_texcoord, 2, GL_FLOAT, GL_FALSE, sizeof(vertices[0]),
+				(void *)offsetof(struct splash_vertex_t, uv));
+		}
+
+		// Draw the framebuffer's contents into a screen sized quad.
+		glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
+
+		glDisableVertexAttribArray(attr_vertex);
+		glDisableVertexAttribArray(attr_texcoord);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	}
+
+	// Swap buffers to draw immediately.
+#ifdef _WIN32
+	SwapBuffers(context);
+#else
+	glXSwapBuffers(window_get_display(), window_get_handle());
+#endif
 }
 
 static void rend_update_material_uniforms(shader_t *shader)
