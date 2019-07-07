@@ -73,6 +73,9 @@ void input_unbind_key(uint32_t key_symbol, keybind_handler_t method, void *conte
 void input_get_cursor_position(uint16_t *x, uint16_t *y);
 void input_set_cursor_position(uint16_t x, uint16_t y);
 
+// Toggle cursor visibility by incrementing or decrementing an internal cursor reference counter.
+void input_toggle_cursor(bool visible);
+
 // -------------------------------------------------------------------------------------------------
 
 typedef enum input_event_t {

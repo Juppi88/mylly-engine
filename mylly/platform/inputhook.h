@@ -18,6 +18,9 @@ uint32_t input_sys_get_key_pressed_frame(uint32_t key_symbol);
 // Returns the frame count when a specific key was released.
 uint32_t input_sys_get_key_released_frame(uint32_t key_symbol);
 
+// Toggle cursor visibility. For internal use only - use input_toggle_cursor() from the game.
+void input_sys_toggle_cursor(bool visible);
+
 END_DECLARATIONS;
 
 #endif

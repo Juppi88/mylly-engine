@@ -156,12 +156,19 @@ uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
 	return 0;
 }
 
+void input_sys_toggle_cursor(bool visible)
+{
+	ShowCursor(visible);
+}
+
 #else
 
 // -------------------------------------------------------------------------------------------------
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xfixes.h>
+#include "window.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -403,6 +410,18 @@ uint32_t input_sys_get_key_released_frame(uint32_t key_symbol)
 	}
 
 	return 0;
+}
+
+void input_sys_toggle_cursor(bool visible)
+{
+	if (visible) {
+		XFixesShowCursor(window_get_display(), window_get_handle());
+	}
+	else {
+		XFixesHideCursor(window_get_display(), window_get_handle());
+	}
+
+	XFlush(window_get_display());
 }
 
 #endif

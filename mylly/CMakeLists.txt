@@ -151,6 +151,7 @@ if (UNIX)
 	target_link_libraries(mylly LINK_INTERFACE_LIBRARIES
 		${X11_LIBRARIES}
 		${X11_Xrandr_LIB}
+		${X11_Xfixes_LIB}
 		${CMAKE_BINARY_DIR}/libjsmn.a
 		Threads::Threads
 		m

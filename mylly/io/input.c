@@ -10,6 +10,9 @@
 // Cached mouse cursor position.
 static int16_t mouse_x, mouse_y;
 
+// Reference counter for mouse cursor. When <= 0, cursor is not visible.
+static int cursor_reference_count = 0;
+
 // Stores the key symbols of the virtual button binds.
 static uint32_t button_symbols[256];
 
@@ -28,12 +31,16 @@ typedef struct keybind_t {
 // List of all active keybinds.
 list_t(keybind_t) keybinds;
 
+// -------------------------------------------------------------------------------------------------
+
 static bool input_process_keybinds(uint32_t key_symbol, bool pressed);
 
 // -------------------------------------------------------------------------------------------------
 
 void input_initialize(void)
 {
+	// Hide the cursor until requested to be visible.
+	input_sys_toggle_cursor(false);
 }
 
 void input_shutdown(void)
@@ -145,6 +152,23 @@ void input_set_cursor_position(uint16_t x, uint16_t y)
 
 	mouse_x = x;
 	mouse_y = y;
+}
+
+void input_toggle_cursor(bool visible)
+{
+	if (visible) {
+		cursor_reference_count++;
+	}
+	else {
+		cursor_reference_count--;
+	}
+
+	if (cursor_reference_count == 0 && !visible) { // Cursor just turned invisible
+		input_sys_toggle_cursor(false);
+	}
+	else if (cursor_reference_count == 1 && visible) { // Cursor just turned visible
+		input_sys_toggle_cursor(true);
+	}
 }
 
 bool input_handle_keyboard_event(input_event_t type, uint32_t key)
