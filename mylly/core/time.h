@@ -10,7 +10,9 @@
 typedef struct engine_time_t {
 
 	float time; // Engine time since startup [s]
+	float real_time; // Real time since startup (not affected by scale) [s]
 	float delta_time; // Time since last frame [s]
+	float scale; // Time scaling factor
 	uint32_t frame_count; // Number of frames rendered
 
 } engine_time_t;
@@ -23,6 +25,8 @@ void time_tick(void);
 // --------------------------------------------------------------------------------
 
 BEGIN_DECLARATIONS;
+
+void time_set_scale(float scale);
 
 static INLINE engine_time_t get_time(void)
 {
