@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------
 
 // Time, DeltaTime, FrameCount
-engine_time_t engine_time = { 0, 0, 0, 1, 1 };
+engine_time_t engine_time = { 0, 0, 0, 0, 1, 1 };
 
 // Time, CosTime, SinTime, DeltaTime
 vec4_t engine_shader_time = { .vec = { 0, 1, 0, 0 } };
@@ -23,6 +23,7 @@ void time_initialize(void)
 
 	// Set initial delta time to a non-zero value to avoid division by zero.
 	engine_time.delta_time = 1 / 60.0f;
+	engine_time.real_delta_time = 1 / 60.0f;
 	engine_shader_time.w = 1 / 60.0f;
 }
 
@@ -34,9 +35,11 @@ void time_tick(void)
 
 	float real_time = 0.001f * elapsed;
 	float delta = 0.001f * (now - previous);
+	float real_delta = 0.001f * (now - previous);
 
 	// Update engine time.
 	engine_time.delta_time = engine_time.scale * delta;
+	engine_time.real_delta_time = real_delta;
 	engine_time.time += engine_time.delta_time;
 	engine_time.real_time = real_time;
 	engine_time.frame_count++;
