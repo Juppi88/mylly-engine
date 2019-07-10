@@ -79,6 +79,7 @@ Contains the scene hierarchy. The root entity of this hierarchy is the _scene_, 
 * _sprite_ is a special type of mesh used to draw a 2D image.
 * _animator_ is used to animate the sprite of an object.
 * _emitter_ is used to emit particles from an object.
+* _light_ is a configurable source of light.
 
 Some additional components are defined in different parts of the engine:
 

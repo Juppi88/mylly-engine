@@ -1,8 +1,8 @@
 # Mylly Game Engine
 
-Mylly Game Engine is a light-weight and minimalistic game engine written entirely in C.
+Mylly Game Engine is a lightweight and minimalistic game engine written entirely in C.
 
-At its current state, Mylly is a 3D rendering framework with a collection of utilities for game development (e.g. AI). Currently Mylly does not handle physics, nor is there a plan to add an extensive physics component into the engine (other than perhaps some ray tracing or similar utilities).
+At its current state, Mylly is a 3D rendering framework with a collection of utilities for game development (e.g. AI) and 3D audio. Currently Mylly does not handle physics, nor is there a plan to add an extensive physics component into the engine (other than perhaps some ray tracing or similar utilities).
 
 ## Features
 
@@ -10,12 +10,19 @@ Mylly engine is developed a few core principles in mind:
 
 * Lightweight and quick to compile
 * Consistent and clean C API
-* Compatibility with low-end machines (target is OpenGL ES 2.0 for Raspberry Pi)
+* Compatibility with low-end machines
 
 Several ideas for the future include:
 
-* Support for Windows and Linux alike
-* Taking advantage of high-end hardware with a Vulkan renderer
+* Taking advantage of high-end hardware with a Vulkan renderer (OpenGL would become a minimal legacy renderer)
+* Deferred rendering
+* More advanced scene graph (utilizing quad/octrees, BSPs etc.) allowing renderer optimizations
+* Better memory allocators (for persistent and per-frame data)
+* Shadows, shadow mapping
+* Advanced post-processing effects (Bloom, HDR, SSAO)
+* Physically based rendering (PBR)
+* Hardware accelerated particles (PBR) and image based lighting (IBL)
+* Physics engine integration (e.g. Box2D for 2D, Bullet for 3D physics)
 
 ## Structure
 
@@ -34,7 +41,7 @@ mylly
 
 ## Development
 
-The development of the engine is not tied to any IDE, however currently Clang 6.0 is used for compiling. There is no reason though why the project couldn't be compiled with e.g. GCC as well.
+The development of the engine is not tied to any IDE or compiler, and [CMake](https://cmake.org/) is used to manage the build process. See the example game repository for an example build process and project hierarchy.
 
 ### Profiling
 
