@@ -85,6 +85,33 @@ static void res_load_sound(const char *file_name);
 
 // -------------------------------------------------------------------------------------------------
 
+static int res_compare(const void *a, const void *b)
+{
+	const resource_t *res1 = *(const resource_t **)a;
+	const resource_t *res2 = *(const resource_t **)b;
+
+	if (res1->res_name == NULL) return 1;
+	if (res2->res_name == NULL) return -1;
+
+	return strcmp(res1->res_name, res2->res_name);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// Ensure all resource types declare the resource struct at the beginning of the struct.
+// This is required for resource sorting.
+STATIC_ASSERT(offsetof(sprite_anim_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(emitter_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(font_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(material_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(model_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(shader_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(sound_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(sprite_t, resource) == 0, res_struct_offset_zero);
+STATIC_ASSERT(offsetof(texture_t, resource) == 0, res_struct_offset_zero);
+
+// -------------------------------------------------------------------------------------------------
+
 void res_initialize(void)
 {
 	// Create default resources here (for resource types which are applicable).
@@ -98,6 +125,8 @@ void res_initialize(void)
 
 	arr_push(shaders, default_shader);
 	default_shader->resource.index = arr_last_index(shaders);
+
+	// Assert
 
 	// Load custom resources. There are some order requirements due to cross-dependencies:
 	// - Textures should be loaded before materials and sprites
@@ -128,6 +157,17 @@ void res_initialize(void)
 		// Destroy FreeType instance.
 		FT_Done_FreeType(freetype);
 	}
+
+	// Sort resource lists alphabetically.
+	qsort(textures.items, textures.count, sizeof(textures.items[0]), res_compare);
+	qsort(sprites.items, sprites.count, sizeof(sprites.items[0]), res_compare);
+	qsort(shaders.items, shaders.count, sizeof(shaders.items[0]), res_compare);
+	qsort(animations.items, animations.count, sizeof(animations.items[0]), res_compare);
+	qsort(fonts.items, fonts.count, sizeof(fonts.items[0]), res_compare);
+	qsort(models.items, models.count, sizeof(models.items[0]), res_compare);
+	qsort(materials.items, materials.count, sizeof(materials.items[0]), res_compare);
+	qsort(emitters.items, emitters.count, sizeof(emitters.items[0]), res_compare);
+	qsort(sounds.items, sounds.count, sizeof(sounds.items[0]), res_compare);
 }
 
 void res_shutdown(void)

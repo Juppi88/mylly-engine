@@ -27,4 +27,7 @@
 #define END_DECLARATIONS
 #endif
 
+#define STATIC_ASSERT(cond, msg)\
+	typedef char static_assert_##msg[(cond) ? 1 : -1]
+
 #endif
