@@ -28,7 +28,7 @@ endif ()
 # Compiler flags.
 set(CMAKE_C_FLAGS         "-DCGLM_ALL_UNALIGNED")
 set(CMAKE_C_FLAGS_DEBUG   "-D_DEBUG -DDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "-O4 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 # Additional flags for GCC/clang.
 if (UNIX)
