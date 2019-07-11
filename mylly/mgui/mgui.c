@@ -16,11 +16,17 @@ static widget_t *pressed_widget;
 
 static arr_t(widget_t *) delayed_render_widgets = arr_initializer;
 
+static uint16_t screen_width, screen_height;
+static uint16_t min_width, min_height;
+
 // -------------------------------------------------------------------------------------------------
 
 void mgui_initialize(const mgui_parameters_t config)
 {
 	mgui_parameters = config;
+
+	screen_width = config.width;
+	screen_height = config.height;
 
 	// Per-component type initialization.
 	colourpicker_create_texture();
@@ -62,6 +68,20 @@ void mgui_process(void)
 		}
 
 		arr_clear(delayed_render_widgets);
+	}
+}
+
+void mgui_set_min_resolution(uint16_t width, uint16_t height)
+{
+	min_width = width;
+	min_height = height;
+
+	if (mgui_parameters.width < min_width) {
+		mgui_parameters.width = min_width;
+	}
+
+	if (mgui_parameters.height < min_height) {
+		mgui_parameters.height = min_height;
 	}
 }
 
@@ -308,4 +328,13 @@ void mgui_set_pressed_widget(widget_t *widget, int16_t x, int16_t y)
 			pressed_widget->on_pressed(pressed_widget, true);
 		}
 	}
+}
+
+void mgui_convert_to_ui_coordinates(int16_t *x, int16_t *y)
+{
+	int scaled_x = (int)(*x) * mgui_parameters.width / screen_width;
+	int scaled_y = (int)(*y) * mgui_parameters.height / screen_height;
+
+	*x = (int16_t)scaled_x;
+	*y = (int16_t)scaled_y;
 }

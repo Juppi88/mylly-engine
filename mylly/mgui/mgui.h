@@ -21,6 +21,8 @@ void mgui_initialize(const mgui_parameters_t config);
 void mgui_shutdown(void);
 void mgui_process(void);
 
+void mgui_set_min_resolution(uint16_t width, uint16_t height);
+
 // Add or remove a widget layer. Note that calling these will remove the widget from its parent
 // and create an independent layer for it.
 void mgui_add_widget_layer(widget_t *widget);
@@ -40,6 +42,8 @@ void mgui_set_focused_widget(widget_t *widget);
 void mgui_set_dragged_widget(widget_t *widget);
 void mgui_set_hovered_widget(widget_t *widget);
 void mgui_set_pressed_widget(widget_t *widget, int16_t x, int16_t y);
+
+void mgui_convert_to_ui_coordinates(int16_t *x, int16_t *y);
 
 // -------------------------------------------------------------------------------------------------
 

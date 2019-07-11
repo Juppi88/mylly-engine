@@ -17,6 +17,7 @@
 #include "core/mylly.h"
 #include "io/log.h"
 #include "math/math.h"
+#include "mgui/mgui.h"
 #include <stdlib.h>
 
 // -------------------------------------------------------------------------------------------------
@@ -89,6 +90,10 @@ void rsys_begin_frame(void)
 
 	ui_view = view;
 	ui_view->ambient_light = col_to_vec4(COL_WHITE);
+
+	// Update UI render area resolution.
+	ui_parent.mvp.col[0][0] = 2.0f / mgui_parameters.width;
+	ui_parent.mvp.col[1][1] = 2.0f / mgui_parameters.height;
 
 	mat_cpy(&ui_view->view_projection, &ui_parent.mvp);
 	ui_view->view_position = vec4(0, 0, 0, 1);

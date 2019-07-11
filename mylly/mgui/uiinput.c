@@ -61,6 +61,9 @@ bool mgui_handle_mouse_event(input_event_t type, int16_t x, int16_t y,
 {
 	bool result = true;
 
+	// Convert coordinates to virtual UI resolution.
+	mgui_convert_to_ui_coordinates(&x, &y);
+
 	switch (type) {
 		case INPUT_MOUSE_BUTTON_DOWN:
 		{
