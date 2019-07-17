@@ -11,7 +11,7 @@
 
 static texture_t *logo = NULL; // Logo texture
 static shader_t *shader = NULL; // Shader which is used to render the splash screen logo
-static colour_t colour = COL_BLACK; // Splash screen background colour
+static colour_t colour = { .r = 0, .g = 0, .b = 0, .a = 255 }; // Splash screen background colour
 static uint64_t display_time = 0; // Time when the splash screen is displayed.
 
 static const int SPLASH_MIN_DURATION = 500;
@@ -22,6 +22,7 @@ static const int SPLASH_FADE_TIME = 500;
 void splash_display(const char *logo_path, colour_t background_colour)
 {
 	colour = background_colour;
+	colour.a = 255;
 
 	// Load the logo texture from a .png file.
 	if (!string_is_null_or_empty(logo_path)) {
