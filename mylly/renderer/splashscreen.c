@@ -45,7 +45,7 @@ void splash_display(const char *logo_path, colour_t background_colour)
 	// Instantiate a shader program for rendering the splash screen.
 	const char *shader_source[] = {
 		NULL, // Leave an empty line for shader defines.
-		rend_get_splash_shader_source()
+		rend_get_default_shader_source(DEFAULT_SHADER_SPLASHSCREEN)
 	};
 
 	const char *uniforms[] = { "Texture", "Colour" };

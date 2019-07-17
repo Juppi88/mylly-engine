@@ -11,6 +11,9 @@
 #include "core/mylly.h"
 #include <stdio.h>
 
+// Include source code for default shaders.
+#include "defaultshaders.c"
+
 // -------------------------------------------------------------------------------------------------
 
 // Device and OpenGL context
@@ -44,66 +47,6 @@ static GLuint splash_screen_indices;
 
 // -------------------------------------------------------------------------------------------------
 
-// The source code for a default GLSL shader which renders everything in purple.
-// Used when no valid shaders are available.
-static const char *default_shader_source =
-
-"uniform mat4 MatrixArr[1];\n"
-"\n"
-"#if defined(VERTEX_SHADER)\n"
-"\n"
-"attribute vec3 Vertex;\n"
-"\n"
-"void main()\n"
-"{\n"
-"	gl_Position = MatrixArr[0] * vec4(Vertex, 1.0);\n"
-"}\n"
-"\n"
-"#elif defined(FRAGMENT_SHADER)\n"
-"\n"
-"void main()\n"
-"{\n"
-"	gl_FragColor = vec4(1, 0, 1, 1);\n"
-"}\n"
-"\n"
-"#endif\n";
-
-// -------------------------------------------------------------------------------------------------
-
-// The source code for a minimal GLSL shader rendering a textured quad with alpha blend to fixed
-// background colour. Used for drawing the splash screen.
-static const char *splash_shader_source =
-
-"uniform sampler2D Texture;\n"
-"uniform vec4 Colour;\n"
-"varying vec2 texCoord;\n"
-"\n"
-"#if defined(VERTEX_SHADER)\n"
-"\n"
-"attribute vec2 Vertex;\n"
-"attribute vec2 TexCoord;\n"
-"\n"
-"void main()\n"
-"{\n"
-"	gl_Position = vec4(Vertex, 0.0, 1.0);\n"
-"	texCoord = TexCoord;\n"
-"}\n"
-"\n"
-"#elif defined(FRAGMENT_SHADER)\n"
-"\n"
-"void main()\n"
-"{\n"
-"	vec4 colour = texture2D(Texture, texCoord);\n"
-"\n"
-"	if (colour.a < 0.01) { discard; }\n"
-"\n"
-"	vec3 outColour = (1.0 - Colour.a) * Colour.rgb + Colour.a * colour.rgb;\n"
-"	gl_FragColor = vec4(outColour, 1);\n"
-"}\n"
-"\n"
-"#endif\n";
-
-// -------------------------------------------------------------------------------------------------
 
 static void rend_draw_mesh(rview_t *view, rmesh_t *mesh);
 
@@ -764,9 +707,19 @@ int rend_get_program_program_attribute_location(shader_program_t program, const 
 	return -1;
 }
 
-const char *rend_get_default_shader_source(void)
+const char *rend_get_default_shader_source(default_shader_t shader)
 {
-	return default_shader_source;
+	switch (shader) {
+
+		case DEFAULT_SHADER_MAIN:
+			return default_shader_source;
+
+		case DEFAULT_SHADER_SPLASHSCREEN:
+			return splash_shader_source;
+
+		case DEFAULT_SHADER_DRAW_FRAMEBUFFER:
+			return draw_fb_shader_source;
+	}
 }
 
 const char *rend_get_splash_shader_source(void)

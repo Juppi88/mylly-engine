@@ -60,9 +60,14 @@ int rend_get_program_uniform_location(shader_program_t program, const char *name
 // Returns the index of a vertex attribute in a shader program, -1 if the attribute is not declared.
 int rend_get_program_program_attribute_location(shader_program_t program, const char *name);
 
-// Returns the source code for a default shader which renders everything in purple.
-const char *rend_get_default_shader_source(void);
-const char *rend_get_splash_shader_source(void);
+// Returns the renderer dependent source code for several built in default shaders.
+typedef enum {
+	DEFAULT_SHADER_MAIN,
+	DEFAULT_SHADER_SPLASHSCREEN,
+	DEFAULT_SHADER_DRAW_FRAMEBUFFER
+} default_shader_t;
+
+const char *rend_get_default_shader_source(default_shader_t shader);
 
 //
 // Textures

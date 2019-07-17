@@ -115,9 +115,11 @@ STATIC_ASSERT(offsetof(texture_t, resource) == 0, res_struct_offset_zero);
 void res_initialize(void)
 {
 	// Create default resources here (for resource types which are applicable).
+
+	// Default shader which draws everything in purple.
 	const char *source[] = {
 		NULL, // Leave an empty line for shader defines.
-		rend_get_default_shader_source()
+		rend_get_default_shader_source(DEFAULT_SHADER_MAIN)
 	};
 
 	shader_t *default_shader = shader_create("default", NULL);
@@ -126,7 +128,15 @@ void res_initialize(void)
 	arr_push(shaders, default_shader);
 	default_shader->resource.index = arr_last_index(shaders);
 
-	// Assert
+	// Default shader for drawing the contents of a framebuffer.
+	source[0] = NULL;
+	source[1] = rend_get_default_shader_source(DEFAULT_SHADER_DRAW_FRAMEBUFFER);
+
+	default_shader = shader_create("default-draw-framebuffer", NULL);
+	shader_load_from_source(default_shader, 2, source, 0, NULL, NULL);
+
+	arr_push(shaders, default_shader);
+	default_shader->resource.index = arr_last_index(shaders);
 
 	// Load custom resources. There are some order requirements due to cross-dependencies:
 	// - Textures should be loaded before materials and sprites
