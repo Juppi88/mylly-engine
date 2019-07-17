@@ -3,25 +3,15 @@
 #define __OPENGL_EXTENSIONS_H
 
 #include "core/defines.h"
-
-BEGIN_DECLARATIONS;
-
-#ifdef _WIN32
-	#include <Windows.h>
-	#include <GL/gl.h>
-	#include <GL/glext.h>
-	#include <GL/glu.h>
-#else
-	#include <GL/gl.h>
-	#include <GL/glx.h>
-	#include <GL/glu.h>
-#endif
+#include "renderer/opengl/opengl.h"
 
 // --------------------------------------------------------------------------------
 
 //
 // Extensions
 //
+
+BEGIN_DECLARATIONS;
 
 // ARB_vertex_buffer_object
 extern PFNGLGENBUFFERSARBPROC glGenBuffersARB;

@@ -1,5 +1,6 @@
 #include "renderer/renderer.h"
 #include "extensions.h"
+#include "framebuffer.h"
 #include "renderer/vertex.h"
 #include "renderer/texture.h"
 #include "renderer/buffercache.h"
@@ -33,13 +34,11 @@ static int sampler_array[NUM_SAMPLER_UNIFORMS];
 static int num_mesh_lights;
 static mat_t light_array[MAX_LIGHTS_PER_MESH];
 
-// Framebuffers for post processing.
-static GLuint framebuffer_vertices;
-static GLuint framebuffer_indices;
-static GLuint framebuffers[2];
-static GLuint framebuffer_textures[2];
-static GLuint depth_buffers[2];
+// Vertices for covering the entire screen.
+static GLuint screen_vertices;
+static GLuint screen_indices;
 
+// Loading/splash screen FBOs.
 static GLuint splash_screen_vertices;
 static GLuint splash_screen_indices;
 
@@ -118,10 +117,8 @@ static void rend_update_material_uniforms(shader_t *shader);
 static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
-static bool rend_create_framebuffers(void);
-static void rend_destroy_framebuffers(void);
 static void rend_draw_post_processing_effects(rview_t *view);
-static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index);
+static void rend_draw_framebuffer_with_shader(int index, shader_t *shader);
 
 static void rend_set_blend_mode(int queue, bool post_processing);
 
@@ -189,13 +186,29 @@ bool rend_initialize(void)
 		return false;	
 	}
 
-	// Create two framebuffers for rendering post processing effects.
+	// Create two rotating framebuffers for deferred rendering and post-processing.
 	// TODO: Resize the buffers every time rendering resolution changes!
-	if (!rend_create_framebuffers()) {
+	if (!rend_fb_initialize()) {
 
 		log_error("Renderer", "Could not create framebuffers.");
 		return false;
 	}
+
+	// Create a list of vertices covering the entire screen.
+	vertex_ui_t vertices[] = {
+		vertex_ui(vec2(-1, -1), vec2(0, 0), COL_WHITE),
+		vertex_ui(vec2(1, -1),  vec2(1, 0), COL_WHITE),
+		vertex_ui(vec2(-1, 1),  vec2(0, 1), COL_WHITE),
+		vertex_ui(vec2(1, 1),   vec2(1, 1), COL_WHITE)
+	};
+
+	screen_vertices = rend_generate_buffer();
+	rend_upload_buffer_data(screen_vertices, vertices, sizeof(vertices), false, true);
+
+	vindex_t indices[] = { 0, 1, 2, 3 };
+
+	screen_indices = rend_generate_buffer();
+	rend_upload_buffer_data(screen_indices, indices, sizeof(indices), true, true);
 
 	// Generate buffer objects for the splash screen.
 	glGenBuffersARB(1, &splash_screen_vertices);
@@ -214,7 +227,10 @@ bool rend_initialize(void)
 void rend_shutdown(void)
 {
 	// Destroy framebuffers.
-	rend_destroy_framebuffers();
+	rend_fb_shutdown();
+
+	glDeleteBuffersARB(1, &screen_vertices);
+	glDeleteBuffersARB(1, &screen_indices);
 
 	glDeleteBuffersARB(1, &splash_screen_vertices);
 	glDeleteBuffersARB(1, &splash_screen_indices);
@@ -236,19 +252,8 @@ void rend_shutdown(void)
 
 void rend_begin_draw(void)
 {
-	glClearColor(1, 0, 1, 1);
-	glClearDepth(1.0f);
-	
 	// Clear the framebuffers.
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[0]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[1]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Clear hardware buffer.
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	rend_clear_fbs();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -327,7 +332,7 @@ void rend_draw_views(rview_t *first_view)
 			bool post_process = (view->post_processing_effects.count != 0);
 			
 			// Bind the post processing framebuffer if the view defines any post processing effects.
-			glBindFramebuffer(GL_FRAMEBUFFER, (post_process ? framebuffers[0] : 0));
+			rend_bind_fb(post_process ? 0 : -1);
 
 			list_foreach(view->meshes[queue], mesh) {
 
@@ -989,88 +994,6 @@ static void rend_clear_uniforms(void)
 	num_mesh_lights = 0;
 }
 
-static bool rend_create_framebuffers(void)
-{
-	// Generate a screen sized texture for the frame buffer.
-	uint16_t screen_width, screen_height;
-	mylly_get_resolution(&screen_width, &screen_height);
-
-	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(2, framebuffer_textures);
-
-	for (int i = 0; i < 2; i++) {
-
-		glBindTexture(GL_TEXTURE_2D, framebuffer_textures[i]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	}
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// Create a depth buffer.
-	glGenRenderbuffers(2, depth_buffers);
-
-	for (int i = 0; i < 2; i++) {	
-
-		glBindRenderbuffer(GL_RENDERBUFFER, depth_buffers[i]);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, screen_width, screen_height);
-	}
-
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// Create a framebuffer and attach the texture and depth buffer to it.
-	glGenFramebuffers(2, framebuffers);
-
-	for (int i = 0; i < 2; i++) {
-
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_textures[i], 0);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffers[i]);
-
-		// Check that the framebuffer was created successfully.
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
-			return false;
-		}	
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// Create a list of vertices covering the entire screen.
-	vertex_ui_t vertices[] = {
-		vertex_ui(vec2(-1, -1), vec2(0, 0), COL_WHITE),
-		vertex_ui(vec2(1, -1),  vec2(1, 0), COL_WHITE),
-		vertex_ui(vec2(-1, 1),  vec2(0, 1), COL_WHITE),
-		vertex_ui(vec2(1, 1),   vec2(1, 1), COL_WHITE)
-	};
-
-	framebuffer_vertices = rend_generate_buffer();
-	rend_upload_buffer_data(framebuffer_vertices, vertices, sizeof(vertices), false, true);
-
-	vindex_t indices[] = { 0, 1, 2, 3 };
-
-	framebuffer_indices = rend_generate_buffer();
-	rend_upload_buffer_data(framebuffer_indices, indices, sizeof(indices), true, true);
-
-	return true;
-}
-
-static void rend_destroy_framebuffers(void)
-{
-	for (int i = 0; i < 2; i++) {
-
-		glDeleteFramebuffers(1, &framebuffers[i]);
-		glDeleteTextures(1, &framebuffer_textures[i]);
-		glDeleteRenderbuffers(1, &depth_buffers[i]);
-	}
-
-	glDeleteBuffersARB(1, &framebuffer_vertices);
-}
-
 static void rend_draw_post_processing_effects(rview_t *view)
 {
 	// Update relevant uniform arrays.
@@ -1090,32 +1013,33 @@ static void rend_draw_post_processing_effects(rview_t *view)
 	for (uint32_t i = 0, c = view->post_processing_effects.count; i < c; i++) {
 
 		if (i < c - 1) {
-
 			// Bind the framebuffer not used by the previous render pass.
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[1 + i & 1]);
+			rend_bind_fb(1 + i & 1);
 		}
 		else {
 			// Last effect, bind back to the screen's framebuffer.
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			rend_bind_fb(-1);
 		}
 		
 		// Render the contents of the previous framebuffer into the next one (or the
 		// screen if this is the last effect).
 		shader_t *effect = view->post_processing_effects.items[i];
-		rend_draw_framebuffer_with_shader(effect, i & 1);
+		rend_draw_framebuffer_with_shader(i & 1, effect);
 	}
 }
 
-static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
+static void rend_draw_framebuffer_with_shader(int index, shader_t *shader)
 {
 	// Switch to the post-processing shader.
 	glUseProgram(shader->program);
 	active_shader = shader->program;
 
-	// Select the framebuffer texture.
+	// Select the framebuffer textures.
+	const gl_framebuffer_t *framebuffer = rend_get_fb(index);
+
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, framebuffer_textures[fb_index]);
-	active_texture = framebuffer_textures[fb_index];
+	glBindTexture(GL_TEXTURE_2D, framebuffer->colour);
+	active_texture = framebuffer->colour;
 
 	// Update custom uniforms.
 	if (shader->has_updated_uniforms) {
@@ -1128,8 +1052,8 @@ static void rend_draw_framebuffer_with_shader(shader_t *shader, int fb_index)
 	}
 
 	// Bind vertex buffers.
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, framebuffer_vertices);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, framebuffer_indices);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, screen_vertices);
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, screen_indices);
 	
 	// Bind vertex attributes. Post-processing shaders use the UI vertex format.
 	rend_bind_shader_attribute(shader, ATTR_VERTEX, 2, GL_FLOAT, GL_FALSE,
