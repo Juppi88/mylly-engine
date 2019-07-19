@@ -39,7 +39,7 @@ void main()
 	vec3 colour = ApplyAmbientLight(DiffuseColour.rgb);
 
 	// Retrieve surface normal from the normal map and transform it to world space coordinates.
-	vec3 normal = texture2D(TextureNormalMap(), texCoord).rgb;
+	vec3 normal = texture2D(TextureNormal(), texCoord).rgb;
 	normal = normalize(normal * 2.0 - 1.0);
 	normal = normalize(tangentMatrix * normal);
 

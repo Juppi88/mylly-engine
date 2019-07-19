@@ -55,6 +55,7 @@ PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffers;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2D;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbuffer;
 PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatus;
+PFNGLDRAWBUFFERSPROC glDrawBuffers;
 
 PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 
@@ -136,6 +137,7 @@ bool glext_initialize(void)
 	glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)glext_get_method("glFramebufferTexture2D");
 	glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)glext_get_method("glFramebufferRenderbuffer");
 	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)glext_get_method("glCheckFramebufferStatus");
+	glDrawBuffers = (PFNGLDRAWBUFFERSPROC)glext_get_method("glDrawBuffers");
 
 	// Misc methods
 	glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)glext_get_method("glBlendFuncSeparate");

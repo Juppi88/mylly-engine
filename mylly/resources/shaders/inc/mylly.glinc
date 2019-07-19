@@ -27,8 +27,9 @@
 #define NUM_VEC_UNIFORMS 4
 
 #define SAMPLER_MAIN 0 // Main sampler (usually diffuse texture)
-#define SAMPLER_NORMAL 1 // Normal map texture
-#define NUM_SAMPLER_UNIFORMS 2
+#define SAMPLER_NORMAL 1 // Normal texture (normal map in forward mode)
+#define SAMPLER_DEPTH 2 // Depth texture
+#define NUM_SAMPLER_UNIFORMS 3
 
 uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
 uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
@@ -45,7 +46,8 @@ vec3      CameraUp() { mat4 m = MatrixView(); return vec3(m[0][1], m[1][1], m[2]
 vec3      CameraForward() { mat4 m = MatrixView(); return vec3(m[0][2], m[1][2], m[2][2]); }
 
 #define   TextureMain() (SamplerArr[SAMPLER_MAIN])
-#define   TextureNormalMap() (SamplerArr[SAMPLER_NORMAL])
+#define   TextureNormal() (SamplerArr[SAMPLER_NORMAL])
+#define   TextureDepth() (SamplerArr[SAMPLER_DEPTH])
 
 vec3      ViewPosition() { return VectorArr[VEC_VIEW_POSITION].xyz; }
 vec2      ScreenResolution() { return VectorArr[VEC_SCREEN].xy; }
@@ -144,6 +146,23 @@ mat3 inverse(mat3 m)
 	return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11),
                 b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10),
                 b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;
+}
+
+// -------------------------------------------------------------------------------------------------
+// Deferred rendering utilities
+// -------------------------------------------------------------------------------------------------
+
+#define TARGET_COLOUR 0
+#define TARGET_NORMAL 1
+
+vec4 encodenormal(vec3 normal)
+{
+	return vec4(0.5 * (normal + 1), 1);
+}
+
+vec3 decodenormal(vec4 normal)
+{
+	return 0.5 * (vec3(normal) - 1);
 }
 
 #endif // MYLLY_GLINC

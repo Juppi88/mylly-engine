@@ -7,6 +7,11 @@
 
 // -------------------------------------------------------------------------------------------------
 
+#define FB_SCREEN -1 // The screen's framebuffer
+#define FB_GEOMETRY -2 // Framebuffer used for geometry pass
+
+// -------------------------------------------------------------------------------------------------
+
 typedef struct gl_framebuffer_t {
 
 	GLuint buffer; // Framebuffer object

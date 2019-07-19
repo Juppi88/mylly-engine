@@ -61,7 +61,7 @@ static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
 static void rend_draw_post_processing_effects(rview_t *view);
-static void rend_draw_framebuffer_with_shader(int index, shader_t *shader);
+static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool is_first_effect);
 
 static void rend_set_blend_mode(int queue, bool post_processing);
 
@@ -275,7 +275,7 @@ void rend_draw_views(rview_t *first_view)
 			bool post_process = (view->post_processing_effects.count != 0);
 			
 			// Bind the post processing framebuffer if the view defines any post processing effects.
-			rend_bind_fb(post_process ? 0 : -1);
+			rend_bind_fb(post_process ? FB_GEOMETRY : FB_SCREEN);
 
 			list_foreach(view->meshes[queue], mesh) {
 
@@ -951,7 +951,8 @@ static void rend_draw_post_processing_effects(rview_t *view)
 {
 	// Update relevant uniform arrays.
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
-	sampler_array[UNIFORM_SAMPLER_NORMAL] = -1;
+	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
+	sampler_array[UNIFORM_SAMPLER_DEPTH] = 2;
 
 	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
 	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
@@ -971,28 +972,36 @@ static void rend_draw_post_processing_effects(rview_t *view)
 		}
 		else {
 			// Last effect, bind back to the screen's framebuffer.
-			rend_bind_fb(-1);
+			rend_bind_fb(FB_SCREEN);
 		}
 		
 		// Render the contents of the previous framebuffer into the next one (or the
 		// screen if this is the last effect).
 		shader_t *effect = view->post_processing_effects.items[i];
-		rend_draw_framebuffer_with_shader(i & 1, effect);
+		rend_draw_framebuffer_with_shader(i & 1, effect, i == 0);
 	}
 }
 
-static void rend_draw_framebuffer_with_shader(int index, shader_t *shader)
+static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool is_first_effect)
 {
 	// Switch to the post-processing shader.
 	glUseProgram(shader->program);
 	active_shader = shader->program;
 
-	// Select the framebuffer textures.
+	// Select the framebuffer textures. Normal and depth textures are fetched from the geometry pass
+	// framebuffer.
 	const gl_framebuffer_t *framebuffer = rend_get_fb(index);
+	const gl_framebuffer_t *geometry_buffer = rend_get_fb(FB_GEOMETRY);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, framebuffer->colour);
+	glBindTexture(GL_TEXTURE_2D, (is_first_effect ? geometry_buffer->colour : framebuffer->colour));
 	active_texture = framebuffer->colour;
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, geometry_buffer->normal);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, geometry_buffer->depth);
 
 	// Update custom uniforms.
 	if (shader->has_updated_uniforms) {
