@@ -17,16 +17,6 @@ typedef uint32_t shader_program_t;
 
 // -------------------------------------------------------------------------------------------------
 
-// - Create arrays for matrix and vec4 uniforms, get their locations and use glUniform4fv
-//   and the matrix one to upload the data
-// - Have fixed indices to the uniform arrays represent certain types of data.
-// - Have a few custom user data entries at the end of the array
-// - Define the indices in mylly.gcing or similar
-// - Have static arrays in renderer.c and update them before committing arrays to program
-// - Colours should be vec4's
-
-// -------------------------------------------------------------------------------------------------
-
 typedef enum {
 
 	SHADER_VERTEX,
@@ -78,12 +68,17 @@ typedef enum {
 // -------------------------------------------------------------------------------------------------
 
 // Built-in uniform array indices.
+// NOTE: When adding these, the values should also be updated to mylly.cging!
 
 enum {
 	UNIFORM_MAT_MVP = 0, // Model-view-projection matrix
 	UNIFORM_MAT_MODEL = 1, // Model matrix
 	UNIFORM_MAT_VIEW = 2, // View matrix
-	UNIFORM_MAT_PROJECTION = 3, // Projection matrix
+	UNIFORM_MAT_VIEW_INV = 3, // Inverse view matrix
+	UNIFORM_MAT_PROJECTION = 4, // Projection matrix
+	UNIFORM_MAT_PROJECTION_INV = 5, // Inverse projection matrix
+	UNIFORM_MAT_VIEWPROJ = 6, // View-projection matrix
+	UNIFORM_MAT_VIEWPROJ_INV = 7, // Inverse view-projection matrix
 
 	NUM_MAT_UNIFORMS
 };

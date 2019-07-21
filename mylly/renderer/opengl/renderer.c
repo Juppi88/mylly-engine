@@ -57,6 +57,7 @@ static bool rend_bind_shader_attribute(shader_t *shader, int attr_type, GLint si
                                        GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 
 static void rend_update_material_uniforms(shader_t *shader);
+static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_effect);
 static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
@@ -519,21 +520,7 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 
 	// Set per-draw shader uniforms.
 	// TODO: See if this can be optimized by setting per-view matrices separately.
-	matrix_array[UNIFORM_MAT_MVP] = mesh->parent->mvp;
-	matrix_array[UNIFORM_MAT_MODEL] = mesh->parent->matrix;
-	matrix_array[UNIFORM_MAT_VIEW] = view->view;
-	matrix_array[UNIFORM_MAT_PROJECTION] = view->projection;
-
-	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
-	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
-	vector_array[UNIFORM_VEC_COLOUR] = view->ambient_light;
-
-	uint16_t width, height;
-	mylly_get_resolution(&width, &height);
-	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, 0, 0);
-
-	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
-	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
+	rend_update_uniforms(mesh->parent, view, false);
 
 	// Copy lighting info.
 	if (shader_is_affected_by_light(shader)) {
@@ -903,6 +890,33 @@ static void rend_update_material_uniforms(shader_t *shader)
 	shader->has_updated_uniforms = false;
 }
 
+static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_effect)
+{
+	if (parent_obj != NULL) {
+		matrix_array[UNIFORM_MAT_MVP] = parent_obj->mvp;
+		matrix_array[UNIFORM_MAT_MODEL] = parent_obj->matrix;
+	}
+
+	matrix_array[UNIFORM_MAT_VIEW] = view->view;
+	matrix_array[UNIFORM_MAT_VIEW_INV] = view->view_inv;
+	matrix_array[UNIFORM_MAT_PROJECTION] = view->projection;
+	matrix_array[UNIFORM_MAT_PROJECTION_INV] = view->projection_inv;
+	matrix_array[UNIFORM_MAT_VIEWPROJ] = view->view_projection;
+	matrix_array[UNIFORM_MAT_VIEWPROJ_INV] = view->view_projection_inv;
+
+	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
+	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
+	vector_array[UNIFORM_VEC_COLOUR] = view->ambient_light;
+
+	uint16_t width, height;
+	mylly_get_resolution(&width, &height);
+	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, view->near, view->far);
+
+	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
+	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
+	sampler_array[UNIFORM_SAMPLER_DEPTH] = (is_effect ? 2 : -1);
+}
+
 static void rend_commit_uniforms(shader_t *shader)
 {
 	if (shader->matrix_array >= 0) {
@@ -950,18 +964,7 @@ static void rend_clear_uniforms(void)
 static void rend_draw_post_processing_effects(rview_t *view)
 {
 	// Update relevant uniform arrays.
-	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
-	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
-	sampler_array[UNIFORM_SAMPLER_DEPTH] = 2;
-
-	vector_array[UNIFORM_VEC_VIEW_POSITION] = view->view_position;
-	vector_array[UNIFORM_VEC_TIME] = get_shader_time();
-	vector_array[UNIFORM_VEC_COLOUR] = view->ambient_light;
-
-	uint16_t width, height;
-	mylly_get_resolution(&width, &height);
-	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, 0, 0);
-
+	rend_update_uniforms(NULL, view, true);
 
 	// Apply each post processing effect in order.
 	for (uint32_t i = 0, c = view->post_processing_effects.count; i < c; i++) {
@@ -1034,6 +1037,8 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool 
 	if (shader->sampler_array >= 0) {
 		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
 	}
+
+	rend_commit_uniforms(shader);
 
 	// Draw the framebuffer's contents into a screen sized quad.
 	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);

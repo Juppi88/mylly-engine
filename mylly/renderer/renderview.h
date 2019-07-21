@@ -78,10 +78,14 @@ typedef struct rview_t {
 	list_entry(rview_t);
 
 	mat_t view; // View matrix
+	mat_t view_inv; // Inverse view matrix
 	mat_t projection; // Projection matrix
+	mat_t projection_inv; // Inverse projection matrixr
 	mat_t view_projection; // View-projection matrix
+	mat_t view_projection_inv; // Inverse view-projection matrix
 	vec4_t view_position; // Position of the view (camera)
 	vec4_t ambient_light; // Colour of ambient light in the scene
+	float near, far; // View near and far clipping planes
 
 	// List of visible objects in the view
 	list_t(robject_t) objects;

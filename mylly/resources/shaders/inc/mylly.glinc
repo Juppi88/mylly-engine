@@ -17,8 +17,12 @@
 #define MAT_MVP	0 // Model-view-projection matrix
 #define MAT_MODEL 1 // Model matrix
 #define MAT_VIEW 2 // View matrix
-#define MAT_PROJECTION 3 // Projection matrix
-#define NUM_MAT_UNIFORMS 4
+#define MAT_VIEW_INV 3 // Inverse view matrix
+#define MAT_PROJECTION 4 // Projection matrix
+#define MAT_PROJECTION_INV 5 // Inverse projection matrix
+#define MAT_VIEWPROJ 6 // View-projection matrix
+#define MAT_VIEWPROJ_INV 7 // Inverse view-projection matrix
+#define NUM_MAT_UNIFORMS 8
 
 #define VEC_VIEW_POSITION 0 // The position of the rendered view (camera)
 #define VEC_TIME 1 // 4-element vector containing time (see core/time.h)
@@ -35,12 +39,20 @@ uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
 uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
 uniform sampler2D SamplerArr[NUM_SAMPLER_UNIFORMS];
 
+// Per-model matrices. Not valid when rendering deferred lighting or post process effects.
 mat4      MatrixMVP() { return MatrixArr[MAT_MVP]; }
 mat4      MatrixModel() { return MatrixArr[MAT_MODEL]; }
-mat4      MatrixView() { return MatrixArr[MAT_VIEW]; }
-mat4      MatrixProjection() { return MatrixArr[MAT_PROJECTION]; }
 
 vec3      ObjWorldPosition() { mat4 m = MatrixModel(); return vec3(m[3][0], m[3][1], m[3][2]); }
+
+// Per-view matrices.
+mat4      MatrixView() { return MatrixArr[MAT_VIEW]; }
+mat4      MatrixInvView() { return MatrixArr[MAT_VIEW_INV]; }
+mat4      MatrixProjection() { return MatrixArr[MAT_PROJECTION]; }
+mat4      MatrixInvProjection() { return MatrixArr[MAT_PROJECTION_INV]; }
+mat4      MatrixViewProjection() { return MatrixArr[MAT_VIEWPROJ]; }
+mat4      MatrixInvViewProjection() { return MatrixArr[MAT_VIEWPROJ_INV]; }
+
 vec3      CameraRight() { mat4 m = MatrixView(); return vec3(m[0][0], m[1][0], m[2][0]); }
 vec3      CameraUp() { mat4 m = MatrixView(); return vec3(m[0][1], m[1][1], m[2][1]); }
 vec3      CameraForward() { mat4 m = MatrixView(); return vec3(m[0][2], m[1][2], m[2][2]); }
@@ -51,6 +63,8 @@ vec3      CameraForward() { mat4 m = MatrixView(); return vec3(m[0][2], m[1][2],
 
 vec3      ViewPosition() { return VectorArr[VEC_VIEW_POSITION].xyz; }
 vec2      ScreenResolution() { return VectorArr[VEC_SCREEN].xy; }
+float     CameraNear() { return VectorArr[VEC_SCREEN].z; }
+float     CameraFar() { return VectorArr[VEC_SCREEN].w; }
 
 float     Time() { return VectorArr[VEC_TIME].x; }
 float     CosTime() { return VectorArr[VEC_TIME].y; }
@@ -163,6 +177,30 @@ vec4 encodenormal(vec3 normal)
 vec3 decodenormal(vec4 normal)
 {
 	return 0.5 * (vec3(normal) - 1);
+}
+
+float decodedepth(vec2 texCoord)
+{
+	float depth = texture2D(TextureDepth(), texCoord).r;
+	return depth * 2.0 - 1.0;
+}
+
+vec3 decodeworldpos(vec2 texCoord)
+{
+	// Calculate screen space position.
+	vec4 position;
+	position.xy = texCoord * 2.0 - 1.0;
+	position.z = decodedepth(texCoord);
+	position.w = 1.0;
+
+	// Calculate view-space position.
+	position = MatrixInvProjection() * position;
+	position /= position.w; // Perspective division
+
+	// Convert to world space.
+	position = MatrixInvView() * position;
+
+	return position.xyz;
 }
 
 #endif // MYLLY_GLINC

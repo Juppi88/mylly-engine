@@ -90,6 +90,8 @@ void rsys_begin_frame(void)
 
 	ui_view = view;
 	ui_view->ambient_light = col_to_vec4(COL_WHITE);
+	ui_view->near = ORTOGRAPHIC_NEAR;
+	ui_view->far = ORTOGRAPHIC_FAR;
 
 	// Update UI render area resolution.
 	ui_parent.mvp.col[0][0] = 2.0f / mgui_parameters.width;
@@ -97,6 +99,10 @@ void rsys_begin_frame(void)
 
 	mat_cpy(&ui_view->view_projection, &ui_parent.mvp);
 	ui_view->view_position = vec4(0, 0, 0, 1);
+
+	ui_view->view_inv = mat_invert(ui_view->view);
+	ui_view->projection_inv = mat_invert(ui_view->projection);
+	ui_view->view_projection_inv = mat_invert(ui_view->view_projection);
 }
 
 void rsys_end_frame(scene_t *scene)
@@ -174,8 +180,15 @@ void rsys_render_scene(scene_t *scene)
 			&view->view_projection
 		);
 
+		// Calculate inverse matrices.
+		view->view_inv = mat_invert(view->view);
+		view->projection_inv = mat_invert(view->projection);
+		view->view_projection_inv = mat_invert(view->view_projection);
+
 		view->view_position = vec3_to_vec4(obj_get_position(camera));
 		view->ambient_light = col_to_vec4(scene->ambient_light);
+		view->near = camera->camera->clip_near;
+		view->far = camera->camera->clip_far;
 
 		// Initialize a virtual root object.
 		view->root.matrix = mat_identity();
