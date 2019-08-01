@@ -2,10 +2,14 @@
 #ifndef __RENDERER_H
 #define __RENDERER_H
 
+// -------------------------------------------------------------------------------------------------
+
 #include "core/defines.h"
 #include "renderer/renderview.h"
 #include "renderer/shader.h"
 #include "renderer/texture.h"
+
+// -------------------------------------------------------------------------------------------------
 
 BEGIN_DECLARATIONS;
 
@@ -62,9 +66,11 @@ int rend_get_program_program_attribute_location(shader_program_t program, const 
 
 // Returns the renderer dependent source code for several built in default shaders.
 typedef enum {
+
 	DEFAULT_SHADER_MAIN,
 	DEFAULT_SHADER_SPLASHSCREEN,
 	DEFAULT_SHADER_DRAW_FRAMEBUFFER
+
 } default_shader_t;
 
 const char *rend_get_default_shader_source(default_shader_t shader);
@@ -83,6 +89,24 @@ void rend_delete_texture(texture_name_t texture);
 // Draw the splash screen while the engine is loading.
 void rend_draw_splash_screen(texture_t *texture, shader_t *shader, colour_t background);
 
+//
+// Debug functionality
+//
+typedef enum gbuffer_component_t {
+
+	GBUFFER_NONE,
+	GBUFFER_COLOUR,
+	GBUFFER_NORMAL,
+	GBUFFER_DEPTH,
+	NUM_GBUFFER_COMPONENTS
+
+} gbuffer_component_t;
+
+// Override current rendering and draw contents of the g-buffer on the screen.
+void rend_override_draw_gbuffer(gbuffer_component_t buffer);
+
 END_DECLARATIONS;
+
+// -------------------------------------------------------------------------------------------------
 
 #endif

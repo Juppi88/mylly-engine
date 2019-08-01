@@ -46,6 +46,9 @@ static GLuint screen_indices;
 static GLuint splash_screen_vertices;
 static GLuint splash_screen_indices;
 
+// Debug variables. Used to override normal rendering pipeline.
+static gbuffer_component_t override_gbuffer_component = GBUFFER_NONE;
+
 // -------------------------------------------------------------------------------------------------
 
 
@@ -63,7 +66,8 @@ static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
 static void rend_draw_post_processing_effects(rview_t *view);
-static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool is_first_effect);
+static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
+                                              bool is_first_effect, bool override_buffer);
 
 static void rend_set_blend_mode(int queue, bool post_processing);
 
@@ -229,7 +233,9 @@ void rend_end_draw(void)
 
 void rend_draw_views(rview_t *first_view)
 {
-	printf("Rendaan viewit\n");
+	// Load a dummy shader for drawing contents of a framebuffer onto a screen unaltered.
+	shader_t *dummy = res_get_shader("default-draw-framebuffer");
+
 	// Create a temporary list from which to render the views.
 	list_t(rview_t) views;
 	list_init(views);
@@ -319,14 +325,16 @@ void rend_draw_views(rview_t *first_view)
 				rend_update_uniforms(NULL, view, true);
 
 				rend_bind_fb(FB_SCREEN);
-
-				shader_t *dummy = res_get_shader("default-draw-framebuffer");
-
-				if (dummy != NULL) {
-					rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true);
-				}
+				rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true, false);
 			}
 		}
+	}
+
+	// Debug override. Draw the contents of the raw G-buffer onto the screen.
+	if (override_gbuffer_component != GBUFFER_NONE) {
+
+		rend_bind_fb(FB_SCREEN);
+		rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true, true);
 	}
 }
 /*
@@ -1016,11 +1024,12 @@ static void rend_draw_post_processing_effects(rview_t *view)
 		// Render the contents of the previous framebuffer into the next one (or the
 		// screen if this is the last effect).
 		shader_t *effect = view->post_processing_effects.items[i];
-		rend_draw_framebuffer_with_shader(i & 1, effect, i == 0);
+		rend_draw_framebuffer_with_shader(i & 1, effect, i == 0, false);
 	}
 }
 
-static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool is_first_effect)
+static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
+                                              bool is_first_effect, bool override_buffer)
 {
 	// Switch to the post-processing shader.
 	glUseProgram(shader->program);
@@ -1031,10 +1040,35 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool 
 	const gl_framebuffer_t *framebuffer = rend_get_fb(index);
 	const gl_framebuffer_t *geometry_buffer = rend_get_fb(FB_GEOMETRY);
 
-	// Colour texture
+	// Colour texture. The colour texture can be overriden with other G-buffer components for
+	// debugging purposes.
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, (is_first_effect ? geometry_buffer->colour : framebuffer->colour));
-	active_texture = framebuffer->colour;
+
+	if (!override_buffer) {
+
+		glBindTexture(GL_TEXTURE_2D, (is_first_effect ? geometry_buffer->colour : framebuffer->colour));
+		active_texture = framebuffer->colour;
+	}
+	else {
+
+		switch (override_gbuffer_component) {
+
+			case GBUFFER_NORMAL:
+				glBindTexture(GL_TEXTURE_2D, geometry_buffer->normal);
+				active_texture = geometry_buffer->normal;
+				break;
+
+			case GBUFFER_DEPTH:
+				glBindTexture(GL_TEXTURE_2D, geometry_buffer->depth);
+				active_texture = geometry_buffer->depth;
+				break;
+
+			default:
+				glBindTexture(GL_TEXTURE_2D, geometry_buffer->colour);
+				active_texture = geometry_buffer->colour;
+				break;
+		}
+	}
 
 	// Normal texture
 	glActiveTexture(GL_TEXTURE1);
@@ -1098,4 +1132,9 @@ static void rend_set_blend_mode(int queue, bool post_processing)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
+}
+
+void rend_override_draw_gbuffer(gbuffer_component_t buffer)
+{
+	override_gbuffer_component = buffer;
 }
