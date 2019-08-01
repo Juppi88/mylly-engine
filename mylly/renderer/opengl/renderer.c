@@ -9,6 +9,7 @@
 #include "platform/window.h"
 #include "core/time.h"
 #include "core/mylly.h"
+#include "resources/resources.h"
 #include <stdio.h>
 
 // Include source code for default shaders.
@@ -130,7 +131,8 @@ bool rend_initialize(void)
 		return false;	
 	}
 
-	// Create two rotating framebuffers for deferred rendering and post-processing.
+	// Create two rotating framebuffers for deferred rendering and post-processing, as well as one
+	// buffer for the geometry pass.
 	// TODO: Resize the buffers every time rendering resolution changes!
 	if (!rend_fb_initialize()) {
 
@@ -138,7 +140,8 @@ bool rend_initialize(void)
 		return false;
 	}
 
-	// Create a list of vertices covering the entire screen.
+	// Create a list of vertices covering the entire screen. This is used to render post-processing
+	// effects.
 	vertex_ui_t vertices[] = {
 		vertex_ui(vec2(-1, -1), vec2(0, 0), COL_WHITE),
 		vertex_ui(vec2(1, -1),  vec2(1, 0), COL_WHITE),
@@ -210,9 +213,6 @@ void rend_begin_draw(void)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 	rend_clear_uniforms();
 }
 
@@ -229,11 +229,15 @@ void rend_end_draw(void)
 
 void rend_draw_views(rview_t *first_view)
 {
+	printf("Rendaan viewit\n");
 	// Create a temporary list from which to render the views.
 	list_t(rview_t) views;
 	list_init(views);
 	
 	views.first = first_view;
+
+	// Ensure the geometry buffer is bound before drawing any actual geometry.
+	rend_bind_fb(FB_GEOMETRY);
 
 	rview_t *view;
 	rmesh_t *mesh;
@@ -254,6 +258,9 @@ void rend_draw_views(rview_t *first_view)
 		
 			switch (queue) {
 
+			case QUEUE_BACKGROUND:
+				break;
+
 			case QUEUE_BACKGROUND + 1:
 			case QUEUE_OVERLAY:
 
@@ -273,23 +280,51 @@ void rend_draw_views(rview_t *first_view)
 			// Apply appropriate blending mode for the queue.
 			rend_set_blend_mode(queue, false);
 
-			bool post_process = (view->post_processing_effects.count != 0);
-			
-			// Bind the post processing framebuffer if the view defines any post processing effects.
-			rend_bind_fb(post_process ? FB_GEOMETRY : FB_SCREEN);
-
+			// Draw the meshes of this queue.
 			list_foreach(view->meshes[queue], mesh) {
 
 				rend_draw_mesh(view, mesh);
 				meshes_drawn++;
 			}
+		}
 
-			// Render the view again with post processing.
+		// Handle deferred lighting and post processing effects.
+		if (queue == QUEUE_GEOMETRY) {
+
+			// TODO: Draw deferred lighting after geometry queue! Draw it as a post process
+			// effect, then copy the result color buffer back to the geometry buffer for the
+			// transparent queue.
+		}
+		else if (queue == QUEUE_TRANSPARENT) {
+
+			// Disable blending for render textures.
+			rend_set_blend_mode(queue, true);
+
+			// TODO: Draw post processing effects per-view! This will require a separate framebuffer
+			// for each view/camera.
+			view = first_view;
+
+			bool post_process = (view->post_processing_effects.count != 0);
+
 			if (post_process) {
 
-				// Disable blending for render textures.
-				rend_set_blend_mode(queue, true);
+				// Draw post process effects. The last effect will switch to the screen's
+				// framebuffer, and anything after that (foreground queue/UI) is drawn there.
 				rend_draw_post_processing_effects(view);
+			}
+			else {
+
+				// No post process effects to render. Render the contents of the geometry buffer
+				// onto the screen with a dummy shader.
+				rend_update_uniforms(NULL, view, true);
+
+				rend_bind_fb(FB_SCREEN);
+
+				shader_t *dummy = res_get_shader("default-draw-framebuffer");
+
+				if (dummy != NULL) {
+					rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true);
+				}
 			}
 		}
 	}
@@ -996,13 +1031,16 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader, bool 
 	const gl_framebuffer_t *framebuffer = rend_get_fb(index);
 	const gl_framebuffer_t *geometry_buffer = rend_get_fb(FB_GEOMETRY);
 
+	// Colour texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, (is_first_effect ? geometry_buffer->colour : framebuffer->colour));
 	active_texture = framebuffer->colour;
 
+	// Normal texture
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, geometry_buffer->normal);
 
+	// Depth texture
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, geometry_buffer->depth);
 
