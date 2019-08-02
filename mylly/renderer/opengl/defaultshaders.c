@@ -86,7 +86,37 @@ const char *draw_fb_shader_source =
 "\n"
 "void main()\n"
 "{\n"
-"	gl_FragColor = texture2D(Texture, texCoord);\n"
+"	gl_FragColor = vec4(texture2D(Texture, texCoord).rgb, 1);\n"
+"}\n"
+"\n"
+"#endif\n";
+
+// -------------------------------------------------------------------------------------------------
+
+// Same as above but only draws the alpha channel.
+const char *draw_fb_alpha_shader_source =
+
+"uniform sampler2D Texture;\n"
+"uniform vec4 Colour;\n"
+"varying vec2 texCoord;\n"
+"\n"
+"#if defined(VERTEX_SHADER)\n"
+"\n"
+"attribute vec2 Vertex;\n"
+"attribute vec2 TexCoord;\n"
+"\n"
+"void main()\n"
+"{\n"
+"	gl_Position = vec4(Vertex, 0.0, 1.0);\n"
+"	texCoord = TexCoord;\n"
+"}\n"
+"\n"
+"#elif defined(FRAGMENT_SHADER)\n"
+"\n"
+"void main()\n"
+"{\n"
+"	float a = texture2D(Texture, texCoord).a;\n"
+"	gl_FragColor = vec4(a, a, a, 1);\n"
 "}\n"
 "\n"
 "#endif\n";

@@ -96,6 +96,7 @@ enum {
 	UNIFORM_SAMPLER_MAIN = 0, // Main sampler (usually diffuse texture)
 	UNIFORM_SAMPLER_NORMAL = 1, // Normal map texture
 	UNIFORM_SAMPLER_DEPTH = 2, // Depth texture
+	UNIFORM_SAMPLER_SPECULAR = 3, // Specular colour/shininess texture
 	NUM_SAMPLER_UNIFORMS
 };
 

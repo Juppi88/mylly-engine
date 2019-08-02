@@ -49,6 +49,7 @@ void rend_fb_shutdown(void)
 	glDeleteTextures(1, &geometry_buffer.colour);
 	glDeleteTextures(1, &geometry_buffer.normal);
 	glDeleteTextures(1, &geometry_buffer.depth);
+	glDeleteTextures(1, &geometry_buffer.specular);
 
 	for (int i = 0; i < 2; i++) {
 
@@ -56,6 +57,7 @@ void rend_fb_shutdown(void)
 		glDeleteTextures(1, &deferred_buffers[i].colour);
 		glDeleteTextures(1, &deferred_buffers[i].normal);
 		glDeleteTextures(1, &deferred_buffers[i].depth);
+		glDeleteTextures(1, &deferred_buffers[i].specular);
 	}
 }
 
@@ -124,8 +126,13 @@ static bool rend_fb_create_buffer(gl_framebuffer_t *buffer, uint16_t width, uint
 	if (is_geometry) {
 
 		// Use multiple render targets with this framebuffer.
-		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, attachments);
+		unsigned int attachments[] = {
+			GL_COLOR_ATTACHMENT0, // Colour/diffuse/albedo
+			GL_COLOR_ATTACHMENT1, // Normal
+			GL_COLOR_ATTACHMENT2  // Specular/shininess
+		};
+
+		glDrawBuffers(LENGTH(attachments), attachments);
 
 		glGenTextures(1, &buffer->normal);
 		glBindTexture(GL_TEXTURE_2D, buffer->normal);
@@ -135,6 +142,15 @@ static bool rend_fb_create_buffer(gl_framebuffer_t *buffer, uint16_t width, uint
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, buffer->normal, 0);
+
+		glGenTextures(1, &buffer->specular);
+		glBindTexture(GL_TEXTURE_2D, buffer->specular);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, buffer->specular, 0);
 
 		glGenTextures(1, &buffer->depth);
 		glBindTexture(GL_TEXTURE_2D, buffer->depth);

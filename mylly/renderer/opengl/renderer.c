@@ -333,6 +333,11 @@ void rend_draw_views(rview_t *first_view)
 	// Debug override. Draw the contents of the raw G-buffer onto the screen.
 	if (override_gbuffer_component != GBUFFER_NONE) {
 
+		// Use a different shader for drawing just the contents of the alpha channel.
+		if (override_gbuffer_component == GBUFFER_SHININESS) {
+			dummy = res_get_shader("default-draw-framebuffer-alpha");
+		}
+
 		rend_bind_fb(FB_SCREEN);
 		rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true, true);
 	}
@@ -749,6 +754,9 @@ const char *rend_get_default_shader_source(default_shader_t shader)
 
 		case DEFAULT_SHADER_DRAW_FRAMEBUFFER:
 			return draw_fb_shader_source;
+
+		case DEFAULT_SHADER_DRAW_FRAMEBUFFER_ALPHA:
+			return draw_fb_alpha_shader_source;
 	}
 }
 
@@ -958,6 +966,7 @@ static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_e
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
 	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
 	sampler_array[UNIFORM_SAMPLER_DEPTH] = (is_effect ? 2 : -1);
+	sampler_array[UNIFORM_SAMPLER_SPECULAR] = (is_effect ? 3 : -1);
 }
 
 static void rend_commit_uniforms(shader_t *shader)
@@ -1063,6 +1072,12 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
 				active_texture = geometry_buffer->depth;
 				break;
 
+			case GBUFFER_SPECULAR:
+			case GBUFFER_SHININESS:
+				glBindTexture(GL_TEXTURE_2D, geometry_buffer->specular);
+				active_texture = geometry_buffer->specular;
+				break;
+
 			default:
 				glBindTexture(GL_TEXTURE_2D, geometry_buffer->colour);
 				active_texture = geometry_buffer->colour;
@@ -1077,6 +1092,10 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
 	// Depth texture
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, geometry_buffer->depth);
+
+	// Specular texture
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, geometry_buffer->specular);
 
 	// Update custom uniforms.
 	if (shader->has_updated_uniforms) {

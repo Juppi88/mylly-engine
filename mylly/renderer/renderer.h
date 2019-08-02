@@ -69,7 +69,8 @@ typedef enum {
 
 	DEFAULT_SHADER_MAIN,
 	DEFAULT_SHADER_SPLASHSCREEN,
-	DEFAULT_SHADER_DRAW_FRAMEBUFFER
+	DEFAULT_SHADER_DRAW_FRAMEBUFFER,
+	DEFAULT_SHADER_DRAW_FRAMEBUFFER_ALPHA
 
 } default_shader_t;
 
@@ -95,9 +96,11 @@ void rend_draw_splash_screen(texture_t *texture, shader_t *shader, colour_t back
 typedef enum gbuffer_component_t {
 
 	GBUFFER_NONE,
-	GBUFFER_COLOUR,
-	GBUFFER_NORMAL,
-	GBUFFER_DEPTH,
+	GBUFFER_COLOUR, // Diffuse/albedo colour (rgb) - a unused
+	GBUFFER_NORMAL, // Surface world space normal (rgb) - a unused
+	GBUFFER_DEPTH, // 24bit depth buffer (rgb) - stencil buffer (a)
+	GBUFFER_SPECULAR, // Specular colour (rgb of specular buffer)
+	GBUFFER_SHININESS, // Material shininess (a of specular buffer)
 	NUM_GBUFFER_COMPONENTS
 
 } gbuffer_component_t;

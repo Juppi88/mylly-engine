@@ -30,10 +30,11 @@
 #define VEC_COLOUR 3 // Colour of the mesh. For lit materials this is the ambient colour
 #define NUM_VEC_UNIFORMS 4
 
-#define SAMPLER_MAIN 0 // Main sampler (usually diffuse texture)
-#define SAMPLER_NORMAL 1 // Normal texture (normal map in forward mode)
-#define SAMPLER_DEPTH 2 // Depth texture
-#define NUM_SAMPLER_UNIFORMS 3
+#define SAMPLER_MAIN 0 // Main sampler (diffuse/albedo colour)
+#define SAMPLER_NORMAL 1 // Normal (rgb) texture (normal map in forward mode)
+#define SAMPLER_DEPTH 2 // Depth (rgb)/stencil (a) texture
+#define SAMPLER_SPECULAR 3 // Specular (rgb)/shininess (a) texture
+#define NUM_SAMPLER_UNIFORMS 4
 
 uniform mat4 MatrixArr[NUM_MAT_UNIFORMS];
 uniform vec4 VectorArr[NUM_VEC_UNIFORMS];
@@ -60,6 +61,7 @@ vec3      CameraForward() { mat4 m = MatrixView(); return vec3(m[0][2], m[1][2],
 #define   TextureMain() (SamplerArr[SAMPLER_MAIN])
 #define   TextureNormal() (SamplerArr[SAMPLER_NORMAL])
 #define   TextureDepth() (SamplerArr[SAMPLER_DEPTH])
+#define   TextureSpecular() (SamplerArr[SAMPLER_SPECULAR])
 
 vec3      ViewPosition() { return VectorArr[VEC_VIEW_POSITION].xyz; }
 vec2      ScreenResolution() { return VectorArr[VEC_SCREEN].xy; }
@@ -168,6 +170,7 @@ mat3 inverse(mat3 m)
 
 #define TARGET_COLOUR 0
 #define TARGET_NORMAL 1
+#define TARGET_SPECULAR 2
 
 vec4 encodenormal(vec3 normal)
 {

@@ -138,6 +138,17 @@ void res_initialize(void)
 	arr_push(shaders, default_shader);
 	default_shader->resource.index = arr_last_index(shaders);
 
+	// Same as above, but only draws the alpha channel.
+	// TODO: Cleanup and move the default shader loading code to its own method!
+	source[0] = NULL;
+	source[1] = rend_get_default_shader_source(DEFAULT_SHADER_DRAW_FRAMEBUFFER_ALPHA);
+
+	default_shader = shader_create("default-draw-framebuffer-alpha", NULL);
+	shader_load_from_source(default_shader, 2, source, 0, NULL, NULL);
+
+	arr_push(shaders, default_shader);
+	default_shader->resource.index = arr_last_index(shaders);
+
 	// Load custom resources. There are some order requirements due to cross-dependencies:
 	// - Textures should be loaded before materials and sprites
 	// - Materials should be loaded before shaders and models

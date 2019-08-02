@@ -19,6 +19,7 @@ typedef struct gl_framebuffer_t {
 	GLuint colour; // G-buffer attachments
 	GLuint normal;
 	GLuint depth;
+	GLuint specular;
 
 } gl_framebuffer_t;
 
