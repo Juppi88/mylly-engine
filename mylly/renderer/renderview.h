@@ -93,6 +93,10 @@ typedef struct rview_t {
 	// List of all the meshes to be rendered in the view, sorted by render queues
 	list_t(rmesh_t) meshes[NUM_QUEUES];
 
+	// All lights affecting to this view.
+	rlight_t **lights;
+	uint32_t num_lights;
+
 	// A virtual root object placed at the origin. Used for custom meshes placed in the scene
 	// (for example debug meshes).
 	robject_t root;

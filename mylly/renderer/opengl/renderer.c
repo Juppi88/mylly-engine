@@ -66,7 +66,7 @@ static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
 static void rend_draw_post_processing_effects(rview_t *view);
-static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
+static void rend_draw_framebuffer_with_shader(int source_fb_index, shader_t *shader,
                                               bool is_first_effect, bool override_buffer);
 
 static void rend_set_blend_mode(int queue, bool post_processing);
@@ -256,6 +256,12 @@ void rend_draw_views(rview_t *first_view)
 
 	int meshes_drawn = 0;
 
+	// TODO: This is because for some reason we can't draw the lighting effects back to the G-buffer
+	// and we need to keep track where the most resent lit view is stored. Figure out if the
+	// result can be drawn to the G-buffer, or if the values in the G-buffer even need to be
+	// modified in the transparent queue.
+	int last_used_fb_index = FB_GEOMETRY;
+
 	// Process render queues.
 	for (int queue = 0; queue < NUM_QUEUES; queue++) {
 
@@ -295,11 +301,44 @@ void rend_draw_views(rview_t *first_view)
 		}
 
 		// Handle deferred lighting and post processing effects.
+		// TODO: Determine whether this is the deferred or forward mode!
 		if (queue == QUEUE_GEOMETRY) {
 
 			// TODO: Draw deferred lighting after geometry queue! Draw it as a post process
 			// effect, then copy the result color buffer back to the geometry buffer for the
 			// transparent queue.
+
+			// TODO: Apply lighting for each view (except UI)!
+			view = first_view;
+
+			// Get a shader to draw the lights with.
+			// TODO: Have a method to set the lighting shader (for other than Phong model lighting!)
+			shader_t *ambient_shader = res_get_shader("deferred-ambient");
+			shader_t *light_shader = res_get_shader("deferred-phong");
+
+			// Draw the ambient pass.
+			rend_bind_fb(0);
+			rend_update_uniforms(NULL, view, true);
+			rend_draw_framebuffer_with_shader(FB_GEOMETRY, ambient_shader, true, false);
+
+			// Draw a separate pass for each light affecting the view.
+			for (uint32_t i = 0; i < view->num_lights; i++) {
+
+				// Copy light parameters to the light array. Since we're redrawing the view for
+				// each light (forward mode draws more than one light at once), we'll only use the
+				// first component of the light array and set the number of lights to 1.
+				mat_cpy(&light_array[0], &view->lights[i]->shader_params);
+				num_mesh_lights = 1;
+
+				rend_update_uniforms(NULL, view, true);
+
+				// Draw the view to one of the post processing framebuffers.
+				last_used_fb_index = (i + 1) & 1;
+				rend_bind_fb(last_used_fb_index);
+
+				// Apply the current light to the previous lit view.
+				rend_draw_framebuffer_with_shader(i & 1, light_shader, false, false);
+			}
 		}
 		else if (queue == QUEUE_TRANSPARENT) {
 
@@ -325,7 +364,7 @@ void rend_draw_views(rview_t *first_view)
 				rend_update_uniforms(NULL, view, true);
 
 				rend_bind_fb(FB_SCREEN);
-				rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true, false);
+				rend_draw_framebuffer_with_shader(last_used_fb_index, dummy, true, false);
 			}
 		}
 	}
@@ -966,7 +1005,8 @@ static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_e
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
 	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
 	sampler_array[UNIFORM_SAMPLER_DEPTH] = (is_effect ? 2 : -1);
-	sampler_array[UNIFORM_SAMPLER_SPECULAR] = (is_effect ? 3 : -1);
+	sampler_array[UNIFORM_SAMPLER_DIFFUSE] = (is_effect ? 3 : -1);
+	sampler_array[UNIFORM_SAMPLER_SPECULAR] = (is_effect ? 4 : -1);
 }
 
 static void rend_commit_uniforms(shader_t *shader)
@@ -1023,7 +1063,7 @@ static void rend_draw_post_processing_effects(rview_t *view)
 
 		if (i < c - 1) {
 			// Bind the framebuffer not used by the previous render pass.
-			rend_bind_fb(1 + i & 1);
+			rend_bind_fb((1 + i) & 1);
 		}
 		else {
 			// Last effect, bind back to the screen's framebuffer.
@@ -1037,7 +1077,7 @@ static void rend_draw_post_processing_effects(rview_t *view)
 	}
 }
 
-static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
+static void rend_draw_framebuffer_with_shader(int source_fb_index, shader_t *shader,
                                               bool is_first_effect, bool override_buffer)
 {
 	// Switch to the post-processing shader.
@@ -1046,7 +1086,7 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
 
 	// Select the framebuffer textures. Normal and depth textures are fetched from the geometry pass
 	// framebuffer.
-	const gl_framebuffer_t *framebuffer = rend_get_fb(index);
+	const gl_framebuffer_t *source_buffer = rend_get_fb(source_fb_index);
 	const gl_framebuffer_t *geometry_buffer = rend_get_fb(FB_GEOMETRY);
 
 	// Colour texture. The colour texture can be overriden with other G-buffer components for
@@ -1055,8 +1095,8 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
 
 	if (!override_buffer) {
 
-		glBindTexture(GL_TEXTURE_2D, (is_first_effect ? geometry_buffer->colour : framebuffer->colour));
-		active_texture = framebuffer->colour;
+		active_texture = (is_first_effect ? geometry_buffer->colour : source_buffer->colour);
+		glBindTexture(GL_TEXTURE_2D, source_buffer->colour);
 	}
 	else {
 
@@ -1093,8 +1133,12 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, geometry_buffer->depth);
 
-	// Specular texture
+	// Diffuse texture
 	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, geometry_buffer->colour);
+
+	// Specular texture
+	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, geometry_buffer->specular);
 
 	// Update custom uniforms.
@@ -1127,6 +1171,12 @@ static void rend_draw_framebuffer_with_shader(int index, shader_t *shader,
 	}
 	if (shader->sampler_array >= 0) {
 		glUniform1iv(shader->sampler_array, NUM_SAMPLER_UNIFORMS, &sampler_array[0]);
+	}
+	if (shader->light_array >= 0) {
+		glUniformMatrix4fv(shader->light_array, num_mesh_lights, false, &light_array[0].col[0][0]);
+	}
+	if (shader->num_lights_position >= 0) {
+		glUniform1i(shader->num_lights_position, num_mesh_lights);
 	}
 
 	rend_commit_uniforms(shader);

@@ -67,8 +67,7 @@ const char *splash_shader_source =
 // The source of a minimal GLSL shader for drawing the contents of a framebuffer to the screen.
 const char *draw_fb_shader_source =
 
-"uniform sampler2D Texture;\n"
-"uniform vec4 Colour;\n"
+"uniform sampler2D SamplerArr[1];\n"
 "varying vec2 texCoord;\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
@@ -86,7 +85,7 @@ const char *draw_fb_shader_source =
 "\n"
 "void main()\n"
 "{\n"
-"	gl_FragColor = vec4(texture2D(Texture, texCoord).rgb, 1);\n"
+"	gl_FragColor = vec4(texture2D(SamplerArr[0], texCoord).rgb, 1);\n"
 "}\n"
 "\n"
 "#endif\n";
@@ -96,8 +95,7 @@ const char *draw_fb_shader_source =
 // Same as above but only draws the alpha channel.
 const char *draw_fb_alpha_shader_source =
 
-"uniform sampler2D Texture;\n"
-"uniform vec4 Colour;\n"
+"uniform sampler2D SamplerArr[1];\n"
 "varying vec2 texCoord;\n"
 "\n"
 "#if defined(VERTEX_SHADER)\n"
@@ -115,7 +113,7 @@ const char *draw_fb_alpha_shader_source =
 "\n"
 "void main()\n"
 "{\n"
-"	float a = texture2D(Texture, texCoord).a;\n"
+"	float a = texture2D(SamplerArr[0], texCoord).a;\n"
 "	gl_FragColor = vec4(a, a, a, 1);\n"
 "}\n"
 "\n"

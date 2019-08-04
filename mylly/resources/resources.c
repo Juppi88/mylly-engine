@@ -1376,7 +1376,8 @@ static void res_load_material(const char *file_name)
 			material->shader = res_get_shader("default-phong-normal");
 		}
 		else {
-			material->shader = res_get_shader("default-phong");
+			//material->shader = res_get_shader("default-phong");
+			material->shader = res_get_shader("material");
 		}
 
 		// Create a copy of the shader program for each material.

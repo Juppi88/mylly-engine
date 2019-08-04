@@ -31,6 +31,8 @@ static list_t(rview_t) views; // List of views to be rendered this frame
 static rview_t *ui_view; // A dedicated view for UI widgets due to UI not needing a camera
 static robject_t ui_parent; // A virtual object to be used as the UI parent
 
+static rendermode_t render_mode = RENDMODE_FORWARD; // Render mode, used for lighting
+
 // -------------------------------------------------------------------------------------------------
 
 static void rsys_cull_object(object_t *object);
@@ -201,6 +203,18 @@ void rsys_render_scene(scene_t *scene)
 			arr_push(view->post_processing_effects, effect);
 		}
 
+		// Add a list of lights affecting this view.
+		// TODO: Actually check which lights are in the view! For now we're just copying all lights.
+		view->lights = mem_alloc_fast(lights.count * sizeof(rlight_t*));
+
+		int light_index;
+
+		arr_foreach_iter(lights, light_index) {
+			view->lights[light_index] = lights.items[light_index];
+		}
+
+		view->num_lights = lights.count;
+
 		// Add the view to the list of views to be rendered.
 		list_push(views, view);
 	}
@@ -275,6 +289,11 @@ void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh)
 			list_push(view->meshes[rmesh->shader->queue], rmesh);
 		}
 	}
+}
+
+void rsys_set_render_mode(rendermode_t mode)
+{
+	render_mode = mode;
 }
 
 static void rsys_cull_object(object_t *object)
@@ -588,6 +607,8 @@ static void rsys_free_frame_data(void)
 		}
 
 		arr_clear(view->post_processing_effects);
+
+		mem_free(view->lights);
 
 		// Remove the view itself.
 		mem_free(view);

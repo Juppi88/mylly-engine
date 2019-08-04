@@ -18,18 +18,16 @@ void main()
 void main()
 {
 	// Fetch material properties from G-buffer data.
+	vec3 source = texture2D(TextureMain(), texCoord).rgb;
 	vec3 worldPosition = decodeworldpos(texCoord);
-	vec3 diffuse = texture2D(TextureMain(), texCoord).rgb;
-	vec3 normal = texture2D(TextureNormal(), texCoord).rgb;
+	vec3 normal = decodenormal(texture2D(TextureNormal(), texCoord).rgb);
+	vec3 diffuse = texture2D(TextureDiffuse(), texCoord).rgb;
 	vec4 specularData = texture2D(TextureSpecular(), texCoord);
 	vec3 specular = specularData.rgb;
-	float shininess = specularData.a;
-
-	// Apply ambient lighting.
-	vec3 colour = ApplyAmbientLight(diffuse);
+	float shininess = decodeshininess(specularData.a);
 
 	// Apply the effect of the light.
-	colour += ApplyPhongLight(0, worldPosition, normal, diffuse, specular, shininess);
+	vec3 colour = source + ApplyPhongLight(0, worldPosition, normal, diffuse, specular, shininess);
 
 	gl_FragColor = vec4(colour, 1);
 }

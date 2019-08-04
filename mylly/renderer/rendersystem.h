@@ -6,6 +6,15 @@
 
 // -------------------------------------------------------------------------------------------------
 
+typedef enum rendermode_t {
+
+	RENDMODE_FORWARD,
+	RENDMODE_DEFERRED,
+
+} rendermode_t;
+
+// -------------------------------------------------------------------------------------------------
+
 BEGIN_DECLARATIONS;
 
 void rsys_initialize(void);
@@ -20,6 +29,8 @@ void rsys_render_scene(scene_t *scene);
 
 // Report a mesh to be rendered.
 void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh);
+
+void rsys_set_render_mode(rendermode_t mode);
 
 END_DECLARATIONS;
 
