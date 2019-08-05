@@ -17,10 +17,12 @@ void main()
 
 void main()
 {
-	gl_FragColor = Colour * texture2D(TextureMain(), texCoord.st);
+	vec4 colour = Colour * texture2D(TextureMain(), texCoord);
+
+	emit(colour);
 
 	// Alpha cutoff
-	alphacut(gl_FragColor.a, 0.01);
+	alphacut(colour.a, 0.01);
 }
 
 #endif

@@ -23,7 +23,7 @@ void main()
 
 void main()
 {
-	gl_FragColor = colour;
+	gl_FragData[0] = colour;
 }
 
 #endif

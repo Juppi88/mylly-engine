@@ -60,7 +60,7 @@ void main()
 	// Alpha blend the widget's texture with the background squares.
 	vec3 outColour = (1.0 - Alpha) * bgColour + Alpha * texColour;
 
-	gl_FragColor = vec4(outColour, 1);
+	emit(vec4(outColour, 1));
 }
 
 #endif

@@ -218,4 +218,22 @@ float decodeshininess(float value)
 	return (256.0 * value) - 1.0;
 }
 
+#if defined(FRAGMENT_SHADER)
+
+void emit(vec4 colour)
+{
+	gl_FragData[TARGET_COLOUR] = colour;
+	gl_FragData[TARGET_NORMAL] = vec4(0);
+	gl_FragData[TARGET_SPECULAR] = vec4(0);
+}
+
+void emit(vec4 colour, vec4 normal, vec4 specular)
+{
+	gl_FragData[TARGET_COLOUR] = colour;
+	gl_FragData[TARGET_NORMAL] = normal;
+	gl_FragData[TARGET_SPECULAR] = specular;
+}
+
+#endif
+
 #endif // MYLLY_GLINC

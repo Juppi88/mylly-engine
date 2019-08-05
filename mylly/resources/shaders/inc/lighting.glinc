@@ -5,34 +5,18 @@
 // Uniforms and helper methods for lighting.
 // -------------------------------------------------------------------------------------------------
 
-#ifdef DEFERRED_LIGHTING
+#define MAX_LIGHTS_PER_MESH 4
 
-	uniform mat4 LightArr;
+uniform int NumLights;
+uniform mat4 LightArr[MAX_LIGHTS_PER_MESH];
 
-	vec4  LightPosition(int light) { return LightArr[0]; }
-	vec3  LightColour(int light) { return LightArr[1].rgb; }
-	float LightRange(int light) { return LightArr[3][0]; }
-	float LightIntensity(int light) { return LightArr[3][1]; }
-	vec3  LightDirection(int light) { return LightArr[2].xyz; }
-	float LightCutoffAngle(int light) { return LightArr[3][2]; }
-	float LightCutoffOuterAngle(int light) { return LightArr[3][3]; }
-
-#else
-
-	#define MAX_LIGHTS_PER_MESH 4
-
-	uniform int NumLights;
-	uniform mat4 LightArr[MAX_LIGHTS_PER_MESH];
-
-	vec4  LightPosition(int light) { return LightArr[light][0]; }
-	vec3  LightColour(int light) { return LightArr[light][1].rgb; }
-	float LightRange(int light) { return LightArr[light][3][0]; }
-	float LightIntensity(int light) { return LightArr[light][3][1]; }
-	vec3  LightDirection(int light) { return LightArr[light][2].xyz; }
-	float LightCutoffAngle(int light) { return LightArr[light][3][2]; }
-	float LightCutoffOuterAngle(int light) { return LightArr[light][3][3]; }
-
-#endif
+vec4  LightPosition(int light) { return LightArr[light][0]; }
+vec3  LightColour(int light) { return LightArr[light][1].rgb; }
+float LightRange(int light) { return LightArr[light][3][0]; }
+float LightIntensity(int light) { return LightArr[light][3][1]; }
+vec3  LightDirection(int light) { return LightArr[light][2].xyz; }
+float LightCutoffAngle(int light) { return LightArr[light][3][2]; }
+float LightCutoffOuterAngle(int light) { return LightArr[light][3][3]; }
 
 vec3  AmbientLightColour() { return VectorArr[VEC_COLOUR].rgb; }
 
@@ -76,8 +60,8 @@ vec3 ApplyPhongLight(int light,
 
 	// Apply specular lighting.
 	vec3 viewDirection = normalize(ViewPosition() - worldPosition);
-	vec3 reflectDirection = reflect(-direction, normal);
-	float specularStrength = pow(max(dot(viewDirection, reflectDirection), 0.0), matShininess);
+	vec3 halfwayDirection = normalize(direction + viewDirection);
+	float specularStrength = pow(max(dot(normal, halfwayDirection), 0.0), matShininess);
 	vec3 specular = specularStrength * matSpecColour;
 
 	// Spotlight attenuation.

@@ -34,7 +34,7 @@ void main()
 
 void main()
 {
-	vec4 color;
+	vec4 colour;
 
 	vec2 fragCoord = texCoord * ScreenResolution();
 	vec2 inverseVP = vec2(1.0 / ScreenResolution().x, 1.0 / ScreenResolution().y);
@@ -81,13 +81,13 @@ void main()
 	float lumaB = dot(rgbB, luma);
 
 	if (lumaB < lumaMin || lumaB > lumaMax) {
-	    color = vec4(rgbA, texColor.a);
+	    colour = vec4(rgbA, texColor.a);
 	}
 	else {
-	    color = vec4(rgbB, texColor.a);
+	    colour = vec4(rgbB, texColor.a);
 	}
 	
-	gl_FragColor = color;
+	emit(colour);
 }
 
 #endif

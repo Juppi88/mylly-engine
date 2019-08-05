@@ -142,6 +142,8 @@ typedef struct shader_t {
 	arr_t(shader_uniform_t) material_uniforms;
 	bool has_updated_uniforms; // A flag indicating whether the custom uniforms need updating
 
+	bool is_deferred_shader; // Set to true if the shader uses the deferred pipeline
+
 	arr_t(const char *) source; // An array consisting of source code lines of the shader
 
 } shader_t;

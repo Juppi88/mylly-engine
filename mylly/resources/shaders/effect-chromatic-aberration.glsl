@@ -23,7 +23,7 @@ void main()
 	float g = texture2D(TextureMain(), texCoord).g;
 	float b = texture2D(TextureMain(), texCoord + offset).b;
 
-	gl_FragColor = vec4(r, g, b, 1);
+	emit(vec4(r, g, b, 1));
 }
 
 #endif

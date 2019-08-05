@@ -41,7 +41,7 @@ void main()
 
 void main()
 {
-	gl_FragColor = colour * texture2D(TextureMain(), texCoord.st);
+	emit(colour * texture2D(TextureMain(), texCoord));
 
 	// Alpha cutoff
 	alphacut(gl_FragColor.a, 0.01);

@@ -79,7 +79,7 @@ void main()
 	float g = texture2D(TextureMain(), texCoord + displCoord).g;
 	float b = texture2D(TextureMain(), texCoord + displCoord - chromAberrAmount).b;
 
-	gl_FragColor = vec4(r, g, b, 1);
+	emit(vec4(r, g, b, 1));
 }
 
 #endif

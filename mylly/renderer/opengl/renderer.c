@@ -218,6 +218,8 @@ void rend_begin_draw(void)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
+	glStencilMask(0x0);
+
 	rend_clear_uniforms();
 }
 

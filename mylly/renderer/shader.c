@@ -270,10 +270,15 @@ bool shader_load_from_source(
 	// Resolve the render queue used by the shader. If the shader doesn't define its queue, use
 	// the geometry queue by default.
 	shader->queue = QUEUE_GEOMETRY;
+	shader->is_deferred_shader = false;
 
 	for (uint32_t i = 0; i < num_lines; ++i) {
 
-		if (lines[i] != NULL && string_starts_with(lines[i], "#pragma queue ", 14)) {
+		if (lines[i] == NULL) {
+			continue;
+		}
+
+		if (string_starts_with(lines[i], "#pragma queue ", 14)) {
 
 			const char *queue = &lines[i][14];
 
@@ -281,8 +286,10 @@ bool shader_load_from_source(
 			else if (string_starts_with(queue, "GEOMETRY", 8)) shader->queue = QUEUE_GEOMETRY;
 			else if (string_starts_with(queue, "TRANSPARENT", 11)) shader->queue = QUEUE_TRANSPARENT;
 			else if (string_starts_with(queue, "OVERLAY", 7)) shader->queue = QUEUE_OVERLAY;
+		}
 
-			break;
+		if (string_starts_with(lines[i], "#define DEFERRED_LIGHTING", 25)) {
+			shader->is_deferred_shader = true;
 		}
 	}
 

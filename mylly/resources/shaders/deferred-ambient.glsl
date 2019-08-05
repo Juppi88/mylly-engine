@@ -17,11 +17,19 @@ void main()
 
 void main()
 {
-	// Apply ambient lighting.
 	vec3 diffuse = texture2D(TextureMain(), texCoord).rgb;
+
+	if (texture2D(TextureNormal(), texCoord).a == 0) {
+
+		// Fragment is not affected by lighting.
+		emit(vec4(diffuse, 1));
+		return;
+	}
+
+	// Apply ambient lighting.
 	vec3 colour = ApplyAmbientLight(diffuse);
 
-	gl_FragColor = vec4(colour, 1);
+	emit(vec4(colour, 1));
 }
 
 #endif

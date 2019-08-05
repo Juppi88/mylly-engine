@@ -17,10 +17,19 @@ void main()
 
 void main()
 {
+	vec4 normalData = texture2D(TextureNormal(), texCoord);
+
+	if (normalData.a == 0) {
+		
+		// Fragment is not affected by lighting.
+		emit(texture2D(TextureMain(), texCoord));
+		return;
+	}
+
 	// Fetch material properties from G-buffer data.
 	vec3 source = texture2D(TextureMain(), texCoord).rgb;
 	vec3 worldPosition = decodeworldpos(texCoord);
-	vec3 normal = decodenormal(texture2D(TextureNormal(), texCoord).rgb);
+	vec3 normal = decodenormal(normalData.rgb);
 	vec3 diffuse = texture2D(TextureDiffuse(), texCoord).rgb;
 	vec4 specularData = texture2D(TextureSpecular(), texCoord);
 	vec3 specular = specularData.rgb;
@@ -29,7 +38,7 @@ void main()
 	// Apply the effect of the light.
 	vec3 colour = source + ApplyPhongLight(0, worldPosition, normal, diffuse, specular, shininess);
 
-	gl_FragColor = vec4(colour, 1);
+	emit(vec4(colour, 1));
 }
 
 #endif
