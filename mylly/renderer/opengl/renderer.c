@@ -316,7 +316,9 @@ void rend_draw_views(rview_t *first_view)
 			shader_t *light_shader = res_get_shader("deferred-phong");
 
 			// Draw the ambient pass.
-			rend_bind_fb(0);
+			last_used_fb_index = 0;
+			rend_bind_fb(last_used_fb_index);
+
 			rend_update_uniforms(NULL, view, true);
 			rend_draw_framebuffer_with_shader(FB_GEOMETRY, ambient_shader, false);
 

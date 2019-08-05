@@ -41,10 +41,11 @@ void main()
 
 void main()
 {
-	emit(colour * texture2D(TextureMain(), texCoord));
+	vec4 result = colour * texture2D(TextureMain(), texCoord);
+	emit(result);
 
 	// Alpha cutoff
-	alphacut(gl_FragColor.a, 0.01);
+	alphacut(result.a, 0.01);
 }
 
 #endif
