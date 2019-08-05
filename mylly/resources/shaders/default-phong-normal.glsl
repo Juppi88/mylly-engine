@@ -51,7 +51,7 @@ void main()
 	}
 
 	// Apply fragment colour.
-	gl_FragColor = vec4(colour, Opacity) * texture2D(TextureMain(), texCoord.st);
+	gl_FragColor = vec4(colour, Opacity) * texture2D(TextureMain(), texCoord);
 }
 
 #endif

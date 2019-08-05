@@ -76,8 +76,8 @@ vec3 ApplyPhongLight(int light,
 
 	// Apply specular lighting.
 	vec3 viewDirection = normalize(ViewPosition() - worldPosition);
-	vec3 halfwayDirection = normalize(direction + viewDirection);
-	float specularStrength = pow(max(dot(normal, halfwayDirection), 0.0), matShininess);
+	vec3 reflectDirection = reflect(-direction, normal);
+	float specularStrength = pow(max(dot(viewDirection, reflectDirection), 0.0), matShininess);
 	vec3 specular = specularStrength * matSpecColour;
 
 	// Spotlight attenuation.

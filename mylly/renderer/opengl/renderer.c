@@ -27,9 +27,9 @@ static GLXContext gl_context;
 #endif
 
 // Currently used shader and texture object.
-static GLuint active_shader = -1;
-static GLuint active_texture = -1;
-static GLuint active_normal_map = -1;
+static GLuint active_shader = 0;
+static GLuint active_texture = 0;
+static GLuint active_normal_map = 0;
 
 // Uniform arrays.
 static mat_t matrix_array[NUM_MAT_UNIFORMS];
@@ -302,7 +302,6 @@ void rend_draw_views(rview_t *first_view)
 		}
 
 		// Handle deferred lighting and post processing effects.
-		// TODO: Determine whether this is the deferred or forward mode!
 		if (queue == QUEUE_GEOMETRY &&
 			rsys_get_render_mode() == RENDMODE_DEFERRED) {
 
@@ -505,7 +504,8 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 	// Select the active texture.
 	GLuint texture_id = (texture != NULL ? texture->gpu_texture : 0);
 
-	if (texture_id != active_texture) {
+	if (texture_id != 0 &&
+		texture_id != active_texture) {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -516,7 +516,8 @@ static void rend_set_active_material(shader_t *shader, texture_t *texture, textu
 	// Select normal map.
 	GLuint normal_map_id = (normal_map != NULL ? normal_map->gpu_texture : 0);
 
-	if (normal_map_id != active_normal_map) {
+	if (normal_map_id != 0 &&
+		normal_map_id != active_normal_map) {
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, normal_map_id);
@@ -1002,9 +1003,9 @@ static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_e
 
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
 	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
-	sampler_array[UNIFORM_SAMPLER_DEPTH] = (is_effect ? 2 : -1);
-	sampler_array[UNIFORM_SAMPLER_DIFFUSE] = (is_effect ? 3 : -1);
-	sampler_array[UNIFORM_SAMPLER_SPECULAR] = (is_effect ? 4 : -1);
+	sampler_array[UNIFORM_SAMPLER_DEPTH] = (is_effect ? 2 : 0);
+	sampler_array[UNIFORM_SAMPLER_DIFFUSE] = (is_effect ? 3 : 0);
+	sampler_array[UNIFORM_SAMPLER_SPECULAR] = (is_effect ? 4 : 0);
 }
 
 static void rend_commit_uniforms(shader_t *shader)
@@ -1041,7 +1042,7 @@ static void rend_clear_uniforms(void)
 	}
 
 	for (int i = 0; i < NUM_SAMPLER_UNIFORMS; i++) {
-		sampler_array[i] = -1;
+		sampler_array[i] = 0;
 	}
 
 	for (int i = 0; i < MAX_LIGHTS_PER_MESH; i++) {
@@ -1128,6 +1129,7 @@ static void rend_draw_framebuffer_with_shader(int source_fb_index, shader_t *sha
 	// Normal texture
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, geometry_buffer->normal);
+	active_normal_map = geometry_buffer->normal;
 
 	// Depth texture
 	glActiveTexture(GL_TEXTURE2);
