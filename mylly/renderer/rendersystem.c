@@ -203,17 +203,23 @@ void rsys_render_scene(scene_t *scene)
 			arr_push(view->post_processing_effects, effect);
 		}
 
-		// Add a list of lights affecting this view.
+		// When rendering in deferred mode, add a list of lights affecting this view.
 		// TODO: Actually check which lights are in the view! For now we're just copying all lights.
-		view->lights = mem_alloc_fast(lights.count * sizeof(rlight_t*));
+		if (render_mode == RENDMODE_DEFERRED) {
 
-		int light_index;
+			view->lights = mem_alloc_fast(lights.count * sizeof(rlight_t*));
+			view->num_lights = lights.count;
 
-		arr_foreach_iter(lights, light_index) {
-			view->lights[light_index] = lights.items[light_index];
+			int light_index;
+
+			arr_foreach_iter(lights, light_index) {
+				view->lights[light_index] = lights.items[light_index];
+			}
 		}
-
-		view->num_lights = lights.count;
+		else {
+			view->lights = NULL;
+			view->num_lights = 0;
+		}
 
 		// Add the view to the list of views to be rendered.
 		list_push(views, view);
@@ -289,6 +295,11 @@ void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh)
 			list_push(view->meshes[rmesh->shader->queue], rmesh);
 		}
 	}
+}
+
+rendermode_t rsys_get_render_mode(void)
+{
+	return render_mode;
 }
 
 void rsys_set_render_mode(rendermode_t mode)
@@ -456,8 +467,11 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
 	}
 
 	// If the material used by the mesh is affected by lighting, collect all the lights contributing
-	// to the mesh.
-	if (shader_is_affected_by_light(rmesh->shader)) {
+	// to the mesh. This is only done if the rendering mode is forward - all lights are rendered
+	// as a post process effect in the deferred lighting mode.
+	if (render_mode == RENDMODE_FORWARD &&
+		shader_is_affected_by_light(rmesh->shader)) {
+
 		rsys_collect_mesh_lights(rmesh, object);
 	}
 

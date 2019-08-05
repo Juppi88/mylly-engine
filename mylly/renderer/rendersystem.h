@@ -30,6 +30,7 @@ void rsys_render_scene(scene_t *scene);
 // Report a mesh to be rendered.
 void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh);
 
+rendermode_t rsys_get_render_mode(void);
 void rsys_set_render_mode(rendermode_t mode);
 
 END_DECLARATIONS;

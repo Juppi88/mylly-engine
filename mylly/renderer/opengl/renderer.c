@@ -5,6 +5,7 @@
 #include "renderer/texture.h"
 #include "renderer/buffercache.h"
 #include "renderer/mesh.h"
+#include "renderer/rendersystem.h"
 #include "io/log.h"
 #include "platform/window.h"
 #include "core/time.h"
@@ -65,9 +66,9 @@ static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_e
 static void rend_commit_uniforms(shader_t *shader);
 static void rend_clear_uniforms(void);
 
-static void rend_draw_post_processing_effects(rview_t *view);
+static void rend_draw_post_processing_effects(rview_t *view, int source_fb_index);
 static void rend_draw_framebuffer_with_shader(int source_fb_index, shader_t *shader,
-                                              bool is_first_effect, bool override_buffer);
+                                              bool override_buffer);
 
 static void rend_set_blend_mode(int queue, bool post_processing);
 
@@ -302,11 +303,8 @@ void rend_draw_views(rview_t *first_view)
 
 		// Handle deferred lighting and post processing effects.
 		// TODO: Determine whether this is the deferred or forward mode!
-		if (queue == QUEUE_GEOMETRY) {
-
-			// TODO: Draw deferred lighting after geometry queue! Draw it as a post process
-			// effect, then copy the result color buffer back to the geometry buffer for the
-			// transparent queue.
+		if (queue == QUEUE_GEOMETRY &&
+			rsys_get_render_mode() == RENDMODE_DEFERRED) {
 
 			// TODO: Apply lighting for each view (except UI)!
 			view = first_view;
@@ -319,7 +317,7 @@ void rend_draw_views(rview_t *first_view)
 			// Draw the ambient pass.
 			rend_bind_fb(0);
 			rend_update_uniforms(NULL, view, true);
-			rend_draw_framebuffer_with_shader(FB_GEOMETRY, ambient_shader, true, false);
+			rend_draw_framebuffer_with_shader(FB_GEOMETRY, ambient_shader, false);
 
 			// Draw a separate pass for each light affecting the view.
 			for (uint32_t i = 0; i < view->num_lights; i++) {
@@ -337,7 +335,7 @@ void rend_draw_views(rview_t *first_view)
 				rend_bind_fb(last_used_fb_index);
 
 				// Apply the current light to the previous lit view.
-				rend_draw_framebuffer_with_shader(i & 1, light_shader, false, false);
+				rend_draw_framebuffer_with_shader(i & 1, light_shader, false);
 			}
 		}
 		else if (queue == QUEUE_TRANSPARENT) {
@@ -355,7 +353,7 @@ void rend_draw_views(rview_t *first_view)
 
 				// Draw post process effects. The last effect will switch to the screen's
 				// framebuffer, and anything after that (foreground queue/UI) is drawn there.
-				rend_draw_post_processing_effects(view);
+				rend_draw_post_processing_effects(view, last_used_fb_index);
 			}
 			else {
 
@@ -364,7 +362,7 @@ void rend_draw_views(rview_t *first_view)
 				rend_update_uniforms(NULL, view, true);
 
 				rend_bind_fb(FB_SCREEN);
-				rend_draw_framebuffer_with_shader(last_used_fb_index, dummy, true, false);
+				rend_draw_framebuffer_with_shader(last_used_fb_index, dummy, false);
 			}
 		}
 	}
@@ -378,7 +376,7 @@ void rend_draw_views(rview_t *first_view)
 		}
 
 		rend_bind_fb(FB_SCREEN);
-		rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true, true);
+		rend_draw_framebuffer_with_shader(FB_GEOMETRY, dummy, true);
 	}
 }
 /*
@@ -1053,7 +1051,7 @@ static void rend_clear_uniforms(void)
 	num_mesh_lights = 0;
 }
 
-static void rend_draw_post_processing_effects(rview_t *view)
+static void rend_draw_post_processing_effects(rview_t *view, int source_fb_index)
 {
 	// Update relevant uniform arrays.
 	rend_update_uniforms(NULL, view, true);
@@ -1073,12 +1071,14 @@ static void rend_draw_post_processing_effects(rview_t *view)
 		// Render the contents of the previous framebuffer into the next one (or the
 		// screen if this is the last effect).
 		shader_t *effect = view->post_processing_effects.items[i];
-		rend_draw_framebuffer_with_shader(i & 1, effect, i == 0, false);
+		rend_draw_framebuffer_with_shader(source_fb_index, effect, false);
+
+		source_fb_index = (i + 1) & 1;
 	}
 }
 
 static void rend_draw_framebuffer_with_shader(int source_fb_index, shader_t *shader,
-                                              bool is_first_effect, bool override_buffer)
+                                              bool override_buffer)
 {
 	// Switch to the post-processing shader.
 	glUseProgram(shader->program);
@@ -1095,8 +1095,8 @@ static void rend_draw_framebuffer_with_shader(int source_fb_index, shader_t *sha
 
 	if (!override_buffer) {
 
-		active_texture = (is_first_effect ? geometry_buffer->colour : source_buffer->colour);
 		glBindTexture(GL_TEXTURE_2D, source_buffer->colour);
+		active_texture = source_buffer->colour;
 	}
 	else {
 
