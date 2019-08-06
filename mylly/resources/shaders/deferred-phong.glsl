@@ -1,5 +1,4 @@
 #define VERTEX_UI
-#define DEFERRED_LIGHTING
 #pragma include inc/mylly.glinc
 #pragma include inc/lighting.glinc
 

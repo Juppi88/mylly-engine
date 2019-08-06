@@ -24,6 +24,12 @@ typedef struct mylly_params_t {
 
 	} splash;
 
+	struct {
+
+		bool use_deferred_lighting; // When set to true, deferred lighting is used
+
+	} renderer;
+
 } mylly_params_t;
 
 // -------------------------------------------------------------------------------------------------
@@ -38,6 +44,8 @@ void mylly_set_scene(scene_t *scene);
 void mylly_exit(void);
 
 void mylly_get_resolution(uint16_t *width, uint16_t *height);
+
+const mylly_params_t *mylly_get_parameters(void);
 
 END_DECLARATIONS;
 

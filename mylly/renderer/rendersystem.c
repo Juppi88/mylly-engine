@@ -31,7 +31,7 @@ static list_t(rview_t) views; // List of views to be rendered this frame
 static rview_t *ui_view; // A dedicated view for UI widgets due to UI not needing a camera
 static robject_t ui_parent; // A virtual object to be used as the UI parent
 
-static rendermode_t render_mode = RENDMODE_FORWARD; // Render mode, used for lighting
+static bool is_using_deferred_lighting = false; // Toggle for forward/deferred lighting mode
 
 // -------------------------------------------------------------------------------------------------
 
@@ -65,6 +65,8 @@ void rsys_initialize(void)
 		0, 0, 1, 0,
 		-1, -1, 0, 1
 	);
+
+	is_using_deferred_lighting = mylly_get_parameters()->renderer.use_deferred_lighting;
 
 	log_message("RenderSystem", "Rendering system initialized.");
 }
@@ -205,7 +207,7 @@ void rsys_render_scene(scene_t *scene)
 
 		// When rendering in deferred mode, add a list of lights affecting this view.
 		// TODO: Actually check which lights are in the view! For now we're just copying all lights.
-		if (render_mode == RENDMODE_DEFERRED) {
+		if (is_using_deferred_lighting) {
 
 			view->lights = mem_alloc_fast(lights.count * sizeof(rlight_t*));
 			view->num_lights = lights.count;
@@ -295,16 +297,6 @@ void rsys_render_mesh(mesh_t *mesh, bool is_ui_mesh)
 			list_push(view->meshes[rmesh->shader->queue], rmesh);
 		}
 	}
-}
-
-rendermode_t rsys_get_render_mode(void)
-{
-	return render_mode;
-}
-
-void rsys_set_render_mode(rendermode_t mode)
-{
-	render_mode = mode;
 }
 
 static void rsys_cull_object(object_t *object)
@@ -469,8 +461,8 @@ static void rsys_add_mesh_to_view(mesh_t *mesh, object_t *object, robject_t *par
 	// If the material used by the mesh is affected by lighting, collect all the lights contributing
 	// to the mesh. This is only done if the rendering mode is forward - all lights are rendered
 	// as a post process effect in the deferred lighting mode.
-	if (render_mode == RENDMODE_FORWARD &&
-		shader_is_affected_by_light(rmesh->shader)) {
+	if (shader_is_affected_by_light(rmesh->shader) &&
+		!is_using_deferred_lighting) {
 
 		rsys_collect_mesh_lights(rmesh, object);
 	}

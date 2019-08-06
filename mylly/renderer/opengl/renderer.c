@@ -50,6 +50,8 @@ static GLuint splash_screen_indices;
 // Debug variables. Used to override normal rendering pipeline.
 static gbuffer_component_t override_gbuffer_component = GBUFFER_NONE;
 
+static bool is_using_deferred_lighting = false; // Toggle for forward/deferred lighting mode
+
 // -------------------------------------------------------------------------------------------------
 
 
@@ -172,6 +174,8 @@ bool rend_initialize(void)
 	log_message("Renderer", "GLSL version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	glDisable(GL_DEPTH_TEST);
+
+	is_using_deferred_lighting = mylly_get_parameters()->renderer.use_deferred_lighting;
 
 	return true;
 }
@@ -305,7 +309,7 @@ void rend_draw_views(rview_t *first_view)
 
 		// Handle deferred lighting and post processing effects.
 		if (queue == QUEUE_GEOMETRY &&
-			rsys_get_render_mode() == RENDMODE_DEFERRED) {
+			is_using_deferred_lighting) {
 
 			// TODO: Apply lighting for each view (except UI)!
 			view = first_view;
@@ -678,22 +682,30 @@ shader_object_t rend_create_shader(SHADER_TYPE type, const char **lines, size_t 
 								   const char **compiler_log)
 {
 	GLenum shader_type;
-
-	// Set the type of the shader and prepend the shader version to the source.
-	const char *defines_format = "#version %s\n#define %s\n";
-	char defines[100];
+	const char *shader_type_name;
 
 	switch (type) {
 
 	case SHADER_FRAGMENT:
-		snprintf(defines, sizeof(defines), defines_format, "130", "FRAGMENT_SHADER");
 		shader_type = GL_FRAGMENT_SHADER;
+		shader_type_name = "FRAGMENT_SHADER";
 		break;
 
 	default:
-		snprintf(defines, sizeof(defines), defines_format, "130", "VERTEX_SHADER");
 		shader_type = GL_VERTEX_SHADER;
+		shader_type_name = "VERTEX_SHADER";
 		break;
+	}
+
+	// Set the type of the shader and prepend GLSL version and some defines to the source.
+	char defines[1000];
+	int n = 0;
+
+	n += snprintf(&defines[n], sizeof(defines) - n, "#version %s\n", "130");
+	n += snprintf(&defines[n], sizeof(defines) - n, "#define %s\n", shader_type_name);
+
+	if (is_using_deferred_lighting) {
+		n += snprintf(&defines[n], sizeof(defines) - n, "#define DEFERRED_LIGHTING\n");
 	}
 
 	// Create a shader object.
@@ -884,8 +896,8 @@ void rend_draw_splash_screen(texture_t *texture, shader_t *shader, colour_t back
 
 		float aspect = 1.0f * scr_w / scr_h;
 
-		float w = 0.5f * texture->width / (aspect * 1080);
-		float h = 0.5f * texture->height / 1080;
+		float w = 1.0f * texture->width / (aspect * 1080);
+		float h = 1.0f * texture->height / 1080;
 
 		struct splash_vertex_t vertices[4] = {
 			{ vec2(-1 * w, -1 * h), vec2(0, 0) },

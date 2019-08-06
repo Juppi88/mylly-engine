@@ -174,3 +174,8 @@ void mylly_get_resolution(uint16_t *width, uint16_t *height)
 		*height = (uint16_t)monitor.height;
 	}
 }
+
+const mylly_params_t *mylly_get_parameters(void)
+{
+	return &parameters;
+}
