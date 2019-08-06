@@ -94,8 +94,8 @@ void rsys_begin_frame(void)
 
 	ui_view = view;
 	ui_view->ambient_light = col_to_vec4(COL_WHITE);
-	ui_view->near = ORTOGRAPHIC_NEAR;
-	ui_view->far = ORTOGRAPHIC_FAR;
+	ui_view->near_plane = ORTOGRAPHIC_NEAR;
+	ui_view->far_plane = ORTOGRAPHIC_FAR;
 
 	// Update UI render area resolution.
 	ui_parent.mvp.col[0][0] = 2.0f / mgui_parameters.width;
@@ -191,8 +191,8 @@ void rsys_render_scene(scene_t *scene)
 
 		view->view_position = vec3_to_vec4(obj_get_position(camera));
 		view->ambient_light = col_to_vec4(scene->ambient_light);
-		view->near = camera->camera->clip_near;
-		view->far = camera->camera->clip_far;
+		view->near_plane = camera->camera->clip_near;
+		view->far_plane = camera->camera->clip_far;
 
 		// Initialize a virtual root object.
 		view->root.matrix = mat_identity();

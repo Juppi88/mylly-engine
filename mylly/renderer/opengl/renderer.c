@@ -814,7 +814,7 @@ const char *rend_get_default_shader_source(default_shader_t shader)
 {
 	switch (shader) {
 
-		case DEFAULT_SHADER_MAIN:
+		default:
 			return default_shader_source;
 
 		case DEFAULT_SHADER_SPLASHSCREEN:
@@ -1029,7 +1029,7 @@ static void rend_update_uniforms(robject_t *parent_obj, rview_t *view, bool is_e
 
 	uint16_t width, height;
 	mylly_get_resolution(&width, &height);
-	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, view->near, view->far);
+	vector_array[UNIFORM_VEC_SCREEN] = vec4(width, height, view->near_plane, view->far_plane);
 
 	sampler_array[UNIFORM_SAMPLER_MAIN] = 0;
 	sampler_array[UNIFORM_SAMPLER_NORMAL] = 1;
