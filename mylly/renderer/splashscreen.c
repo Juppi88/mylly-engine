@@ -14,7 +14,7 @@ static shader_t *shader = NULL; // Shader which is used to render the splash scr
 static colour_t colour = { .r = 0, .g = 0, .b = 0, .a = 255 }; // Splash screen background colour
 static uint64_t display_time = 0; // Time when the splash screen is displayed.
 
-static const int SPLASH_MIN_DURATION = 500;
+static const int SPLASH_MIN_DURATION = 750;
 static const int SPLASH_FADE_TIME = 500;
 
 // -------------------------------------------------------------------------------------------------
