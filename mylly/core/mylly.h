@@ -27,6 +27,8 @@ typedef struct mylly_params_t {
 	struct {
 
 		bool use_deferred_lighting; // When set to true, deferred lighting is used
+		char ambient_stage_shader[100]; // Name of the deferred ambient lighting shader
+		char light_stage_shader[100]; // Name of the deferred light shader
 
 	} renderer;
 

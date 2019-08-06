@@ -50,7 +50,10 @@ static GLuint splash_screen_indices;
 // Debug variables. Used to override normal rendering pipeline.
 static gbuffer_component_t override_gbuffer_component = GBUFFER_NONE;
 
+// Deferred lighting.
 static bool is_using_deferred_lighting = false; // Toggle for forward/deferred lighting mode
+static shader_t *ambient_shader;
+static shader_t *light_shader;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -206,6 +209,20 @@ void rend_shutdown(void)
 #endif
 }
 
+void rend_preload_shaders(void)
+{
+	if (!is_using_deferred_lighting) {
+		return;
+	}
+
+	ambient_shader = res_get_shader(mylly_get_parameters()->renderer.ambient_stage_shader);
+	light_shader = res_get_shader(mylly_get_parameters()->renderer.light_stage_shader);
+
+	if (ambient_shader == NULL || light_shader == NULL) {
+		log_warning("Renderer", "Failed to load shaders for all deferred lighting stages.");
+	}
+}
+
 void rend_begin_draw(void)
 {
 	// Clear the framebuffers.
@@ -309,15 +326,12 @@ void rend_draw_views(rview_t *first_view)
 
 		// Handle deferred lighting and post processing effects.
 		if (queue == QUEUE_GEOMETRY &&
-			is_using_deferred_lighting) {
+			is_using_deferred_lighting &&
+			ambient_shader != NULL &&
+			light_shader != NULL) {
 
 			// TODO: Apply lighting for each view (except UI)!
 			view = first_view;
-
-			// Get a shader to draw the lights with.
-			// TODO: Have a method to set the lighting shader (for other than Phong model lighting!)
-			shader_t *ambient_shader = res_get_shader("deferred-ambient");
-			shader_t *light_shader = res_get_shader("deferred-phong");
 
 			// Draw the ambient pass.
 			last_used_fb_index = 0;

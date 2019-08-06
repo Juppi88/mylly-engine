@@ -8,6 +8,7 @@
 #include "platform/inputhook.h"
 #include "platform/platform.h"
 #include "renderer/rendersystem.h"
+#include "renderer/renderer.h"
 #include "renderer/debug.h"
 #include "renderer/splashscreen.h"
 #include "resources/resources.h"
@@ -39,6 +40,14 @@ bool mylly_initialize(int argc, char **argv, const mylly_params_t *params)
 	// Copy initialization parameters.
 	if (params != NULL) {
 		memcpy(&parameters, params, sizeof(parameters));
+
+		// Provide default deferred lighting stage shaders.
+		if (parameters.renderer.ambient_stage_shader[0] == 0) {
+			strcpy(parameters.renderer.ambient_stage_shader, "deferred-ambient");
+		}
+		if (parameters.renderer.light_stage_shader[0] == 0) {
+			strcpy(parameters.renderer.light_stage_shader, "deferred-phong");
+		}
 	}
 	
 	// Set working directory to the path of the executable.
@@ -82,6 +91,9 @@ bool mylly_initialize(int argc, char **argv, const mylly_params_t *params)
 	mgui_initialize(mgui_params);
 
 	time_initialize();
+
+	// Cache references to some special shaders (i.e. deferred lighting stage).
+	rend_preload_shaders();
 
 	// Fade out the splash screen logo.
 	splash_fade_out();

@@ -2,7 +2,7 @@
 
 Mylly Game Engine is a lightweight and minimalistic game engine written entirely in C.
 
-At its current state, Mylly is a 3D rendering framework with a collection of utilities for game development (e.g. AI) and 3D audio. Currently Mylly does not handle physics, nor is there a plan to add an extensive physics component into the engine (other than perhaps some ray tracing or similar utilities).
+At its current state, Mylly is a 3D rendering framework with a collection of utilities for game development (e.g. AI and 3D audio). Currently Mylly does not handle physics, nor is there a plan to add an extensive physics component into the engine in the near future (other than perhaps some raytracing or similar utilities).
 
 ## Features
 
@@ -15,7 +15,7 @@ Mylly engine is developed a few core principles in mind:
 Several ideas for the future include:
 
 * Taking advantage of high-end hardware with a Vulkan renderer (OpenGL would become a minimal legacy renderer)
-* Deferred rendering
+* ~~Deferred lighting~~
 * More advanced scene graph (utilizing quad/octrees, BSPs etc.) allowing renderer optimizations
 * Better memory allocators (for persistent and per-frame data)
 * Shadows, shadow mapping

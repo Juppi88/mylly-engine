@@ -16,6 +16,8 @@ BEGIN_DECLARATIONS;
 bool rend_initialize(void);
 void rend_shutdown(void);
 
+void rend_preload_shaders(void);
+
 void rend_begin_draw(void);
 void rend_end_draw(void);
 
